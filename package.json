@@ -1,0 +1,71 @@
+{
+  "name": "cenacle-ai",
+  "productName": "Cénacle",
+  "version": "0.1.0",
+  "description": "Use several Claude, ChatGPT, Gemini (and more) accounts in a single window, each with its own isolated session. Unofficial cross-platform Electron desktop app.",
+  "keywords": [
+    "electron",
+    "claude",
+    "chatgpt",
+    "gemini",
+    "multi-account",
+    "llm",
+    "ai-assistant",
+    "desktop-app",
+    "typescript",
+    "preact",
+    "cross-platform",
+    "macos",
+    "linux",
+    "windows",
+    "multi-provider"
+  ],
+  "author": "Jeromearsene (https://github.com/Jeromearsene)",
+  "license": "CC-BY-NC-SA-4.0",
+  "homepage": "https://github.com/Jeromearsene/cenacle-AI#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jeromearsene/cenacle-AI.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Jeromearsene/cenacle-AI/issues"
+  },
+  "private": true,
+  "main": "./out/main/index.js",
+  "packageManager": "yarn@4.18.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "volta": {
+    "node": "22.23.5",
+    "yarn": "4.18.1"
+  },
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "test:e2e": "electron-vite build && playwright test -c e2e/playwright.config.ts",
+    "postinstall": "node node_modules/electron/install.js",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "check": "yarn lint && yarn typecheck"
+  },
+  "devDependencies": {
+    "@babel/core": "^7",
+    "@biomejs/biome": "^2.6.8",
+    "@playwright/test": "^1.65.1",
+    "@preact/preset-vite": "^2.10.6",
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/node": "^22",
+    "electron": "^45.3.3",
+    "electron-vite": "^6.0.0",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  },
+  "dependencies": {
+    "preact": "^11.2.0"
+  }
+}

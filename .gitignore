@@ -1,0 +1,11 @@
+node_modules/
+dist/
+out/
+.DS_Store
+.yarn/*
+!.yarn/releases
+!.yarn/patches
+!.yarn/plugins
+.pnp.*
+test-results/
+playwright-report/

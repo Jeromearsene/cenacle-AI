@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+/* Palette : Tailwind en génère les utilitaires (bg-panel, text-muted, border-line…). Le thème
+   sombre ne change que les valeurs des variables, donc aucune classe `dark:` n'est nécessaire. */
+@theme {
+  --color-bg: #f5f4ee;
+  --color-panel: #ebe9df;
+  --color-line: #d6d3c6;
+  --color-ink: #2b2a27;
+  --color-muted: #7a776c;
+  --color-hover: rgb(0 0 0 / 0.06);
+  --color-active: rgb(0 0 0 / 0.1);
+  --color-accent: #d97757;
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #1f1e1d;
+    --color-panel: #262523;
+    --color-line: #3a3835;
+    --color-ink: #ece9e1;
+    --color-muted: #9b978b;
+    --color-hover: rgb(255 255 255 / 0.06);
+    --color-active: rgb(255 255 255 / 0.1);
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  html,
+  body,
+  #app {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  body {
+    /* visible dans le filet de 1 px entre les colonnes */
+    background: var(--color-line);
+    color: var(--color-ink);
+    font: 13px / 1.4 var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+  }
+}

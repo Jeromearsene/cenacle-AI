@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test';
-import { accountNames, evalIn, expect, serviceIds, test } from './fixtures';
+import { accountNames, evalIn, expect, test, waitForServices } from './fixtures';
 
 async function addAccount(sidebar: Page, label: string): Promise<void> {
   await sidebar.getByRole('button', { name: '+ Ajouter un compte' }).click();
@@ -42,8 +42,7 @@ test('affiche tous les comptes en colonnes', async ({ launch }) => {
 test('isole les cookies et le stockage de chaque compte', async ({ launch, service }) => {
   const { app, sidebar } = await launch();
   await addAccount(sidebar, 'Claude');
-  await expect.poll(() => serviceIds(app, service.url)).toHaveLength(2);
-  const [a, b] = await serviceIds(app, service.url);
+  const [a, b] = await waitForServices(app, service.url, 2);
   if (a === undefined || b === undefined) throw new Error('vues manquantes');
 
   await evalIn(app, a, `document.cookie = 'who=A; path=/'; localStorage.setItem('who', 'A')`);
@@ -82,7 +81,7 @@ test('retrouve comptes, noms et sessions après un redémarrage', async ({ launc
   await addAccount(first.sidebar, 'Gemini');
   await expect.poll(() => accountNames(first.sidebar)).toEqual(['Perso', 'Gemini 1']);
 
-  const [claudeView] = await serviceIds(first.app, service.url);
+  const [claudeView] = await waitForServices(first.app, service.url, 1);
   if (claudeView === undefined) throw new Error('vue manquante');
   await evalIn(first.app, claudeView, `localStorage.setItem('who', 'perso')`);
   await first.app.close();
@@ -93,10 +92,9 @@ test('retrouve comptes, noms et sessions après un redémarrage', async ({ launc
 
   // Le compte « Perso » doit retrouver sa propre session.
   await second.sidebar.locator('.account', { hasText: 'Perso' }).click();
-  await expect.poll(() => serviceIds(second.app, service.url)).toHaveLength(2);
   // Après un redémarrage, la vue de Gemini (compte actif) est créée en premier : celle de
   // « Perso », ouverte ensuite, est la plus récente.
-  const persoView = (await serviceIds(second.app, service.url)).at(-1);
+  const persoView = (await waitForServices(second.app, service.url, 2)).at(-1);
   if (persoView === undefined) throw new Error('vue manquante');
   await expect
     .poll(() => evalIn<string | null>(second.app, persoView, `localStorage.getItem('who')`))

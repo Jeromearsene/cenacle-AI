@@ -113,6 +113,25 @@ export async function serviceIds(app: ElectronApplication, origin: string): Prom
   return ids.sort((a, b) => a - b);
 }
 
+/**
+ * Attend qu'au moins `count` pages de service soient chargées, puis rend leurs identifiants. À préférer à
+ * `serviceIds` seul : sur une machine lente (CI Windows, macOS), la page d'un compte n'a pas
+ * toujours d'adresse au moment où on la cherche.
+ */
+export async function waitForServices(
+  app: ElectronApplication,
+  origin: string,
+  count: number
+): Promise<number[]> {
+  let ids: number[] = [];
+  await expect
+    .poll(async () => (ids = await serviceIds(app, origin)).length, {
+      message: `au moins ${count} page(s) de service chargée(s)`,
+    })
+    .toBeGreaterThanOrEqual(count);
+  return ids;
+}
+
 /** Exécute du JavaScript dans la page d'un service. */
 export async function evalIn<T>(app: ElectronApplication, id: number, code: string): Promise<T> {
   return app.evaluate(

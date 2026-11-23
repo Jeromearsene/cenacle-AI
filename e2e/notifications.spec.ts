@@ -11,7 +11,7 @@ import { evalIn, expect, test, waitForServices } from './fixtures';
 
 test.describe('pastille et titre des notifications', () => {
   test('le titre commence par le nom du compte', () => {
-    expect(notificationTitle('Perso', 'Réponse prête')).toBe('Perso · Réponse prête');
+    expect(notificationTitle('Personal', 'Reply ready')).toBe('Personal · Reply ready');
   });
 
   test('la pastille est un PNG valide de la couleur du compte, fond transparent', () => {
@@ -20,7 +20,7 @@ test.describe('pastille et titre des notifications', () => {
     expect(png.readUInt32BE(16)).toBe(64); // largeur
     expect(png.readUInt32BE(20)).toBe(64); // hauteur
 
-    // on relit les pixels : le centre est plein et coloré, le coin est transparent
+    // read the pixels back: the center is solid and colored, the corner is transparent
     const idatStart = png.indexOf('IDAT') + 4;
     const idatLen = png.readUInt32BE(png.indexOf('IDAT') - 4);
     const raw = inflateSync(png.subarray(idatStart, idatStart + idatLen));
@@ -38,11 +38,11 @@ test.describe('pastille et titre des notifications', () => {
     expect(dotDataUrl('#6a9bcc')).toMatch(/^data:image\/png;base64,/);
   });
 
-  test('l’identité passe par un argument que le preload sait relire', () => {
-    const arg = identityArgument({ name: 'Cénacle « test »', icon: 'data:x' });
+  test('the identity goes through an argument the preload can read back', () => {
+    const arg = identityArgument({ name: 'Cénacle “test”', icon: 'data:x' });
     expect(arg.startsWith(ARG_PREFIX)).toBe(true);
     expect(JSON.parse(Buffer.from(arg.slice(ARG_PREFIX.length), 'base64').toString()).name).toBe(
-      'Cénacle « test »'
+      'Cénacle “test”'
     );
   });
 });
@@ -57,23 +57,23 @@ async function addAccount(sidebar: Page, label: string): Promise<void> {
 }
 
 test.describe('notifications des pages de service', () => {
-  test('portent le nom du compte et sa pastille, même créées au chargement', async ({
+  test('carry the account name and color dot, even when created at load', async ({
     launch,
     service,
   }) => {
     const { app } = await launch();
     const [id] = await waitForServices(app, new URL(service.url).origin, 1);
-    // la page peut ne pas avoir fini de s'exécuter : on attend le résultat plutôt que de le lire une fois
+    // the page may not have finished running: wait for the result instead of reading it once
     await expect
       .poll(() => evalIn<string>(app, id as number, 'window.earlyNotificationTitle'))
-      .toBe('Claude 1 · tôt');
+      .toBe('Claude 1 · early');
     await expect.poll(() => notifTitle(app, id as number, 'Salut')).toBe('Claude 1 · Salut');
     await expect
       .poll(() => evalIn<string>(app, id as number, 'new Notification("x").icon'))
       .toMatch(/^data:image\/png;base64,/);
   });
 
-  test('rien n’est exposé à la page', async ({ launch, service }) => {
+  test('nothing is exposed to the page', async ({ launch, service }) => {
     const { app } = await launch();
     const [id] = await waitForServices(app, new URL(service.url).origin, 1);
     const leaked = await evalIn<string[]>(
@@ -84,7 +84,7 @@ test.describe('notifications des pages de service', () => {
     expect(leaked).toEqual([]);
   });
 
-  test('suivent le renommage du compte', async ({ launch, service }) => {
+  test('follow the account being renamed', async ({ launch, service }) => {
     const { app, sidebar } = await launch();
     const [id] = await waitForServices(app, new URL(service.url).origin, 1);
     await sidebar.locator('.account .name').dblclick();
@@ -93,7 +93,7 @@ test.describe('notifications des pages de service', () => {
     await expect.poll(() => notifTitle(app, id as number, 'Salut')).toBe('Perso · Salut');
   });
 
-  test('un clic sur la notification affiche le compte concerné', async ({ launch, service }) => {
+  test('clicking the notification shows the matching account', async ({ launch, service }) => {
     const { app, sidebar } = await launch();
     await addAccount(sidebar, 'ChatGPT');
     const ids = await waitForServices(app, new URL(service.url).origin, 2);
@@ -101,7 +101,7 @@ test.describe('notifications des pages de service', () => {
     await sidebar.locator('#accounts .account').first().click();
     await expect(sidebar.locator('.account.active .name')).toHaveText('Claude 1');
 
-    // la page du deuxième compte signale un clic sur l'une de ses notifications
+    // the second account's page reports a click on one of its notifications
     await evalIn(
       app,
       ids[1] as number,

@@ -1,10 +1,10 @@
 /// <reference lib="dom" />
 import { ipcRenderer, webFrame } from 'electron';
 
-// Preload des pages de service (Claude, ChatGPT, Gemini…). Il n'expose RIEN à la page : il se
-// contente d'habiller les notifications web avec le nom et la pastille du compte, pour savoir
-// de quel compte elles viennent. Ce fichier est autonome (aucun import local) : un preload
-// sandboxé ne peut pas charger d'autres modules.
+// Preload for service pages (Claude, ChatGPT, Gemini…). It exposes NOTHING to the page: it only
+// dresses up web notifications with the account's name and color dot, so you can tell which
+// account they come from. This file is self-contained (no local imports): a sandboxed preload
+// cannot load other modules.
 
 const ARG_PREFIX = '--cenacle-notifications=';
 const CLICK_EVENT = 'cenacle:notification-click';
@@ -25,8 +25,8 @@ function readIdentity(): Identity {
   }
 }
 
-// Exécuté dans le monde principal de la page, avant ses propres scripts. Idempotent : un second
-// appel (compte renommé) ne fait que mettre le nom à jour.
+// Runs in the page's main world, before its own scripts. Idempotent: a second call (account
+// renamed) only updates the name.
 const script = (identity: Identity, clickEvent: string) => `(() => {
   const KEY = Symbol.for('cenacle.notifications');
   const w = window;
@@ -65,10 +65,10 @@ const install = (identity: Identity) => {
 
 install(readIdentity());
 
-// Le compte a été renommé.
+// The account was renamed.
 ipcRenderer.on('account:renamed', (_event, name: unknown) => {
   if (typeof name === 'string') install({ ...readIdentity(), name });
 });
 
-// Un clic sur la notification (déclenché par la page) : on demande à l'app d'afficher le compte.
+// A click on the notification (triggered by the page): ask the app to show the account.
 window.addEventListener(CLICK_EVENT, () => ipcRenderer.send('account:notification-click'));

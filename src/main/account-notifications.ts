@@ -1,8 +1,8 @@
-// Identité visuelle des notifications d'un compte : son nom dans le titre et sa pastille de
-// couleur en guise d'icône. Pas de dépendance à Electron : testable sans lancer l'app.
+// Visual identity of an account's notifications: its name in the title and its color dot as the
+// icon. No dependency on Electron: testable without launching the app.
 import { deflateSync } from 'node:zlib';
 
-/** « Perso · Nouveau message » : le nom du compte précède le titre voulu par le service. */
+/** "Personal · New message": the account name precedes the title chosen by the service. */
 export const notificationTitle = (accountName: string, title: string): string =>
   `${accountName} · ${title}`;
 
@@ -26,7 +26,7 @@ function chunk(type: string, data: Buffer): Buffer {
   return Buffer.concat([head, data, tail]);
 }
 
-/** Un PNG RGBA : disque plein de la couleur du compte, bords lissés, fond transparent. */
+/** An RGBA PNG: a solid disc in the account color, smooth edges, transparent background. */
 export function dotPng(color: string, size = 128): Buffer {
   if (!HEX.test(color)) throw new Error(`couleur invalide : ${color}`);
   const [r, g, b] = [1, 3, 5].map((i) => Number.parseInt(color.slice(i, i + 2), 16));
@@ -62,7 +62,7 @@ export function dotPng(color: string, size = 128): Buffer {
 export const dotDataUrl = (color: string): string =>
   `data:image/png;base64,${dotPng(color).toString('base64')}`;
 
-/** Ce que le preload d'une page de service reçoit (en argument de ligne de commande). */
+/** What the preload of a service page receives (as a command-line argument). */
 export interface NotificationIdentity {
   name: string;
   icon: string;

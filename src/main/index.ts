@@ -218,7 +218,7 @@ function createView(acc: Account, parent: BrowserWindow): WebContentsView {
       sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,
-      // N'expose rien à la page : habille seulement ses notifications (nom + pastille du compte).
+      // Exposes nothing to the page: only dresses up its notifications (account name + color dot).
       preload: path.join(__dirname, '../preload/service.js'),
       additionalArguments: [identityArgument({ name: acc.name, icon: dotDataUrl(acc.color) })],
     },
@@ -365,7 +365,7 @@ function renameAccount(id: string, name: unknown): boolean {
   const clean = typeof name === 'string' ? name.trim().slice(0, MAX_NAME) : '';
   if (!acc || !clean) return false;
   acc.name = clean;
-  // Les notifications de ce compte portent son nom : on prévient la page de service.
+  // This account's notifications carry its name: tell the service page.
   const view = views.get(id);
   if (view && !view.webContents.isDestroyed()) view.webContents.send('account:renamed', clean);
   refresh({ relayout: false });
@@ -413,7 +413,7 @@ function zoomActive(delta: number): void {
 
 // ------------------------------------------------------------------ IPC (interface → processus principal)
 
-// Clic sur une notification d'un service : on affiche son compte et on ramène l'app au premier plan.
+// Click on a service notification: show its account and bring the app to the foreground.
 ipcMain.on('account:notification-click', (event) => {
   const entry = [...views].find(([, view]) => view.webContents === event.sender);
   if (!entry || event.senderFrame !== event.sender.mainFrame) return;

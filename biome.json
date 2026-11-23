@@ -2,7 +2,15 @@
   "$schema": "https://biomejs.dev/schemas/2.6.8/schema.json",
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
-    "includes": ["**", "!out", "!test-results", "!playwright-report", "!.yarn", "!yarn.lock"]
+    "includes": [
+      "**",
+      "!out",
+      "!test-results",
+      "!playwright-report",
+      "!.yarn",
+      "!yarn.lock",
+      "!resources"
+    ]
   },
   "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
   "javascript": {

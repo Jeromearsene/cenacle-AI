@@ -1,3 +1,5 @@
+<p align="center"><img src="resources/icon.png" alt="Icône de Cénacle" width="128"></p>
+
 # Cénacle
 
 [English](README.md) · **Français**
@@ -177,6 +179,7 @@ src/main/context-menu*.ts         menu du clic droit (modèle pur + branchement)
 src/preload/index.ts              pont minimal vers l'interface (contextBridge)
 src/shared/types.ts               types partagés entre les trois
 src/renderer/                     interface Preact + Tailwind (barre latérale, en-têtes de colonnes)
+resources/                        icône de l'app (source SVG, PNG, ICO, ICNS)
 e2e/                              tests Playwright
 .github/                          workflow CI et Dependabot
 ```

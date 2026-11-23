@@ -122,6 +122,10 @@ Ce que tu peux faire :
 - Copier le mot de passe depuis ton gestionnaire, puis coller avec ⌘V ou clic droit → Coller (le menu contextuel est là pour ça).
 - Gestionnaires tiers : le remplissage universel de 1Password (⌘\) est signalé comme fonctionnel dans certaines apps Electron signées (même ticket #54142) ; il n'a **pas** été testé avec cette app.
 
+## Permissions
+
+Les pages des services sont des sites web : l'app ne leur accorde que ce qu'un chat demande, c'est-à-dire les notifications, le copier-coller, le plein écran et le **micro** (mode vocal). La caméra, le partage d'écran, la localisation et toutes les autres permissions sont refusés. Seule la page elle-même, pas un cadre tiers qu'elle intègre, peut utiliser les notifications ou le micro. La règle est dans `src/main/permissions.ts`.
+
 ## Où sont les données
 
 - Sessions : dossier `Partitions/` dans le dossier de données de l'app. Une partition par compte.
@@ -174,6 +178,7 @@ Les tests lancent l'app Electron avec Playwright, contre un faux service local (
 ```
 src/main/index.ts                 processus principal : fenêtre, une vue par compte, mise en page, menu
 src/main/providers.ts             services pris en charge (URL, identifiant de navigateur, domaines de connexion)
+src/main/permissions.ts            permissions accordées aux pages des services
 src/main/state.ts                 lecture / validation / écriture de state.json
 src/main/context-menu*.ts         menu du clic droit (modèle pur + branchement)
 src/preload/index.ts              pont minimal vers l'interface (contextBridge)

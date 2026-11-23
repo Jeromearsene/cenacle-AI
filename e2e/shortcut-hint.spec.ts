@@ -1,6 +1,6 @@
 import { createShortcutHint, shortcutModifierFor } from '../src/main/shortcut-hint';
 import { accountShortcutLabel, MAX_ACCOUNT_SHORTCUTS } from '../src/shared/shortcuts';
-import { expect, serviceIds, test } from './fixtures';
+import { expect, test, waitForServices } from './fixtures';
 
 const key = (type: 'keyDown' | 'keyUp', k: string, isAutoRepeat = false) => ({
   type,
@@ -100,7 +100,7 @@ test.describe('numéros des raccourcis (⌘ / Ctrl maintenu)', () => {
     await expect(sidebar.locator('#accounts .account')).toHaveCount(2);
 
     const modifier = shortcutModifierFor(process.platform);
-    const ids = await serviceIds(app, new URL(service.url).origin);
+    const ids = await waitForServices(app, new URL(service.url).origin, 2);
     const send = (type: string) =>
       app.evaluate(
         ({ webContents }, { id, type, modifier }) =>

@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
 
-# Une seule exécution à la fois par branche : une nouvelle poussée annule l'ancienne.
+# One run at a time per branch: a new push cancels the previous one.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 env:
-  # Garder en phase avec la clé `volta.node` de package.json.
+  # Keep in sync with the `volta.node` key of package.json.
   NODE_VERSION: "22"
 
 jobs:

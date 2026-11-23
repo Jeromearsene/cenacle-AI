@@ -1,5 +1,5 @@
-// Types partagés entre le processus principal, le preload et l'interface.
-// Uniquement des types : ce fichier ne doit rien importer de Node ni d'Electron.
+// Types shared between the main process, the preload and the interface.
+// Types only: this file must not import anything from Node or Electron.
 
 export type Layout = 'single' | 'columns';
 
@@ -7,7 +7,7 @@ export interface Account {
   id: string;
   name: string;
   color: string;
-  /** Identifiant du service (voir providers.ts). */
+  /** Service identifier (see providers.ts). */
   provider: string;
 }
 
@@ -18,7 +18,7 @@ export interface Bounds {
   height: number;
 }
 
-/** Ce qui est écrit dans state.json. */
+/** What is written to state.json. */
 export interface PersistedState {
   version: 2;
   accounts: Account[];
@@ -29,7 +29,7 @@ export interface PersistedState {
   fullscreen: boolean;
 }
 
-/** Position d'une colonne (en-tête + vue du service), en pixels de la fenêtre. */
+/** Position of a column (header + service view), in window pixels. */
 export interface Rect {
   id: string;
   x: number;
@@ -45,7 +45,7 @@ export interface ProviderInfo {
   label: string;
 }
 
-/** Ce que l'interface reçoit du processus principal. */
+/** What the interface receives from the main process. */
 export interface PublicState {
   appName: string;
   providers: ProviderInfo[];
@@ -56,7 +56,7 @@ export interface PublicState {
   sidebarW: number;
 }
 
-/** API exposée par le preload sous `window.multi`. */
+/** API exposed by the preload as `window.multi`. */
 export interface MultiApi {
   platform: string;
   getState(): Promise<PublicState>;

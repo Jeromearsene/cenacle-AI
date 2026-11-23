@@ -56,7 +56,7 @@ function parseAccount(a: unknown): Account | null {
     id,
     name: name.slice(0, MAX_NAME),
     color,
-    // état v1 (Claude uniquement) : pas de champ « provider »
+    // state v1 (Claude only): no "provider" field
     provider: isProviderId(provider) ? provider : DEFAULT_PROVIDER,
   };
 }
@@ -69,7 +69,7 @@ function parseBounds(b: unknown): Bounds | null {
   return { x, y, width, height } as Bounds;
 }
 
-/** Valide un contenu de state.json (v1 ou v2) ; retombe sur l'état par défaut si inutilisable. */
+/** Validates the content of state.json (v1 or v2); falls back to the default state if unusable. */
 export function parseState(raw: unknown): PersistedState {
   if (!isRecord(raw) || !Array.isArray(raw.accounts)) return defaultState();
   const accounts = raw.accounts.map(parseAccount).filter((a): a is Account => a !== null);

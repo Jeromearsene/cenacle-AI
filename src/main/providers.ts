@@ -1,14 +1,14 @@
-// Services pris en charge. Pour en ajouter un, il suffit d'une entrée dans PROVIDERS
-// (voir « Adding a service » dans le README).
+// Supported services. To add one, a single entry in PROVIDERS is enough
+// (see "Adding a service" in the README).
 //
-// ua : identifiant de navigateur envoyé aux sites
-//   'clean'  : sans « Electron/x » ni nom d'app, comme un Chrome standard
-//              (passe mieux les contrôles anti-robots de type Cloudflare)
-//   'native' : identifiant d'Electron laissé tel quel
-//              (Google refuse la connexion avec l'identifiant « nettoyé »)
+// ua: browser identifier sent to websites
+//   'clean'  : without "Electron/x" or the app name, like a standard Chrome
+//              (gets through anti-bot checks such as Cloudflare's more easily)
+//   'native' : Electron's identifier left as is
+//              (Google refuses sign-in with the "cleaned" identifier)
 //
-// authHosts (facultatif) : domaines de connexion propres au service, en plus des fournisseurs
-// d'identité courants (Google, Microsoft, Apple) déjà connus de tous les services.
+// authHosts (optional): sign-in domains specific to the service, in addition to the common
+// identity providers (Google, Microsoft, Apple) already known to every service.
 
 export interface Provider {
   id: string;
@@ -35,12 +35,12 @@ export const DEFAULT_PROVIDER = 'claude';
 export const isProviderId = (id: unknown): id is string =>
   typeof id === 'string' && Object.hasOwn(PROVIDERS, id);
 
-/** Le service d'un compte ; un identifiant inconnu retombe sur le service par défaut. */
+/** The service of an account; an unknown id falls back to the default service. */
 export const providerOf = (id: unknown): Provider =>
   (isProviderId(id) ? PROVIDERS[id] : undefined) ?? (PROVIDERS[DEFAULT_PROVIDER] as Provider);
 
-// Fournisseurs d'identité courants : les popups qui s'y ouvrent restent dans l'app, dans la
-// session du compte concerné, pour que la connexion aboutisse sur le bon compte.
+// Common identity providers: popups opening there stay in the app, in the session of the
+// matching account, so the sign-in ends up on the right account.
 const COMMON_AUTH_HOSTS = [
   'accounts.google.com',
   'accounts.youtube.com',
@@ -49,7 +49,7 @@ const COMMON_AUTH_HOSTS = [
   'appleid.apple.com',
 ];
 
-/** Ce domaine est-il une page de connexion, pour ce service (ou en général) ? */
+/** Is this domain a sign-in page, for this service (or in general)? */
 export function isAuthHost(hostname: string, provider?: Provider): boolean {
   const h = hostname.toLowerCase();
   return [...COMMON_AUTH_HOSTS, ...(provider?.authHosts ?? [])].some(

@@ -28,7 +28,7 @@ export function AccountItem({
   onCancelRename,
 }: Props) {
   return (
-    // biome-ignore lint/a11y/useSemanticElements: la ligne contient d'autres boutons (renommer, supprimer) ; un <button> imbriqué serait invalide
+    // biome-ignore lint/a11y/useSemanticElements: the row contains other buttons (rename, delete); a nested <button> would be invalid
     <div
       role="button"
       tabIndex={0}
@@ -51,7 +51,7 @@ export function AccountItem({
         <RenameInput initial={account.name} onCommit={onRename} onCancel={onCancelRename} />
       ) : (
         <>
-          {/* biome-ignore lint/a11y/noStaticElementInteractions: raccourci souris ; l'équivalent clavier est le bouton « Renommer » */}
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: mouse shortcut; the keyboard equivalent is the "Rename" button */}
           <span
             class="name min-w-0 flex-1 truncate"
             title={account.name}

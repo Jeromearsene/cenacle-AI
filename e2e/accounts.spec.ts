@@ -4,7 +4,7 @@ import { accountNames, evalIn, expect, test, waitForServices } from './fixtures'
 async function addAccount(sidebar: Page, label: string): Promise<void> {
   await sidebar.getByRole('button', { name: '+ Ajouter un compte' }).click();
   await sidebar.getByRole('menuitem', { name: label }).click();
-  // Le nouveau compte arrive en mode renommage : on garde le nom proposé.
+  // The new account arrives in rename mode: keep the proposed name.
   await sidebar.locator('input.rename').press('Enter');
 }
 
@@ -47,7 +47,7 @@ test('isole les cookies et le stockage de chaque compte', async ({ launch, servi
 
   await evalIn(app, a, `document.cookie = 'who=A; path=/'; localStorage.setItem('who', 'A')`);
 
-  // Même adresse, même domaine : sans isolation, le compte B verrait le cookie de A.
+  // Same address, same domain: without isolation, account B would see A's cookie.
   expect(await evalIn<string>(app, b, 'document.cookie')).toBe('');
   expect(await evalIn<string | null>(app, b, `localStorage.getItem('who')`)).toBeNull();
 
@@ -56,24 +56,21 @@ test('isole les cookies et le stockage de chaque compte', async ({ launch, servi
   expect(await evalIn<string | null>(app, a, `localStorage.getItem('who')`)).toBe('A');
 });
 
-test('envoie l’identifiant de navigateur prévu pour chaque service', async ({
-  launch,
-  service,
-}) => {
-  const { sidebar } = await launch(); // Claude : identifiant « nettoyé »
+test('sends the intended browser identifier for each service', async ({ launch, service }) => {
+  const { sidebar } = await launch(); // Claude: "cleaned" identifier
   await expect.poll(() => service.pageUserAgents).toHaveLength(1);
-  await addAccount(sidebar, 'Gemini'); // Gemini : identifiant natif d'Electron
+  await addAccount(sidebar, 'Gemini'); // Gemini: Electron's native identifier
   await expect.poll(() => service.pageUserAgents).toHaveLength(2);
 
   const [claude, gemini] = service.pageUserAgents;
   expect(claude).toContain('Chrome/');
   expect(claude).not.toMatch(/Electron\//);
-  expect(claude).not.toMatch(/c(é|e|%c3%a9)nacle/i); // ni le nom de l'app
+  expect(claude).not.toMatch(/c(é|e|%c3%a9)nacle/i); // nor the app name
   expect(gemini).toMatch(/Electron\//);
-  expect(gemini).toMatch(/^[\x20-\x7e]+$/); // ASCII uniquement : les accents du nom de l'app sont mal encodés
+  expect(gemini).toMatch(/^[\x20-\x7e]+$/); // ASCII only: the accents of the app name are mis-encoded
 });
 
-test('retrouve comptes, noms et sessions après un redémarrage', async ({ launch, service }) => {
+test('restores accounts, names and sessions after a restart', async ({ launch, service }) => {
   const first = await launch();
   await first.sidebar.locator('.account .name').dblclick();
   await first.sidebar.locator('input.rename').fill('Perso');
@@ -90,10 +87,10 @@ test('retrouve comptes, noms et sessions après un redémarrage', async ({ launc
   await expect.poll(() => accountNames(second.sidebar)).toEqual(['Perso', 'Gemini 1']);
   await expect(second.sidebar.locator('.account.active .name')).toHaveText('Gemini 1');
 
-  // Le compte « Perso » doit retrouver sa propre session.
+  // The "Perso" account must get its own session back.
   await second.sidebar.locator('.account', { hasText: 'Perso' }).click();
-  // Après un redémarrage, la vue de Gemini (compte actif) est créée en premier : celle de
-  // « Perso », ouverte ensuite, est la plus récente.
+  // After a restart, the Gemini view (active account) is created first: the "Perso" one,
+  // opened afterwards, is the most recent.
   const persoView = (await waitForServices(second.app, service.url, 2)).at(-1);
   if (persoView === undefined) throw new Error('vue manquante');
   await expect
@@ -101,7 +98,7 @@ test('retrouve comptes, noms et sessions après un redémarrage', async ({ launc
     .toBe('perso');
 });
 
-test('une page masquée qui reprend le focus ne change pas le compte actif', async ({
+test('a hidden page regaining focus does not change the active account', async ({
   launch,
   service,
 }) => {
@@ -110,7 +107,7 @@ test('une page masquée qui reprend le focus ne change pas le compte actif', asy
   await expect(sidebar.locator('.account.active .name')).toHaveText('Gemini 1');
   const [claudeView] = await waitForServices(app, service.url, 2);
 
-  // Chromium peut rendre le focus à une page masquée (par exemple pendant la fermeture).
+  // Chromium may give the focus back to a hidden page (for example while closing).
   await app.evaluate(({ webContents }, id) => webContents.fromId(id)?.emit('focus'), claudeView);
 
   await expect(sidebar.locator('.account.active .name')).toHaveText('Gemini 1');

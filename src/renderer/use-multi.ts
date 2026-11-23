@@ -3,7 +3,7 @@ import type { PublicState } from '../shared/types';
 
 export const api = window.multi;
 
-/** L'état publié par le processus principal (comptes, mise en page, colonnes). */
+/** The state published by the main process (accounts, layout, columns). */
 export function useMultiState(): PublicState | null {
   const [state, setState] = useState<PublicState | null>(null);
   useEffect(() => {
@@ -14,14 +14,14 @@ export function useMultiState(): PublicState | null {
   return state;
 }
 
-/** Vrai tant que ⌘ (macOS) ou Ctrl (Windows, Linux) est maintenu. */
+/** True while ⌘ (macOS) or Ctrl (Windows, Linux) is held. */
 export function useShortcutHint(): boolean {
   const [visible, setVisible] = useState(false);
   useEffect(() => api.onShortcutHint(setVisible), []);
   return visible;
 }
 
-/** Le processus principal demande de renommer un compte (par exemple juste après sa création). */
+/** The main process asks to rename an account (for example right after creating it). */
 export function useRenameRequest(onRequest: (id: string) => void): void {
   useEffect(() => api.onRenameRequest(onRequest), [onRequest]);
 }

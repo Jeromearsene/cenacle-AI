@@ -1,10 +1,11 @@
+import path from 'node:path';
 import preact from '@preact/preset-vite';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'electron-vite';
 import type { Plugin } from 'vite';
 
-// Le serveur de développement injecte des styles en ligne et ouvre un WebSocket (rechargement
-// à chaud) : la politique de sécurité stricte du HTML est relâchée en `dev` uniquement.
+// The development server injects inline styles and opens a WebSocket (hot reload): the strict
+// content security policy of the HTML is relaxed in `dev` only.
 const relaxCspInDev: Plugin = {
   name: 'relax-csp-in-dev',
   apply: 'serve',
@@ -15,10 +16,20 @@ const relaxCspInDev: Plugin = {
     ),
 };
 
-// Trois cibles : processus principal, preload, interface (Preact + Tailwind 4).
+// Trois cibles : processus principal, preloads (interface + pages de service), interface
+// (Preact + Tailwind 4).
 export default defineConfig({
   main: {},
-  preload: {},
+  preload: {
+    build: {
+      rollupOptions: {
+        input: {
+          index: path.resolve(__dirname, 'src/preload/index.ts'),
+          service: path.resolve(__dirname, 'src/preload/service.ts'),
+        },
+      },
+    },
+  },
   renderer: {
     plugins: [preact(), tailwindcss(), relaxCspInDev],
   },

@@ -2,7 +2,7 @@ import type { PublicState } from '../../shared/types';
 import { api } from '../use-multi';
 import { IconButton } from './IconButton';
 
-/** Un en-tête au-dessus de chaque colonne ; les vues des services sont posées par le processus principal. */
+/** A header above each column; the service views are placed by the main process. */
 export function ColumnHeaders({
   state,
   providerLabel,

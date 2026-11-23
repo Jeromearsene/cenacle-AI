@@ -33,8 +33,8 @@ const params = (over: Partial<ContextParams> = {}): ContextParams => ({
 const labels = (p: ContextParams) =>
   contextMenuTemplate(p, noActions).map((i) => (i.type === 'separator' ? '—' : i.label));
 
-test.describe('modèle du menu (sans lancer l’app)', () => {
-  test('champ de saisie : édition + inspecter', () => {
+test.describe('menu template (without launching the app)', () => {
+  test('input field: editing + inspect', () => {
     expect(labels(params({ isEditable: true }))).toEqual([
       'Annuler',
       'Rétablir',
@@ -76,11 +76,11 @@ test.describe('modèle du menu (sans lancer l’app)', () => {
     ]);
   });
 
-  test('texte sélectionné hors champ : copier', () => {
+  test('selected text outside a field: copy', () => {
     expect(labels(params({ selectionText: 'abc' }))).toContain('Copier');
   });
 
-  test('ne finit jamais par un séparateur ni n’en double', () => {
+  test('never ends with a separator nor doubles one', () => {
     for (const p of [params(), params({ isEditable: true }), params({ mediaType: 'image' })]) {
       const l = labels(p);
       expect(l.at(-1)).not.toBe('—');
@@ -91,7 +91,7 @@ test.describe('modèle du menu (sans lancer l’app)', () => {
 
 test('clic droit dans une page de service : le menu s’affiche', async ({ launch, service }) => {
   const { app } = await launch();
-  // On remplace l'affichage réel du menu par un enregistrement des entrées.
+  // The real display of the menu is replaced by a recording of its entries.
   await app.evaluate(({ Menu }) => {
     const shown: string[][] = [];
     (globalThis as Record<string, unknown>).__menus = shown;

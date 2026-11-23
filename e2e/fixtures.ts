@@ -8,10 +8,10 @@ import { test as base, _electron as electron, expect } from '@playwright/test';
 
 const APP_ROOT = path.resolve(__dirname, '..');
 
-/** Faux « service » : une page vide, et la liste des identifiants de navigateur reçus. */
+/** Fake "service": an empty page, and the list of browser identifiers received. */
 export interface FakeService {
   url: string;
-  /** User-Agent de chaque chargement de la page « / », dans l'ordre. */
+  /** User-Agent of each load of the "/" page, in order. */
   pageUserAgents: string[];
 }
 
@@ -23,7 +23,7 @@ export interface Launched {
 interface Fixtures {
   service: FakeService;
   userDataDir: string;
-  /** Lance l'app (plusieurs fois possible avec le même dossier de données). */
+  /** Launches the app (can be done several times with the same data folder). */
   launch: () => Promise<Launched>;
 }
 
@@ -34,7 +34,9 @@ async function startService(): Promise<{ service: FakeService; close: () => Prom
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.end(
       '<!doctype html><title>faux service</title><h1>faux service</h1>' +
-        '<input id="field" value="bonjour"> <a id="lien" href="https://example.com/">un lien</a>'
+        '<input id="field" value="bonjour"> <a id="lien" href="https://example.com/">un lien</a>' +
+        // a notification created at load time: the dressing must already be in place
+        "<script>window.earlyNotificationTitle = new Notification('early').title</script>"
     );
   });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -46,14 +48,14 @@ async function startService(): Promise<{ service: FakeService; close: () => Prom
 }
 
 export const test = base.extend<Fixtures>({
-  // biome-ignore lint/correctness/noEmptyPattern: Playwright exige un objet déstructuré
+  // biome-ignore lint/correctness/noEmptyPattern: Playwright requires a destructured object
   service: async ({}, use) => {
     const { service, close } = await startService();
     await use(service);
     await close();
   },
 
-  // biome-ignore lint/correctness/noEmptyPattern: Playwright exige un objet déstructuré
+  // biome-ignore lint/correctness/noEmptyPattern: Playwright requires a destructured object
   userDataDir: async ({}, use) => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'multi-e2e-'));
     await use(dir);
@@ -63,8 +65,8 @@ export const test = base.extend<Fixtures>({
   launch: async ({ service, userDataDir }, use, testInfo) => {
     const launched: Launched[] = [];
     await use(async () => {
-      // Sous Linux, le bac à sable de Chromium est refusé en root (conteneur) et sur les
-      // runners GitHub (Ubuntu 24.04 restreint les espaces de noms utilisateur).
+      // On Linux, Chromium's sandbox is refused as root (container) and on GitHub runners
+      // (Ubuntu 24.04 restricts user namespaces).
       const asRoot = typeof process.getuid === 'function' && process.getuid() === 0;
       const noSandbox = process.platform === 'linux' && (asRoot || Boolean(process.env.CI));
       const app = await electron.launch({
@@ -75,7 +77,7 @@ export const test = base.extend<Fixtures>({
       launched.push({ app, sidebar });
       return { app, sidebar };
     });
-    // En cas d'échec, une capture de l'interface aide à comprendre ce qui s'est passé.
+    // On failure, a screenshot of the interface helps understand what happened.
     if (testInfo.status !== testInfo.expectedStatus) {
       for (const [i, { sidebar }] of launched.entries()) {
         await sidebar
@@ -89,18 +91,18 @@ export const test = base.extend<Fixtures>({
 
 export { expect };
 
-/** La page de l'interface (barre latérale), à distinguer des pages des services. */
+/** The interface page (sidebar), to tell apart from the service pages. */
 async function findSidebar(app: ElectronApplication): Promise<Page> {
   const isSidebar = (p: Page) => p.url().includes('renderer/index.html');
   await expect
-    .poll(() => app.windows().some(isSidebar), { message: 'fenêtre de l’interface' })
+    .poll(() => app.windows().some(isSidebar), { message: 'interface window' })
     .toBe(true);
   const page = app.windows().find(isSidebar) as Page;
   await page.waitForSelector('.account');
   return page;
 }
 
-/** Contenus web des services (un par compte déjà affiché), dans l'ordre de création. */
+/** Web contents of the services (one per account already displayed), in creation order. */
 export async function serviceIds(app: ElectronApplication, origin: string): Promise<number[]> {
   const ids = await app.evaluate(
     ({ webContents }, o) =>
@@ -114,9 +116,9 @@ export async function serviceIds(app: ElectronApplication, origin: string): Prom
 }
 
 /**
- * Attend qu'au moins `count` pages de service soient chargées, puis rend leurs identifiants. À préférer à
- * `serviceIds` seul : sur une machine lente (CI Windows, macOS), la page d'un compte n'a pas
- * toujours d'adresse au moment où on la cherche.
+ * Waits until at least `count` service pages are loaded, then returns their ids. Prefer it to
+ * `serviceIds` alone: on a slow machine (Windows, macOS CI), an account's page does not always
+ * have an address yet when it is looked up.
  */
 export async function waitForServices(
   app: ElectronApplication,
@@ -125,13 +127,13 @@ export async function waitForServices(
 ): Promise<number[]> {
   await expect
     .poll(async () => (await serviceIds(app, origin)).length, {
-      message: `au moins ${count} page(s) de service chargée(s)`,
+      message: `at least ${count} service page(s) loaded`,
     })
     .toBeGreaterThanOrEqual(count);
   return serviceIds(app, origin);
 }
 
-/** Exécute du JavaScript dans la page d'un service. */
+/** Runs JavaScript in a service page. */
 export async function evalIn<T>(app: ElectronApplication, id: number, code: string): Promise<T> {
   return app.evaluate(
     ({ webContents }, { id, code }) => webContents.fromId(id)?.executeJavaScript(code),

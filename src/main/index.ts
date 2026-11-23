@@ -31,6 +31,7 @@ import {
   providerOf,
 } from './providers';
 import { isId, MAX_NAME, makeAccount, readState, writeStateFile } from './state';
+import { checkForUpdates } from './updater';
 
 // ------------------------------------------------------------------ constantes
 
@@ -536,6 +537,7 @@ if (!app.requestSingleInstanceLock()) {
       app.dock?.setIcon(nativeImage.createFromPath(resource('icon-mac.png')));
     buildMenu();
     createWindow();
+    checkForUpdates();
   });
 
   app.on('before-quit', () => {

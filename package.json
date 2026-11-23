@@ -1,7 +1,7 @@
 {
   "name": "cenacle-ai",
   "productName": "Cénacle",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Use several Claude, ChatGPT, Gemini (and more) accounts in a single window, each with its own isolated session. Unofficial cross-platform Electron desktop app.",
   "keywords": [
     "electron",
@@ -50,22 +50,29 @@
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
-    "check": "yarn lint && yarn typecheck"
+    "check": "yarn lint && yarn typecheck",
+    "dist:dir": "electron-vite build && electron-builder --dir",
+    "dist": "electron-vite build && electron-builder",
+    "changeset": "changeset"
   },
   "devDependencies": {
     "@babel/core": "^7",
     "@biomejs/biome": "^2.6.8",
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.3",
     "@playwright/test": "^1.65.1",
     "@preact/preset-vite": "^2.10.6",
     "@tailwindcss/vite": "^4.3.5",
     "@types/node": "^22",
     "electron": "^45.3.3",
+    "electron-builder": "26.18.0",
     "electron-vite": "^6.0.0",
     "tailwindcss": "^4.3.5",
     "typescript": "^7.0.2",
     "vite": "^8.3.8"
   },
   "dependencies": {
+    "electron-updater": "6.8.11",
     "preact": "^11.2.0"
   }
 }

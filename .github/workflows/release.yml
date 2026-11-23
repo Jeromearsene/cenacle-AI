@@ -1,0 +1,84 @@
+name: Release
+
+# On every push to main:
+# - while changesets are waiting, a "Version packages" pull request is opened or updated
+#   (it bumps the version and writes CHANGELOG.md);
+# - when that pull request is merged, the release is tagged and the installers are built
+#   and attached to the GitHub release.
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  version:
+    name: Version or tag
+    runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Enable Corepack (Yarn version comes from package.json)
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/corepack-bin"
+          corepack enable --install-directory "$RUNNER_TEMP/corepack-bin"
+          echo "$RUNNER_TEMP/corepack-bin" >> "$GITHUB_PATH"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: yarn
+      - run: yarn install --immutable
+      - name: Open the "Version packages" PR, or tag the release
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: yarn changeset version
+          publish: yarn changeset tag
+          title: "Version packages"
+          commit: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Name the tag to build
+        id: tag
+        if: steps.changesets.outputs.published == 'true'
+        run: echo "tag=v$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Installers (${{ matrix.os }})
+    needs: version
+    if: needs.version.outputs.published == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.version.outputs.tag }}
+      - name: Enable Corepack (Yarn version comes from package.json)
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/corepack-bin"
+          corepack enable --install-directory "$RUNNER_TEMP/corepack-bin"
+          echo "$RUNNER_TEMP/corepack-bin" >> "$GITHUB_PATH"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: yarn
+      - run: yarn install --immutable
+      # The app is not code-signed yet: no certificate is looked for.
+      - name: Build and publish the installers
+        run: yarn dist --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"

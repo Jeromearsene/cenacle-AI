@@ -51,7 +51,7 @@ example: {
 | Linux      | prise en charge ; les tests de bout en bout tournent sous Linux en CI                                   |
 | Windows    | prise en charge ; les tests de bout en bout tournent sous Windows en CI, mais l'auteur ne l'utilise pas |
 
-Aucun installateur n'est publié pour l'instant : l'app se lance depuis les sources (ci-dessous). Les remarques propres à une plateforme sont signalées « macOS », « Windows » ou « Linux ».
+Les installateurs (`.dmg` macOS, `.exe` Windows, AppImage et `.deb` Linux) sont joints à chaque [release](https://github.com/Jeromearsene/cenacle-AI/releases) ; tu peux aussi lancer l'app depuis les sources (ci-dessous). Les installateurs ne sont **pas encore signés** : macOS demande une confirmation au premier lancement, Windows affiche un avertissement SmartScreen, et macOS ne peut pas se mettre à jour tant que l'app n'est pas signée. Les remarques propres à une plateforme sont signalées « macOS », « Windows » ou « Linux ».
 
 ## Lancer
 
@@ -161,6 +161,9 @@ Attention : tout processus local qui atteint ce port contrôle toutes les sessio
 Pile : Electron, TypeScript (strict), [electron-vite](https://electron-vite.org), Preact, Tailwind CSS 4, [Biome](https://biomejs.dev) (lint et formatage), Playwright. L'interface (barre latérale) pèse une trentaine de Ko de JavaScript ; les pages des services sont de vraies pages web, sans code de notre part.
 
 ```bash
+yarn dist        # construit les installateurs du système courant dans release/
+yarn dist:dir    # idem, non empaqueté (vérification rapide du packaging)
+yarn changeset   # décrit un changement pour le changelog (voir plus bas)
 yarn lint        # Biome : lint + vérification du format (yarn lint:fix pour corriger, yarn format pour formater)
 yarn typecheck   # TypeScript, processus principal + interface
 yarn check       # lint + typecheck
@@ -170,6 +173,8 @@ yarn test:e2e    # construit l'app puis lance les tests de bout en bout
 Les tests lancent l'app Electron avec Playwright, contre un faux service local (variable `MULTI_TEST_URL`, ignorée dans une app empaquetée) : aucun accès réseau ni compte réel. Ils vérifient l'ajout et le renommage d'un compte, la mise en colonnes, l'isolation des cookies et du stockage entre comptes, l'identifiant de navigateur de chaque service, la persistance après redémarrage et le menu du clic droit. Sous Linux sans écran : `xvfb-run -a yarn test:e2e` (les tests ajoutent `--no-sandbox` tout seuls quand ils tournent en root ou en CI). Sous Linux, si Electron s'arrête au démarrage avec une erreur « SUID sandbox helper » (fréquent sur Ubuntu récent), lance `yarn dev --no-sandbox`.
 
 **Intégration continue** (`.github/workflows/ci.yml`) : à chaque envoi sur `main` et à chaque pull request, lint et format, vérification des types et build sous Linux, puis tests de bout en bout sous macOS, Linux et Windows. Dependabot propose chaque semaine les mises à jour des dépendances.
+
+**Versions et changelog** passent par [Changesets](https://github.com/changesets/changesets). Un changement visible par les utilisateurs s'accompagne d'un changeset (`yarn changeset`, une ligne qui le décrit). Une fois fusionné sur `main`, un robot tient à jour une pull request « Version packages » ; la fusionner augmente la version, met à jour `CHANGELOG.md`, crée le tag et construit les installateurs pour les trois systèmes (`.github/workflows/release.yml`). L'app cherche une mise à jour au démarrage quand elle est installée (`src/main/updater.ts`).
 
 ```
 src/main/index.ts                 processus principal : fenêtre, une vue par compte, mise en page, menu
@@ -190,7 +195,7 @@ e2e/                              tests Playwright
 - Suivi des quotas par compte, temps restant avant la prochaine utilisation, notification quand un compte redevient utilisable.
 - Icône dans la barre de menus, bascule manuelle clair / sombre, raccourcis personnalisables.
 - Traduction de l'interface (anglais / français).
-- Paquets installables pour macOS, Linux et Windows (electron-builder ou Electron Forge).
+- Signature et notarisation du code (nécessaires aux mises à jour macOS, à Touch ID et aux passkeys).
 - Autres services.
 
 ## Licence

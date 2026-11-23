@@ -7,7 +7,7 @@ import {
   identityArgument,
   notificationTitle,
 } from '../src/main/account-notifications';
-import { evalIn, expect, serviceIds, test } from './fixtures';
+import { evalIn, expect, test, waitForServices } from './fixtures';
 
 test.describe('pastille et titre des notifications', () => {
   test('le titre commence par le nom du compte', () => {
@@ -62,19 +62,20 @@ test.describe('notifications des pages de service', () => {
     service,
   }) => {
     const { app } = await launch();
-    const [id] = await serviceIds(app, new URL(service.url).origin);
-    expect(await evalIn<string>(app, id as number, 'window.earlyNotificationTitle')).toBe(
-      'Claude 1 · tôt'
-    );
-    expect(await notifTitle(app, id as number, 'Salut')).toBe('Claude 1 · Salut');
-    expect(await evalIn<string>(app, id as number, 'new Notification("x").icon')).toMatch(
-      /^data:image\/png;base64,/
-    );
+    const [id] = await waitForServices(app, new URL(service.url).origin, 1);
+    // la page peut ne pas avoir fini de s'exécuter : on attend le résultat plutôt que de le lire une fois
+    await expect
+      .poll(() => evalIn<string>(app, id as number, 'window.earlyNotificationTitle'))
+      .toBe('Claude 1 · tôt');
+    await expect.poll(() => notifTitle(app, id as number, 'Salut')).toBe('Claude 1 · Salut');
+    await expect
+      .poll(() => evalIn<string>(app, id as number, 'new Notification("x").icon'))
+      .toMatch(/^data:image\/png;base64,/);
   });
 
   test('rien n’est exposé à la page', async ({ launch, service }) => {
     const { app } = await launch();
-    const [id] = await serviceIds(app, new URL(service.url).origin);
+    const [id] = await waitForServices(app, new URL(service.url).origin, 1);
     const leaked = await evalIn<string[]>(
       app,
       id as number,
@@ -85,7 +86,7 @@ test.describe('notifications des pages de service', () => {
 
   test('suivent le renommage du compte', async ({ launch, service }) => {
     const { app, sidebar } = await launch();
-    const [id] = await serviceIds(app, new URL(service.url).origin);
+    const [id] = await waitForServices(app, new URL(service.url).origin, 1);
     await sidebar.locator('.account .name').dblclick();
     await sidebar.locator('input.rename').fill('Perso');
     await sidebar.locator('input.rename').press('Enter');
@@ -95,8 +96,7 @@ test.describe('notifications des pages de service', () => {
   test('un clic sur la notification affiche le compte concerné', async ({ launch, service }) => {
     const { app, sidebar } = await launch();
     await addAccount(sidebar, 'ChatGPT');
-    const ids = await serviceIds(app, new URL(service.url).origin);
-    expect(ids).toHaveLength(2);
+    const ids = await waitForServices(app, new URL(service.url).origin, 2);
 
     await sidebar.locator('#accounts .account').first().click();
     await expect(sidebar.locator('.account.active .name')).toHaveText('Claude 1');

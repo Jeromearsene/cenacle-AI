@@ -12,6 +12,7 @@ import {
   dialog,
   ipcMain,
   Menu,
+  nativeImage,
   nativeTheme,
   screen,
   session,
@@ -32,6 +33,10 @@ import {
 import { isId, MAX_NAME, makeAccount, readState, writeStateFile } from './state';
 
 // ------------------------------------------------------------------ constantes
+
+// Icônes de l'app (dossier resources/ à la racine du projet).
+const RESOURCES = path.join(__dirname, '../../resources');
+const resource = (file: string) => path.join(RESOURCES, file);
 
 const SIDEBAR_W = 220; // largeur de la barre latérale (px)
 const HEADER_H = 32; // hauteur de l'en-tête de chaque colonne (px)
@@ -173,6 +178,9 @@ function createView(acc: Account, parent: BrowserWindow): WebContentsView {
     attachContextMenu(child.webContents);
   });
   wc.on('focus', () => {
+    // Une vue masquée (autre compte, mode « un seul ») ne choisit pas le compte actif : au moment
+    // de fermer l'app, Chromium peut lui rendre le focus et fausser le compte retenu au redémarrage.
+    if (!view.getVisible()) return;
     if (state.activeId !== acc.id && findAccount(acc.id)) {
       state.activeId = acc.id;
       refresh({ relayout: false });
@@ -455,6 +463,8 @@ function createWindow(): void {
     maximizable: true,
     fullscreenable: true, // bouton vert / ⌃⌘F sur macOS
     title: app.getName(),
+    // macOS prend l'icône du bundle (ou du Dock, voir plus bas) ; Windows préfère .ico, Linux .png
+    icon: isMac ? undefined : resource(process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     show: false,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#1f1e1d' : '#f5f4ee',
     titleBarStyle: isMac ? 'hiddenInset' : 'default',
@@ -521,6 +531,9 @@ if (!app.requestSingleInstanceLock()) {
 
   void app.whenReady().then(() => {
     state = readState(stateFile());
+    // Hors paquet (yarn dev / start), le Dock affiche l'icône d'Electron : on met la nôtre.
+    if (isMac && !app.isPackaged)
+      app.dock?.setIcon(nativeImage.createFromPath(resource('icon-mac.png')));
     buildMenu();
     createWindow();
   });

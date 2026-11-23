@@ -100,3 +100,18 @@ test('retrouve comptes, noms et sessions après un redémarrage', async ({ launc
     .poll(() => evalIn<string | null>(second.app, persoView, `localStorage.getItem('who')`))
     .toBe('perso');
 });
+
+test('une page masquée qui reprend le focus ne change pas le compte actif', async ({
+  launch,
+  service,
+}) => {
+  const { app, sidebar } = await launch();
+  await addAccount(sidebar, 'Gemini');
+  await expect(sidebar.locator('.account.active .name')).toHaveText('Gemini 1');
+  const [claudeView] = await waitForServices(app, service.url, 2);
+
+  // Chromium peut rendre le focus à une page masquée (par exemple pendant la fermeture).
+  await app.evaluate(({ webContents }, id) => webContents.fromId(id)?.emit('focus'), claudeView);
+
+  await expect(sidebar.locator('.account.active .name')).toHaveText('Gemini 1');
+});

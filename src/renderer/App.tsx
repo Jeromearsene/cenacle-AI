@@ -18,7 +18,7 @@ export function App() {
 
   if (!state) return null;
   const providerLabel = (id: string) => state.providers.find((p) => p.id === id)?.label ?? id;
-  // Raccourci de chaque compte, seulement tant que ⌘ / Ctrl est maintenu.
+  // Shortcut of each account, only while ⌘ / Ctrl is held.
   const shortcutOf = (id: string): string | null =>
     showHints
       ? accountShortcutLabel(

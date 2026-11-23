@@ -6,7 +6,7 @@ import { RenameInput } from './RenameInput';
 interface Props {
   account: Account;
   providerLabel: string;
-  /** Raccourci à afficher (⌘ / Ctrl maintenu), ou null. */
+  /** Shortcut to show (⌘ / Ctrl held), or null. */
   shortcut: string | null;
   active: boolean;
   removable: boolean;

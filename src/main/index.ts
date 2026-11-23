@@ -190,8 +190,8 @@ function restrictPermissions(ses: Session): void {
   );
 }
 
-// Maintenir ⌘ / Ctrl affiche le numéro des comptes dans l'interface. Le focus est le plus souvent
-// dans la page d'un service, pas dans l'interface : on écoute donc toutes les vues.
+// Holding ⌘ / Ctrl shows each account's number in the interface. The focus is usually inside a
+// service page, not in the interface, so every view is listened to.
 const shortcutHint = createShortcutHint({
   modifier: shortcutModifierFor(process.platform),
   onChange: (visible) => {

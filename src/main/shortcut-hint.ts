@@ -1,13 +1,13 @@
-// Détecte « la touche des raccourcis est maintenue » (⌘ sur macOS, Ctrl ailleurs) pour que
-// l'interface affiche le numéro de chaque compte, comme Slack. Sans dépendance à Electron :
-// la logique est testable sans lancer l'app.
+// Detects that the shortcut key (⌘ on macOS, Ctrl elsewhere) is being held, so the interface can
+// show each account's number, as Slack does. No dependency on Electron: the logic can be tested
+// without launching the app.
 
 export type ShortcutModifier = 'Meta' | 'Control';
 
 export const shortcutModifierFor = (platform: string): ShortcutModifier =>
   platform === 'darwin' ? 'Meta' : 'Control';
 
-/** Le strict nécessaire d'un événement `before-input-event` d'Electron. */
+/** The bare minimum of an Electron `before-input-event` event. */
 export interface KeyInput {
   type: string;
   key: string;
@@ -16,14 +16,14 @@ export interface KeyInput {
 
 export interface ShortcutHint {
   handleInput(input: KeyInput): void;
-  /** À appeler quand la fenêtre perd le focus : le relâchement de la touche ne nous parviendrait pas. */
+  /** Call when the window loses focus: the key release would never reach us. */
   reset(): void;
 }
 
 interface Options {
   modifier: ShortcutModifier;
   onChange: (visible: boolean) => void;
-  /** Délai de maintien avant l'affichage : évite un clignotement sur ⌘C, ⌘V… */
+  /** Hold time before showing the hint: avoids a flash on ⌘C, ⌘V… */
   delayMs?: number;
   setTimer?: (fn: () => void, ms: number) => unknown;
   clearTimer?: (timer: unknown) => void;

@@ -8,8 +8,8 @@ const key = (type: 'keyDown' | 'keyUp', k: string, isAutoRepeat = false) => ({
   isAutoRepeat,
 });
 
-test.describe('numéros des raccourcis (⌘ / Ctrl maintenu)', () => {
-  test('libellés : ⌘n sur macOS, Ctrl+n ailleurs, rien au-delà de 9', () => {
+test.describe('shortcut numbers (⌘ / Ctrl held)', () => {
+  test('labels: ⌘n on macOS, Ctrl+n elsewhere, nothing beyond 9', () => {
     expect(accountShortcutLabel(0, true)).toBe('⌘1');
     expect(accountShortcutLabel(8, false)).toBe('Ctrl+9');
     expect(accountShortcutLabel(MAX_ACCOUNT_SHORTCUTS, true)).toBeNull();
@@ -19,8 +19,8 @@ test.describe('numéros des raccourcis (⌘ / Ctrl maintenu)', () => {
     expect(shortcutModifierFor('linux')).toBe('Control');
   });
 
-  test.describe('détection du maintien de la touche', () => {
-    // Minuterie factice : on la déclenche à la main.
+  test.describe('detecting that the key is held', () => {
+    // Fake timer: fired by hand.
     function setup() {
       const changes: boolean[] = [];
       const timers = new Map<number, () => void>();
@@ -43,7 +43,7 @@ test.describe('numéros des raccourcis (⌘ / Ctrl maintenu)', () => {
       return { hint, changes, elapse, pending: () => timers.size };
     }
 
-    test('s’affiche après le délai, disparaît au relâchement', () => {
+    test('shows after the delay, hides on release', () => {
       const { hint, changes, elapse } = setup();
       hint.handleInput(key('keyDown', 'Control'));
       expect(changes).toEqual([]);
@@ -53,7 +53,7 @@ test.describe('numéros des raccourcis (⌘ / Ctrl maintenu)', () => {
       expect(changes).toEqual([true, false]);
     });
 
-    test('un appui bref (⌘C, ⌘V…) n’affiche rien', () => {
+    test('a quick press (⌘C, ⌘V…) shows nothing', () => {
       const { hint, changes, elapse, pending } = setup();
       hint.handleInput(key('keyDown', 'Control'));
       hint.handleInput(key('keyUp', 'Control'));
@@ -62,7 +62,7 @@ test.describe('numéros des raccourcis (⌘ / Ctrl maintenu)', () => {
       expect(changes).toEqual([]);
     });
 
-    test('ignore les autres touches et la répétition automatique', () => {
+    test('ignores other keys and auto-repeat', () => {
       const { hint, changes, elapse, pending } = setup();
       hint.handleInput(key('keyDown', 'a'));
       hint.handleInput(key('keyDown', 'Shift'));
@@ -75,7 +75,7 @@ test.describe('numéros des raccourcis (⌘ / Ctrl maintenu)', () => {
       expect(changes).toEqual([true]);
     });
 
-    test('reset (fenêtre qui perd le focus) masque et annule', () => {
+    test('reset (window loses focus) hides and cancels', () => {
       const { hint, changes, elapse, pending } = setup();
       hint.handleInput(key('keyDown', 'Control'));
       hint.reset();
@@ -84,12 +84,12 @@ test.describe('numéros des raccourcis (⌘ / Ctrl maintenu)', () => {
       elapse();
       hint.reset();
       expect(changes).toEqual([true, false]);
-      hint.reset(); // sans effet : déjà masqué
+      hint.reset(); // no effect: already hidden
       expect(changes).toEqual([true, false]);
     });
   });
 
-  test('l’interface affiche les numéros tant que la touche est maintenue dans une page', async ({
+  test('the interface shows the numbers while the key is held inside a page', async ({
     launch,
     service,
   }) => {
@@ -118,7 +118,7 @@ test.describe('numéros des raccourcis (⌘ / Ctrl maintenu)', () => {
       label(1) as string,
       label(2) as string,
     ]);
-    // en colonnes aussi, au-dessus de chaque page
+    // also in columns mode, above each page
     await sidebar.getByRole('button', { name: 'Colonnes' }).click();
     await expect(sidebar.locator('.col-head .shortcut')).toHaveText([
       label(1) as string,

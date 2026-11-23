@@ -123,13 +123,12 @@ export async function waitForServices(
   origin: string,
   count: number
 ): Promise<number[]> {
-  let ids: number[] = [];
   await expect
-    .poll(async () => (ids = await serviceIds(app, origin)).length, {
+    .poll(async () => (await serviceIds(app, origin)).length, {
       message: `au moins ${count} page(s) de service chargée(s)`,
     })
     .toBeGreaterThanOrEqual(count);
-  return ids;
+  return serviceIds(app, origin);
 }
 
 /** Exécute du JavaScript dans la page d'un service. */

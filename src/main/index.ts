@@ -178,6 +178,9 @@ function createView(acc: Account, parent: BrowserWindow): WebContentsView {
     attachContextMenu(child.webContents);
   });
   wc.on('focus', () => {
+    // Une vue masquée (autre compte, mode « un seul ») ne choisit pas le compte actif : au moment
+    // de fermer l'app, Chromium peut lui rendre le focus et fausser le compte retenu au redémarrage.
+    if (!view.getVisible()) return;
     if (state.activeId !== acc.id && findAccount(acc.id)) {
       state.activeId = acc.id;
       refresh({ relayout: false });

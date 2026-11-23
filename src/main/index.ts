@@ -21,6 +21,7 @@ import {
   WebContentsView,
 } from 'electron';
 import { name as packageName } from '../../package.json';
+import { MAX_ACCOUNT_SHORTCUTS } from '../shared/shortcuts';
 import type { Account, Layout, PersistedState, PublicState, Rect } from '../shared/types';
 import { attachContextMenu } from './context-menu';
 import { isPermissionAllowed } from './permissions';
@@ -32,6 +33,7 @@ import {
   type Provider,
   providerOf,
 } from './providers';
+import { createShortcutHint, type KeyInput, shortcutModifierFor } from './shortcut-hint';
 import { isId, MAX_NAME, makeAccount, readState, writeStateFile } from './state';
 
 // ------------------------------------------------------------------ constantes
@@ -188,6 +190,20 @@ function restrictPermissions(ses: Session): void {
   );
 }
 
+// Holding ⌘ / Ctrl shows each account's number in the interface. The focus is usually inside a
+// service page, not in the interface, so every view is listened to.
+const shortcutHint = createShortcutHint({
+  modifier: shortcutModifierFor(process.platform),
+  onChange: (visible) => {
+    if (win && !win.isDestroyed()) win.webContents.send('shortcut-hint', visible);
+  },
+});
+
+function trackShortcutHint(wc: WebContents): void {
+  wc.on('before-input-event', (_event, input: KeyInput) => shortcutHint.handleInput(input));
+  wc.on('blur', () => shortcutHint.reset());
+}
+
 function createView(acc: Account, parent: BrowserWindow): WebContentsView {
   const provider = providerOf(acc.provider);
   const partition = partitionOf(acc.id);
@@ -202,6 +218,7 @@ function createView(acc: Account, parent: BrowserWindow): WebContentsView {
   const onWindowOpen = makeWindowOpenHandler(provider);
   wc.setWindowOpenHandler(onWindowOpen);
   attachContextMenu(wc);
+  trackShortcutHint(wc);
   wc.on('did-create-window', (child) => {
     child.webContents.setWindowOpenHandler(onWindowOpen);
     attachContextMenu(child.webContents);
@@ -407,13 +424,15 @@ handle('account:reload', (id) => isId(id) && reloadAccount(id));
 // ------------------------------------------------------------------ menu
 
 function buildMenu(): void {
-  const accountItems: MenuItemConstructorOptions[] = state.accounts.slice(0, 9).map((acc, i) => ({
-    label: acc.name.replace(/&/g, '&&'),
-    type: 'radio',
-    checked: acc.id === state.activeId,
-    accelerator: `CmdOrCtrl+${i + 1}`,
-    click: () => selectAccount(acc.id),
-  }));
+  const accountItems: MenuItemConstructorOptions[] = state.accounts
+    .slice(0, MAX_ACCOUNT_SHORTCUTS)
+    .map((acc, i) => ({
+      label: acc.name.replace(/&/g, '&&'),
+      type: 'radio',
+      checked: acc.id === state.activeId,
+      accelerator: `CmdOrCtrl+${i + 1}`,
+      click: () => selectAccount(acc.id),
+    }));
 
   const template: MenuItemConstructorOptions[] = [
     ...(isMac
@@ -515,6 +534,8 @@ function createWindow(): void {
   w.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   w.webContents.on('will-navigate', (e) => e.preventDefault());
   w.on('page-title-updated', (e) => e.preventDefault());
+  trackShortcutHint(w.webContents);
+  w.on('blur', () => shortcutHint.reset());
 
   const relayout = () => {
     applyLayout();

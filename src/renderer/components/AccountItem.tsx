@@ -6,6 +6,8 @@ import { RenameInput } from './RenameInput';
 interface Props {
   account: Account;
   providerLabel: string;
+  /** Shortcut to show (⌘ / Ctrl held), or null. */
+  shortcut: string | null;
   active: boolean;
   removable: boolean;
   editing: boolean;
@@ -17,6 +19,7 @@ interface Props {
 export function AccountItem({
   account,
   providerLabel,
+  shortcut,
   active,
   removable,
   editing,
@@ -56,10 +59,18 @@ export function AccountItem({
           >
             {account.name}
           </span>
-          <span class="tag flex-none text-[11px] text-muted group-focus-within:hidden group-hover:hidden">
-            {providerLabel}
-          </span>
-          <span class="actions hidden gap-0.5 group-focus-within:flex group-hover:flex">
+          {shortcut ? (
+            <kbd class="shortcut flex-none rounded border border-line bg-bg px-1.5 font-sans text-[11px] text-muted">
+              {shortcut}
+            </kbd>
+          ) : (
+            <span class="tag flex-none text-[11px] text-muted group-focus-within:hidden group-hover:hidden">
+              {providerLabel}
+            </span>
+          )}
+          <span
+            class={`actions gap-0.5 ${shortcut ? 'hidden' : 'hidden group-focus-within:flex group-hover:flex'}`}
+          >
             <IconButton label="Renommer" glyph="✎" onClick={onStartRename} />
             {removable && (
               <IconButton

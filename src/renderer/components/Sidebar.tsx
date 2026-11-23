@@ -10,9 +10,17 @@ interface Props {
   renamingId: string | null;
   setRenamingId: (id: string | null) => void;
   providerLabel: (id: string) => string;
+  shortcutOf: (id: string) => string | null;
 }
 
-export function Sidebar({ state, isMac, renamingId, setRenamingId, providerLabel }: Props) {
+export function Sidebar({
+  state,
+  isMac,
+  renamingId,
+  setRenamingId,
+  providerLabel,
+  shortcutOf,
+}: Props) {
   return (
     <aside
       class="absolute inset-y-0 left-0 flex flex-col border-r border-line bg-panel px-2.5 pb-3"
@@ -27,6 +35,7 @@ export function Sidebar({ state, isMac, renamingId, setRenamingId, providerLabel
             key={acc.id}
             account={acc}
             providerLabel={providerLabel(acc.provider)}
+            shortcut={shortcutOf(acc.id)}
             active={acc.id === state.activeId}
             removable={state.accounts.length > 1}
             editing={renamingId === acc.id}

@@ -68,4 +68,6 @@ export interface MultiApi {
   reloadAccount(id: string): Promise<void>;
   onState(cb: (state: PublicState) => void): () => void;
   onRenameRequest(cb: (id: string) => void): () => void;
+  /** True while the shortcut key (⌘ / Ctrl) is held. */
+  onShortcutHint(cb: (visible: boolean) => void): () => void;
 }

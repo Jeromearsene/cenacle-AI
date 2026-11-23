@@ -82,6 +82,7 @@ Le binaire d'Electron (environ 100 Mo) est téléchargé par `yarn install` (scr
 - **Fenêtre** : au premier lancement elle occupe toute la zone utile de l'écran (sous la barre de menus et le Dock, ou la barre des tâches). Ensuite, l'app retrouve sa dernière taille, ou son état agrandi / plein écran. Si l'écran utilisé a été débranché, elle revient sur l'écran principal.
 - Plein écran : bouton vert (macOS), ⌃⌘F / F11 ou menu Affichage. Agrandir : double-clic sur la barre du haut (macOS) ou sur la barre de titre (Windows, Linux).
 - Les comptes masqués restent chargés : leurs conversations continuent en arrière-plan.
+- **Maintiens ⌘ (macOS) ou Ctrl (Windows, Linux)** un instant : le numéro de raccourci de chaque compte (⌘1…⌘9 / Ctrl+1…9) s'affiche à côté de son nom, dans la barre latérale et au-dessus des colonnes.
 - **Clic droit** dans une page de service : menu contextuel avec couper / copier / coller, suggestions d'orthographe, ouvrir ou copier un lien, copier une image, inspecter l'élément.
 
 Sur macOS, ⌘ est la touche Commande ; sous Windows et Linux, utilise Ctrl à la place.

@@ -6,9 +6,11 @@ import { IconButton } from './IconButton';
 export function ColumnHeaders({
   state,
   providerLabel,
+  shortcutOf,
 }: {
   state: PublicState;
   providerLabel: (id: string) => string;
+  shortcutOf: (id: string) => string | null;
 }) {
   return (
     <div class="pointer-events-none absolute inset-0">
@@ -32,7 +34,15 @@ export function ColumnHeaders({
               style={{ backgroundColor: acc.color }}
             />
             <span class="name min-w-0 flex-1 truncate font-medium">{acc.name}</span>
-            <span class="tag flex-none text-[11px] text-muted">{providerLabel(acc.provider)}</span>
+            {shortcutOf(acc.id) ? (
+              <kbd class="shortcut flex-none rounded border border-line bg-panel px-1.5 font-sans text-[11px] text-muted">
+                {shortcutOf(acc.id)}
+              </kbd>
+            ) : (
+              <span class="tag flex-none text-[11px] text-muted">
+                {providerLabel(acc.provider)}
+              </span>
+            )}
             <IconButton
               label="Recharger"
               glyph="↻"

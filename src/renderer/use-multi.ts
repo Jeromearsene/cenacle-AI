@@ -14,6 +14,13 @@ export function useMultiState(): PublicState | null {
   return state;
 }
 
+/** Vrai tant que ⌘ (macOS) ou Ctrl (Windows, Linux) est maintenu. */
+export function useShortcutHint(): boolean {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => api.onShortcutHint(setVisible), []);
+  return visible;
+}
+
 /** Le processus principal demande de renommer un compte (par exemple juste après sa création). */
 export function useRenameRequest(onRequest: (id: string) => void): void {
   useEffect(() => api.onRenameRequest(onRequest), [onRequest]);

@@ -82,6 +82,7 @@ The Electron binary (about 100 MB) is downloaded by `yarn install` (the `postins
 - **Window**: on first launch it fills the usable area of the screen (below the menu bar and the Dock, or the taskbar). After that the app restores its last size, or its maximized / full-screen state. If the screen it was on has been unplugged, it comes back on the main display.
 - Full screen: green button (macOS), ⌃⌘F / F11 or the View menu. Maximize: double-click the top bar (macOS) or the title bar (Windows, Linux).
 - Hidden accounts stay loaded, so their conversations keep running in the background.
+- **Hold ⌘ (macOS) or Ctrl (Windows, Linux)** for a moment: the shortcut number of each account (⌘1…⌘9 / Ctrl+1…9) appears next to its name, in the sidebar and above the columns.
 - **Right-click** in a service page opens a context menu: cut / copy / paste, spelling suggestions, open or copy a link, copy an image, inspect element.
 
 On macOS ⌘ is the Command key; on Windows and Linux use Ctrl instead.

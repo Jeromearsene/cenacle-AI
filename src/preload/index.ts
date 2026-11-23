@@ -22,6 +22,11 @@ const api: MultiApi = {
     ipcRenderer.on('rename-request', listener);
     return () => ipcRenderer.removeListener('rename-request', listener);
   },
+  onShortcutHint: (cb) => {
+    const listener = (_event: unknown, visible: boolean) => cb(visible);
+    ipcRenderer.on('shortcut-hint', listener);
+    return () => ipcRenderer.removeListener('shortcut-hint', listener);
+  },
 };
 
 contextBridge.exposeInMainWorld('multi', api);

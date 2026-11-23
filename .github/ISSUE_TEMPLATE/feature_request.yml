@@ -1,0 +1,21 @@
+name: Feature request
+description: Suggest an improvement or a new service
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What do you need, and why?
+      description: Describe the problem first; a solution idea is welcome but optional.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Idea
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Contribution
+      options:
+        - label: I could work on a pull request for this

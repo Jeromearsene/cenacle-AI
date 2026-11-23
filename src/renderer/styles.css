@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
-/* Palette : Tailwind en génère les utilitaires (bg-panel, text-muted, border-line…). Le thème
-   sombre ne change que les valeurs des variables, donc aucune classe `dark:` n'est nécessaire. */
+/* Palette: Tailwind generates the utilities (bg-panel, text-muted, border-line…). The dark theme
+   only changes the variable values, so no `dark:` class is needed. */
 @theme {
   --color-bg: #f5f4ee;
   --color-panel: #ebe9df;
@@ -40,7 +40,7 @@
   }
 
   body {
-    /* visible dans le filet de 1 px entre les colonnes */
+    /* visible in the 1 px gap between columns */
     background: var(--color-line);
     color: var(--color-ink);
     font: 13px / 1.4 var(--font-sans);

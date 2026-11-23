@@ -37,18 +37,18 @@ import {
 import { createShortcutHint, type KeyInput, shortcutModifierFor } from './shortcut-hint';
 import { isId, MAX_NAME, makeAccount, readState, writeStateFile } from './state';
 
-// ------------------------------------------------------------------ constantes
+// ------------------------------------------------------------------ constants
 
-// Icônes de l'app (dossier resources/ à la racine du projet).
+// App icons (resources/ folder at the project root).
 const RESOURCES = path.join(__dirname, '../../resources');
 const resource = (file: string) => path.join(RESOURCES, file);
 
-const SIDEBAR_W = 220; // largeur de la barre latérale (px)
-const HEADER_H = 32; // hauteur de l'en-tête de chaque colonne (px)
+const SIDEBAR_W = 220; // sidebar width (px)
+const HEADER_H = 32; // height of each column header (px)
 const isMac = process.platform === 'darwin';
 
-// Identifiant de navigateur. Chromium encode mal les accents dans un User-Agent (« Cénacle »
-// part en « CÃ©nacle »), donc le nom de l'app y figure sans accent.
+// Browser identifier. Chromium mis-encodes accents in a User-Agent ("Cénacle" turns into
+// "CÃ©nacle"), so the app name appears there without the accent.
 const escapeRe = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const compactName = app.getName().replace(/\s+/g, '');
 const asciiName = compactName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -57,27 +57,27 @@ app.userAgentFallback = app.userAgentFallback.replace(
   asciiName
 );
 
-// Version « nettoyée » (sans les jetons « Electron/x » et « nom-de-l-app/x ») : celle d'un
-// Chrome standard. Chaque service choisit 'clean' ou 'native' dans providers.ts.
+// "Clean" version (without the "Electron/x" and "app-name/x" tokens): that of a standard
+// Chrome. Each service picks 'clean' or 'native' in providers.ts.
 const UA_TOKENS = ['Electron', app.getName(), compactName, asciiName, packageName];
 const CLEAN_USER_AGENT = app.userAgentFallback.replace(
   new RegExp(`\\s+(?:${[...new Set(UA_TOKENS)].map(escapeRe).join('|')})\\/\\S+`, 'gi'),
   ''
 );
 
-// Débogage à distance (Playwright / Puppeteer). Désactivé par défaut, limité à localhost.
+// Remote debugging (Playwright / Puppeteer). Off by default, limited to localhost.
 const debugPort = Number(process.env.CENACLE_DEBUG_PORT);
 if (Number.isInteger(debugPort) && debugPort > 0 && debugPort < 65536) {
   app.commandLine.appendSwitch('remote-debugging-port', String(debugPort));
   app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1');
 }
 
-// Tests : MULTI_TEST_URL remplace l'adresse de tous les services (serveur local). Ignoré
-// dans une app empaquetée.
+// Tests: MULTI_TEST_URL replaces the address of every service (local server). Ignored in a
+// packaged app.
 const urlOf = (acc: Account): string =>
   (!app.isPackaged && process.env.MULTI_TEST_URL) || providerOf(acc.provider).url;
 
-// ------------------------------------------------------------------ état
+// ------------------------------------------------------------------ state
 
 let state: PersistedState;
 let win: BrowserWindow | null = null;
@@ -85,15 +85,15 @@ const views = new Map<string, WebContentsView>();
 let rects: Rect[] = [];
 let saveTimer: NodeJS.Timeout | null = null;
 
-// Le préfixe « claude- » est historique (l'outil ne gérait que Claude) : il désigne le dossier de
-// session de chaque compte, tous services confondus. Le changer ferait perdre les connexions.
+// The "claude-" prefix is historical (the tool only handled Claude): it names the session
+// folder of every account, whatever the service. Changing it would lose the sign-ins.
 const partitionOf = (id: string) => `persist:claude-${id}`;
 const findAccount = (id: string) => state.accounts.find((a) => a.id === id);
 const stateFile = () => path.join(app.getPath('userData'), 'state.json');
 
-// Premier lancement : la fenêtre prend toute la zone utile de l'écran (sous la barre de
-// menus et le Dock). Lancements suivants : dernière taille connue, à condition qu'elle
-// soit encore visible sur un écran branché (écran externe débranché, par exemple).
+// First launch: the window fills the usable area of the screen (below the menu bar and the
+// Dock). Later launches: last known size, as long as it is still visible on a connected
+// screen (an unplugged external display, for example).
 function initialBounds(): Rectangle {
   const b = state.bounds;
   if (b) {
@@ -114,7 +114,7 @@ function writeState(): void {
   try {
     writeStateFile(stateFile(), state);
   } catch (err) {
-    console.error('Impossible d’enregistrer l’état :', err);
+    console.error('Could not save the state:', err);
   }
 }
 
@@ -123,12 +123,11 @@ function scheduleSave(): void {
   saveTimer = setTimeout(writeState, 300);
 }
 
-// ------------------------------------------------------------------ liens et popups
+// ------------------------------------------------------------------ links and popups
 
-// Les popups de connexion (OAuth, connecteurs GitHub, etc.) doivent rester dans la même
-// session que leur page d'origine pour que la connexion aboutisse sur le bon compte.
-// Tout le reste (liens dans les conversations, par exemple) s'ouvre dans le navigateur
-// par défaut.
+// Sign-in popups (OAuth, GitHub connectors, etc.) must stay in the same session as their
+// originating page so the sign-in ends up on the right account. Everything else (links in
+// conversations, for example) opens in the default browser.
 const OAUTH_PATH = /\/(oauth|oauth2|authorize|login|signin|sign-in|auth)(\/|$)/i;
 
 const makeWindowOpenHandler =
@@ -163,7 +162,7 @@ const makeWindowOpenHandler =
     return { action: 'deny' };
   };
 
-// ------------------------------------------------------------------ vues (une par compte)
+// ------------------------------------------------------------------ views (one per account)
 
 const restrictedSessions = new WeakSet<Session>();
 
@@ -208,7 +207,7 @@ function trackShortcutHint(wc: WebContents): void {
 function createView(acc: Account, parent: BrowserWindow): WebContentsView {
   const provider = providerOf(acc.provider);
   const partition = partitionOf(acc.id);
-  // 'native' : on laisse l'identifiant d'Electron tel quel (voir providers.ts).
+  // 'native': leave Electron's identifier as is (see providers.ts).
   restrictPermissions(session.fromPartition(partition));
   if (provider.ua === 'clean') session.fromPartition(partition).setUserAgent(CLEAN_USER_AGENT);
 
@@ -233,8 +232,8 @@ function createView(acc: Account, parent: BrowserWindow): WebContentsView {
     attachContextMenu(child.webContents);
   });
   wc.on('focus', () => {
-    // Une vue masquée (autre compte, mode « un seul ») ne choisit pas le compte actif : au moment
-    // de fermer l'app, Chromium peut lui rendre le focus et fausser le compte retenu au redémarrage.
+    // A hidden view (another account, "single" mode) does not choose the active account: when the
+    // app closes, Chromium may give it the focus back and skew the account kept at next launch.
     if (!view.getVisible()) return;
     if (state.activeId !== acc.id && findAccount(acc.id)) {
       state.activeId = acc.id;
@@ -242,7 +241,7 @@ function createView(acc: Account, parent: BrowserWindow): WebContentsView {
     }
   });
   wc.loadURL(urlOf(acc)).catch(() => {
-    /* hors ligne : la page d'erreur de Chromium s'affiche, « recharger » réessaie */
+    /* offline: Chromium's error page is shown, "reload" tries again */
   });
   parent.contentView.addChildView(view);
   views.set(acc.id, view);
@@ -262,7 +261,7 @@ function activeContents(): WebContents | null {
   return view && !view.webContents.isDestroyed() ? view.webContents : null;
 }
 
-// ------------------------------------------------------------------ mise en page
+// ------------------------------------------------------------------ layout
 
 function computeRects(w: BrowserWindow): Rect[] {
   const [width = 0, height = 0] = w.getContentSize();
@@ -277,7 +276,7 @@ function computeRects(w: BrowserWindow): Rect[] {
   return shown.map((acc, i) => {
     const left = areaX + i * colW;
     const right = i === n - 1 ? areaX + areaW : left + colW;
-    const gap = i > 0 ? 1 : 0; // 1 px de séparation entre colonnes
+    const gap = i > 0 ? 1 : 0; // 1 px separator between columns
     return {
       id: acc.id,
       x: left + gap,
@@ -301,7 +300,7 @@ function applyLayout(): void {
     view.setBounds({ x: r.x, y: r.viewY, width: r.width, height: r.viewHeight });
     view.setVisible(true);
   }
-  // Les vues masquées restent chargées : leurs conversations continuent en arrière-plan.
+  // Hidden views stay loaded: their conversations keep running in the background.
   for (const [id, view] of views) if (!shown.has(id)) view.setVisible(false);
 }
 
@@ -427,7 +426,7 @@ ipcMain.on('account:notification-click', (event) => {
 
 function handle(channel: string, fn: (...args: unknown[]) => unknown): void {
   ipcMain.handle(channel, (event, ...args: unknown[]) => {
-    if (!win || event.sender !== win.webContents) throw new Error('IPC refusé');
+    if (!win || event.sender !== win.webContents) throw new Error('IPC rejected');
     return fn(...args);
   });
 }
@@ -520,7 +519,7 @@ function buildMenu(): void {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
-// ------------------------------------------------------------------ fenêtre
+// ------------------------------------------------------------------ window
 
 function createWindow(): void {
   const b = initialBounds();
@@ -533,9 +532,9 @@ function createWindow(): void {
     minHeight: 560,
     resizable: true,
     maximizable: true,
-    fullscreenable: true, // bouton vert / ⌃⌘F sur macOS
+    fullscreenable: true, // green button / ⌃⌘F on macOS
     title: app.getName(),
-    // macOS prend l'icône du bundle (ou du Dock, voir plus bas) ; Windows préfère .ico, Linux .png
+    // macOS takes the icon from the bundle (or the Dock, see below); Windows prefers .ico, Linux .png
     icon: isMac ? undefined : resource(process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     show: false,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#1f1e1d' : '#f5f4ee',
@@ -554,7 +553,7 @@ function createWindow(): void {
   if (!app.isPackaged && devUrl) void w.loadURL(devUrl);
   else void w.loadFile(path.join(__dirname, '../renderer/index.html'));
 
-  // L'interface elle-même ne doit jamais naviguer ni ouvrir de fenêtre.
+  // The interface itself must never navigate or open a window.
   w.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   w.webContents.on('will-navigate', (e) => e.preventDefault());
   w.on('page-title-updated', (e) => e.preventDefault());
@@ -571,7 +570,7 @@ function createWindow(): void {
   w.on('enter-full-screen', relayout);
   w.on('leave-full-screen', relayout);
 
-  // On retient la taille « normale » (hors agrandie / plein écran) et l'état agrandi.
+  // Remember the "normal" size (not maximized / full screen) and the maximized state.
   w.on('close', () => {
     state.fullscreen = w.isFullScreen();
     state.maximized = w.isMaximized();
@@ -605,7 +604,7 @@ if (!app.requestSingleInstanceLock()) {
 
   void app.whenReady().then(() => {
     state = readState(stateFile());
-    // Hors paquet (yarn dev / start), le Dock affiche l'icône d'Electron : on met la nôtre.
+    // Outside a package (yarn dev / start), the Dock shows Electron's icon: set ours.
     if (isMac && !app.isPackaged)
       app.dock?.setIcon(nativeImage.createFromPath(resource('icon-mac.png')));
     buildMenu();

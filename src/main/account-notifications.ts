@@ -28,11 +28,11 @@ function chunk(type: string, data: Buffer): Buffer {
 
 /** An RGBA PNG: a solid disc in the account color, smooth edges, transparent background. */
 export function dotPng(color: string, size = 128): Buffer {
-  if (!HEX.test(color)) throw new Error(`couleur invalide : ${color}`);
+  if (!HEX.test(color)) throw new Error(`invalid color: ${color}`);
   const [r, g, b] = [1, 3, 5].map((i) => Number.parseInt(color.slice(i, i + 2), 16));
   const radius = size / 2 - 1;
   const mid = size / 2;
-  // chaque ligne : octet de filtre (0) puis size pixels RGBA
+  // each row: filter byte (0) then `size` RGBA pixels
   const raw = Buffer.alloc(size * (1 + size * 4));
   for (let y = 0; y < size; y++) {
     const row = y * (1 + size * 4);
@@ -49,7 +49,7 @@ export function dotPng(color: string, size = 128): Buffer {
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(size, 0);
   ihdr.writeUInt32BE(size, 4);
-  ihdr[8] = 8; // 8 bits par canal
+  ihdr[8] = 8; // 8 bits per channel
   ihdr[9] = 6; // RGBA
   return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),

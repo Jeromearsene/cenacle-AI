@@ -26,7 +26,7 @@ export function Sidebar({
       class="absolute inset-y-0 left-0 flex flex-col border-r border-line bg-panel px-2.5 pb-3"
       style={{ width: `${state.sidebarW}px` }}
     >
-      {/* zone de glissement de la fenêtre ; sur macOS, place pour les boutons de fenêtre */}
+      {/* window drag area; on macOS, room for the window buttons */}
       <div class={`-mx-2.5 [-webkit-app-region:drag] ${isMac ? 'h-10' : 'h-3'}`} />
       <div class="brand px-2 pt-0.5 pb-2.5 font-semibold tracking-[0.01em]">{state.appName}</div>
       <nav id="accounts" aria-label="Comptes" class="flex flex-col gap-0.5 overflow-y-auto">

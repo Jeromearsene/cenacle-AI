@@ -6,7 +6,7 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     groups:
-      # Les mises à jour mineures et correctifs arrivent dans une seule PR par semaine.
+      # Minor and patch updates arrive in a single PR per week.
       minor-and-patch:
         update-types: [minor, patch]
   - package-ecosystem: github-actions

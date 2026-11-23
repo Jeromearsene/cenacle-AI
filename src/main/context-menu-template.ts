@@ -1,7 +1,7 @@
 import type { MenuItemConstructorOptions } from 'electron';
 
-// Modèle du menu clic droit des pages de services. Fonction pure (aucune dépendance à
-// Electron au-delà des types) : testable sans lancer l'app.
+// Template of the right-click menu of service pages. Pure function (no dependency on Electron
+// beyond types): testable without launching the app.
 
 export interface ContextParams {
   isEditable: boolean;

@@ -5,11 +5,11 @@ import { contextMenuTemplate } from './context-menu-template';
 const SAFE_LINK = /^(https?|mailto):/i;
 
 /**
- * Electron n'affiche aucun menu clic droit par défaut : sans ceci, on ne peut ni coller avec
- * la souris, ni copier un lien. À brancher sur chaque page de service (et ses popups).
+ * Electron shows no right-click menu by default: without this, you can neither paste with
+ * the mouse nor copy a link. To be attached to every service page (and its popups).
  *
- * Le sous-menu « Remplir » de macOS (mots de passe, contacts, cartes) n'est pas accessible
- * depuis Electron : il appartient à Safari et aux champs de texte natifs.
+ * The macOS "AutoFill" submenu (passwords, contacts, cards) is not reachable from Electron:
+ * it belongs to Safari and native text fields.
  */
 export function attachContextMenu(wc: WebContents): void {
   wc.on('context-menu', (_event, params) => {

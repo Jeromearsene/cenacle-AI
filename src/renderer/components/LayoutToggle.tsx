@@ -8,7 +8,7 @@ const OPTIONS: { mode: Layout; label: string }[] = [
 
 export function LayoutToggle({ layout }: { layout: Layout }) {
   return (
-    // biome-ignore lint/a11y/useSemanticElements: un <fieldset> impose sa mise en forme par défaut ; role="group" est équivalent pour les lecteurs d'écran
+    // biome-ignore lint/a11y/useSemanticElements: a <fieldset> imposes its default styling; role="group" is equivalent for screen readers
     <div role="group" aria-label="Mise en page" class="grid grid-cols-2 rounded-lg bg-hover p-0.5">
       {OPTIONS.map(({ mode, label }) => (
         <button

@@ -6,11 +6,11 @@ interface Props {
   onCancel: () => void;
 }
 
-/** Champ de renommage : Entrée ou perte de focus valide, Échap annule. */
+/** Rename field: Enter or losing focus confirms, Escape cancels. */
 export function RenameInput({ initial, onCommit, onCancel }: Props) {
   const [value, setValue] = useState(initial);
   const ref = useRef<HTMLInputElement>(null);
-  const done = useRef(false); // évite de valider deux fois (Entrée puis blur)
+  const done = useRef(false); // avoids confirming twice (Enter then blur)
 
   useEffect(() => {
     ref.current?.focus();

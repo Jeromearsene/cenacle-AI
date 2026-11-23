@@ -122,6 +122,10 @@ What you can do:
 - Copy the password from your password manager, then paste with ⌘V or right-click → Paste (the context menu is there for this).
 - Third-party password managers: 1Password's Universal Autofill (⌘\) is reported to work in some signed Electron apps (same issue #54142); it has **not** been tested with this app.
 
+## Permissions
+
+Service pages are websites, so the app grants them only what a chat needs: notifications, copy and paste, full screen and the **microphone** (voice mode). The camera, screen capture, location and every other permission are refused. Only the page itself, not an embedded third-party frame, can use notifications or the microphone. The policy is in `src/main/permissions.ts`.
+
 ## Where the data lives
 
 - Sessions: `Partitions/` folder inside the app's data folder. One partition per account.
@@ -174,6 +178,7 @@ The tests drive the Electron app with Playwright against a fake local service (t
 ```
 src/main/index.ts                 main process: window, one view per account, layout, menu
 src/main/providers.ts             supported services (URL, browser identifier, sign-in domains)
+src/main/permissions.ts            permissions granted to service pages
 src/main/state.ts                 reading / validating / writing state.json
 src/main/context-menu*.ts         right-click menu (pure template + wiring)
 src/preload/index.ts              minimal bridge to the interface (contextBridge)

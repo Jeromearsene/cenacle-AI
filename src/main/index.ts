@@ -14,6 +14,7 @@ import {
   Menu,
   nativeImage,
   nativeTheme,
+  type Session,
   screen,
   session,
   shell,
@@ -22,6 +23,7 @@ import {
 import { name as packageName } from '../../package.json';
 import type { Account, Layout, PersistedState, PublicState, Rect } from '../shared/types';
 import { attachContextMenu } from './context-menu';
+import { isPermissionAllowed } from './permissions';
 import {
   DEFAULT_PROVIDER,
   isAuthHost,
@@ -160,10 +162,37 @@ const makeWindowOpenHandler =
 
 // ------------------------------------------------------------------ vues (une par compte)
 
+const restrictedSessions = new WeakSet<Session>();
+
+/** Limits what service pages may ask for (see permissions.ts). Done once per session. */
+function restrictPermissions(ses: Session): void {
+  if (restrictedSessions.has(ses)) return;
+  restrictedSessions.add(ses);
+  ses.setPermissionRequestHandler((_wc, permission, callback, details) => {
+    callback(
+      isPermissionAllowed({
+        permission,
+        mediaTypes: 'mediaTypes' in details ? details.mediaTypes : undefined,
+        isMainFrame: details.isMainFrame,
+      })
+    );
+  });
+  // Synchronous checks (`Notification.permission`, `navigator.permissions.query`).
+  ses.setPermissionCheckHandler((_wc, permission, _origin, details) =>
+    isPermissionAllowed({
+      permission,
+      // A device-enumeration check ('unknown') grants no capture: only refuse the camera.
+      mediaTypes: 'mediaType' in details && details.mediaType !== 'video' ? ['audio'] : undefined,
+      isMainFrame: details.isMainFrame ?? true,
+    })
+  );
+}
+
 function createView(acc: Account, parent: BrowserWindow): WebContentsView {
   const provider = providerOf(acc.provider);
   const partition = partitionOf(acc.id);
   // 'native' : on laisse l'identifiant d'Electron tel quel (voir providers.ts).
+  restrictPermissions(session.fromPartition(partition));
   if (provider.ua === 'clean') session.fromPartition(partition).setUserAgent(CLEAN_USER_AGENT);
 
   const view = new WebContentsView({

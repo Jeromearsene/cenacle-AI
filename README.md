@@ -83,6 +83,7 @@ The Electron binary (about 100 MB) is downloaded by `yarn install` (the `postins
 - Full screen: green button (macOS), ⌃⌘F / F11 or the View menu. Maximize: double-click the top bar (macOS) or the title bar (Windows, Linux).
 - Hidden accounts stay loaded, so their conversations keep running in the background.
 - **Hold ⌘ (macOS) or Ctrl (Windows, Linux)** for a moment: the shortcut number of each account (⌘1…⌘9 / Ctrl+1…9) appears next to its name, in the sidebar and above the columns.
+- **Notifications**: a web notification raised by a service shows the account's name in its title and the account's color dot as its icon, so you know which account it comes from. Clicking it brings the app forward on that account.
 - **Right-click** in a service page opens a context menu: cut / copy / paste, spelling suggestions, open or copy a link, copy an image, inspect element.
 
 On macOS ⌘ is the Command key; on Windows and Linux use Ctrl instead.
@@ -182,7 +183,9 @@ src/main/providers.ts             supported services (URL, browser identifier, s
 src/main/permissions.ts            permissions granted to service pages
 src/main/state.ts                 reading / validating / writing state.json
 src/main/context-menu*.ts         right-click menu (pure template + wiring)
+src/main/account-notifications.ts notification title and color dot of an account
 src/preload/index.ts              minimal bridge to the interface (contextBridge)
+src/preload/service.ts            preload of service pages: exposes nothing, dresses up notifications
 src/shared/types.ts               types shared by the three
 src/renderer/                     Preact + Tailwind interface (sidebar, column headers)
 resources/                        app icon (SVG source, PNG, ICO, ICNS)

@@ -1,8 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { Layout, MultiApi, PublicState } from '../shared/types';
 
-// Surface minimale exposée à l'interface (barre latérale). Les pages des services,
-// elles, n'ont aucun preload et ne voient rien de tout cela.
+// Surface minimale exposée à l'interface (barre latérale). Les pages des services ne voient
+// rien de tout cela : leur preload (service.ts) n'expose rien.
 const api: MultiApi = {
   platform: process.platform,
   getState: () => ipcRenderer.invoke('state:get'),

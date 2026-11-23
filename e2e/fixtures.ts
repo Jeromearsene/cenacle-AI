@@ -34,7 +34,9 @@ async function startService(): Promise<{ service: FakeService; close: () => Prom
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.end(
       '<!doctype html><title>faux service</title><h1>faux service</h1>' +
-        '<input id="field" value="bonjour"> <a id="lien" href="https://example.com/">un lien</a>'
+        '<input id="field" value="bonjour"> <a id="lien" href="https://example.com/">un lien</a>' +
+        // une notification créée dès le chargement : l'habillage doit déjà être en place
+        "<script>window.earlyNotificationTitle = new Notification('tôt').title</script>"
     );
   });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));

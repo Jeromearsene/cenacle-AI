@@ -83,6 +83,7 @@ Le binaire d'Electron (environ 100 Mo) est téléchargé par `yarn install` (scr
 - Plein écran : bouton vert (macOS), ⌃⌘F / F11 ou menu Affichage. Agrandir : double-clic sur la barre du haut (macOS) ou sur la barre de titre (Windows, Linux).
 - Les comptes masqués restent chargés : leurs conversations continuent en arrière-plan.
 - **Maintiens ⌘ (macOS) ou Ctrl (Windows, Linux)** un instant : le numéro de raccourci de chaque compte (⌘1…⌘9 / Ctrl+1…9) s'affiche à côté de son nom, dans la barre latérale et au-dessus des colonnes.
+- **Notifications** : une notification web émise par un service affiche le nom du compte dans son titre et la pastille de couleur du compte en guise d'icône, pour savoir de quel compte elle vient. Un clic dessus ramène l'app au premier plan sur ce compte.
 - **Clic droit** dans une page de service : menu contextuel avec couper / copier / coller, suggestions d'orthographe, ouvrir ou copier un lien, copier une image, inspecter l'élément.
 
 Sur macOS, ⌘ est la touche Commande ; sous Windows et Linux, utilise Ctrl à la place.
@@ -182,7 +183,9 @@ src/main/providers.ts             services pris en charge (URL, identifiant de n
 src/main/permissions.ts            permissions accordées aux pages des services
 src/main/state.ts                 lecture / validation / écriture de state.json
 src/main/context-menu*.ts         menu du clic droit (modèle pur + branchement)
+src/main/account-notifications.ts titre et pastille de couleur des notifications d'un compte
 src/preload/index.ts              pont minimal vers l'interface (contextBridge)
+src/preload/service.ts            preload des pages de service : n'expose rien, habille les notifications
 src/shared/types.ts               types partagés entre les trois
 src/renderer/                     interface Preact + Tailwind (barre latérale, en-têtes de colonnes)
 resources/                        icône de l'app (source SVG, PNG, ICO, ICNS)

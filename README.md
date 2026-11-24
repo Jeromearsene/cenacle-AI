@@ -228,4 +228,4 @@ e2e/                              Playwright tests
 - **NonCommercial**: you may not use it for commercial purposes without a separate agreement and fair payment. To ask for a commercial license, open an issue.
 - **ShareAlike**: if you modify it and distribute the result, you must publish your changes under the same license. Pull requests to this repository are welcome but not required.
 
-Because of the NonCommercial clause, this is a _source-available_ license, not an [OSI](https://opensource.org/osd) "open source" one. By contributing, you agree that your contribution is released under the same license and that the author may also offer it under a separate commercial license.
+Because of the NonCommercial clause, this is a _source-available_ license, not an [OSI](https://opensource.org/osd) "open source" one. See [CONTRIBUTING.md](CONTRIBUTING.md) to propose a change. By contributing, you agree that your contribution is released under the same license and that the author may also offer it under a separate commercial license.

@@ -9,6 +9,14 @@ updates:
       # Minor and patch updates arrive in a single PR per week.
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # Type definitions follow the Node version pinned in package.json (Volta and CI): a new
+      # major would describe APIs that the pinned Node does not have.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # @preact/preset-vite works with Babel 7: wait for it to support Babel 8.
+      - dependency-name: "@babel/core"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule:

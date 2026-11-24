@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import type { ContextActions, ContextParams } from '../src/main/context-menu-template';
 import { contextMenuTemplate } from '../src/main/context-menu-template';
+import { translator } from '../src/shared/i18n';
 import { expect, test } from './fixtures';
 
 const noActions: ContextActions = {
@@ -31,25 +32,27 @@ const params = (over: Partial<ContextParams> = {}): ContextParams => ({
 });
 
 const labels = (p: ContextParams) =>
-  contextMenuTemplate(p, noActions).map((i) => (i.type === 'separator' ? '—' : i.label));
+  contextMenuTemplate(p, noActions, translator('en')).map((i) =>
+    i.type === 'separator' ? '—' : i.label
+  );
 
 test.describe('menu template (without launching the app)', () => {
   test('input field: editing + inspect', () => {
     expect(labels(params({ isEditable: true }))).toEqual([
-      'Annuler',
-      'Rétablir',
+      'Undo',
+      'Redo',
       '—',
-      'Couper',
-      'Copier',
-      'Coller',
-      'Coller sans mise en forme',
-      'Tout sélectionner',
+      'Cut',
+      'Copy',
+      'Paste',
+      'Paste and match style',
+      'Select all',
       '—',
-      'Inspecter l’élément',
+      'Inspect element',
     ]);
   });
 
-  test('faute d’orthographe : suggestions (5 max) et ajout au dictionnaire', () => {
+  test('misspelling: suggestions (5 max) and add to dictionary', () => {
     const l = labels(
       params({
         isEditable: true,
@@ -57,27 +60,20 @@ test.describe('menu template (without launching the app)', () => {
         dictionarySuggestions: ['bonjour', 'bonjours', 'a', 'b', 'c', 'd', 'e'],
       })
     );
-    expect(l.slice(0, 6)).toEqual([
-      'bonjour',
-      'bonjours',
-      'a',
-      'b',
-      'c',
-      'Ajouter au dictionnaire',
-    ]);
+    expect(l.slice(0, 6)).toEqual(['bonjour', 'bonjours', 'a', 'b', 'c', 'Add to dictionary']);
   });
 
-  test('lien : ouvrir et copier l’adresse', () => {
+  test('link: open and copy the address', () => {
     expect(labels(params({ linkURL: 'https://example.com/' }))).toEqual([
-      'Ouvrir le lien dans le navigateur',
-      'Copier l’adresse du lien',
+      'Open link in browser',
+      'Copy link address',
       '—',
-      'Inspecter l’élément',
+      'Inspect element',
     ]);
   });
 
   test('selected text outside a field: copy', () => {
-    expect(labels(params({ selectionText: 'abc' }))).toContain('Copier');
+    expect(labels(params({ selectionText: 'abc' }))).toContain('Copy');
   });
 
   test('never ends with a separator nor doubles one', () => {
@@ -89,7 +85,7 @@ test.describe('menu template (without launching the app)', () => {
   });
 });
 
-test('clic droit dans une page de service : le menu s’affiche', async ({ launch, service }) => {
+test('right click in a service page: the menu is shown', async ({ launch, service }) => {
   const { app } = await launch();
   // The real display of the menu is replaced by a recording of its entries.
   await app.evaluate(({ Menu }) => {
@@ -110,8 +106,8 @@ test('clic droit dans une page de service : le menu s’affiche', async ({ launc
   const target = servicePage() as Page;
 
   await target.locator('#field').click({ button: 'right' });
-  await expect.poll(lastMenu).toContain('Coller');
+  await expect.poll(lastMenu).toContain('Paste');
 
   await target.locator('#lien').click({ button: 'right' });
-  await expect.poll(lastMenu).toContain('Ouvrir le lien dans le navigateur');
+  await expect.poll(lastMenu).toContain('Open link in browser');
 });

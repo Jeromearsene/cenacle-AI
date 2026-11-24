@@ -1,5 +1,6 @@
 // Types shared between the main process, the preload and the interface.
 // Types only: this file must not import anything from Node or Electron.
+import type { Locale } from './i18n';
 
 export type Layout = 'single' | 'columns';
 
@@ -48,6 +49,7 @@ export interface ProviderInfo {
 /** What the interface receives from the main process. */
 export interface PublicState {
   appName: string;
+  locale: Locale;
   providers: ProviderInfo[];
   accounts: Account[];
   activeId: string;

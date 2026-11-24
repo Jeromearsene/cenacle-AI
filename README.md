@@ -86,8 +86,8 @@ The Electron binary (about 100 MB) is downloaded by `yarn install` (the `postins
 
 ## Using the app
 
-- **+ Ajouter un compte** (add an account) asks which service, then creates an empty session. Sign in once; it is kept between launches.
-- **Un seul / Colonnes** (single / columns): one account at a time, or all side by side (handy to compare answers).
+- **+ Add account** asks which service, then creates an empty session. Sign in once; it is kept between launches.
+- **Single / Columns**: one account at a time, or all side by side (handy to compare answers).
 - Double-click a name (or ✎) to rename, ✕ to delete an account's session.
 - **Window**: on first launch it fills the usable area of the screen (below the menu bar and the Dock, or the taskbar). After that the app restores its last size, or its maximized / full-screen state. If the screen it was on has been unplugged, it comes back on the main display.
 - Full screen: green button (macOS), ⌃⌘F / F11 or the View menu. Maximize: double-click the top bar (macOS) or the title bar (Windows, Linux).
@@ -108,9 +108,13 @@ On macOS ⌘ is the Command key; on Windows and Linux use Ctrl instead.
 | ⌘⌥I / Ctrl+Alt+I          | Developer tools of the active account |
 | ⌃⌘F (macOS) / F11         | Full screen                           |
 
-New account: Comptes → Nouveau compte in the menu, or the sidebar button.
+New account: Accounts → New account in the menu, or the sidebar button.
 
-> The interface is currently in French only. Translating it is on the roadmap.
+## Language
+
+The interface is available in English and French. It follows the system language and falls back to English for any other language.
+
+To add a language, add its code to `LOCALES` and a full set of messages in `src/shared/i18n.ts` (TypeScript refuses an incomplete set), then add a test line in `e2e/i18n.spec.ts`. To try a language without changing the system one, start the app unpackaged with `CENACLE_LANG=fr yarn dev`.
 
 ## Gemini and Google sign-in
 
@@ -213,7 +217,6 @@ e2e/                              Playwright tests
 - Shared memory between accounts through a common MCP server (depending on each service's and plan's connector support).
 - Per-account quota tracking, time left before next use, notification when an account becomes usable again.
 - Menu bar icon, manual light / dark switch, customizable shortcuts.
-- Interface translation (English / French).
 - Code signing and notarization (needed for macOS updates, Touch ID and passkeys).
 - More services.
 

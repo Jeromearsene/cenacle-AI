@@ -1,4 +1,5 @@
 import type { PublicState } from '../../shared/types';
+import { useT } from '../i18n';
 import { api } from '../use-multi';
 import { AccountItem } from './AccountItem';
 import { AddAccount } from './AddAccount';
@@ -21,6 +22,7 @@ export function Sidebar({
   providerLabel,
   shortcutOf,
 }: Props) {
+  const t = useT();
   return (
     <aside
       class="absolute inset-y-0 left-0 flex flex-col border-r border-line bg-panel px-2.5 pb-3"
@@ -29,7 +31,11 @@ export function Sidebar({
       {/* window drag area; on macOS, room for the window buttons */}
       <div class={`-mx-2.5 [-webkit-app-region:drag] ${isMac ? 'h-10' : 'h-3'}`} />
       <div class="brand px-2 pt-0.5 pb-2.5 font-semibold tracking-[0.01em]">{state.appName}</div>
-      <nav id="accounts" aria-label="Comptes" class="flex flex-col gap-0.5 overflow-y-auto">
+      <nav
+        id="accounts"
+        aria-label={t('sidebar.accounts')}
+        class="flex flex-col gap-0.5 overflow-y-auto"
+      >
         {state.accounts.map((acc) => (
           <AccountItem
             key={acc.id}

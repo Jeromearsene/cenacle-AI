@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
+import { useT } from '../i18n';
 
 interface Props {
   initial: string;
@@ -8,6 +9,7 @@ interface Props {
 
 /** Rename field: Enter or losing focus confirms, Escape cancels. */
 export function RenameInput({ initial, onCommit, onCancel }: Props) {
+  const t = useT();
   const [value, setValue] = useState(initial);
   const ref = useRef<HTMLInputElement>(null);
   const done = useRef(false); // avoids confirming twice (Enter then blur)
@@ -30,7 +32,7 @@ export function RenameInput({ initial, onCommit, onCancel }: Props) {
       type="text"
       maxLength={40}
       spellcheck={false}
-      aria-label="Nom du compte"
+      aria-label={t('account.nameLabel')}
       value={value}
       class="rename h-6 min-w-0 flex-1 select-text rounded-[5px] border border-accent bg-bg px-1.5 text-ink [font:inherit]"
       onInput={(e) => setValue(e.currentTarget.value)}

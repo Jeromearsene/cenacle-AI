@@ -1,15 +1,22 @@
+import type { MessageKey } from '../../shared/i18n';
 import type { Layout } from '../../shared/types';
+import { useT } from '../i18n';
 import { api } from '../use-multi';
 
-const OPTIONS: { mode: Layout; label: string }[] = [
-  { mode: 'single', label: 'Un seul' },
-  { mode: 'columns', label: 'Colonnes' },
+const OPTIONS: { mode: Layout; label: MessageKey }[] = [
+  { mode: 'single', label: 'layout.single' },
+  { mode: 'columns', label: 'layout.columns' },
 ];
 
 export function LayoutToggle({ layout }: { layout: Layout }) {
+  const t = useT();
   return (
     // biome-ignore lint/a11y/useSemanticElements: a <fieldset> imposes its default styling; role="group" is equivalent for screen readers
-    <div role="group" aria-label="Mise en page" class="grid grid-cols-2 rounded-lg bg-hover p-0.5">
+    <div
+      role="group"
+      aria-label={t('layout.label')}
+      class="grid grid-cols-2 rounded-lg bg-hover p-0.5"
+    >
       {OPTIONS.map(({ mode, label }) => (
         <button
           key={mode}
@@ -18,7 +25,7 @@ export function LayoutToggle({ layout }: { layout: Layout }) {
           class="h-[26px] cursor-pointer rounded-md border-0 bg-transparent text-muted aria-pressed:bg-bg aria-pressed:text-ink aria-pressed:shadow-sm"
           onClick={() => void api.setLayout(mode)}
         >
-          {label}
+          {t(label)}
         </button>
       ))}
     </div>

@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ProviderInfo } from '../../shared/types';
+import { useT } from '../i18n';
 import { api } from '../use-multi';
 
 export function AddAccount({ providers }: { providers: ProviderInfo[] }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
@@ -36,7 +38,7 @@ export function AddAccount({ providers }: { providers: ProviderInfo[] }) {
         class="h-8 w-full cursor-pointer rounded-[7px] border border-dashed border-line bg-transparent text-muted hover:bg-hover hover:text-ink focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent"
         onClick={() => setOpen((v) => !v)}
       >
-        + Ajouter un compte
+        {t('sidebar.addAccount')}
       </button>
       {open && (
         <div

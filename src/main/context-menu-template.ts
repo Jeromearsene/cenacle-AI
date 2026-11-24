@@ -1,4 +1,5 @@
 import type { MenuItemConstructorOptions } from 'electron';
+import type { Translate } from '../shared/i18n';
 
 // Template of the right-click menu of service pages. Pure function (no dependency on Electron
 // beyond types): testable without launching the app.
@@ -34,7 +35,8 @@ const MAX_SUGGESTIONS = 5;
 
 export function contextMenuTemplate(
   p: ContextParams,
-  a: ContextActions
+  a: ContextActions,
+  t: Translate
 ): MenuItemConstructorOptions[] {
   const items: MenuItemConstructorOptions[] = [];
   const f = p.editFlags;
@@ -42,42 +44,42 @@ export function contextMenuTemplate(
   if (p.isEditable && p.misspelledWord) {
     const word = p.misspelledWord;
     const suggestions = p.dictionarySuggestions.slice(0, MAX_SUGGESTIONS);
-    if (suggestions.length === 0) items.push({ label: 'Aucune suggestion', enabled: false });
+    if (suggestions.length === 0) items.push({ label: t('context.noSuggestion'), enabled: false });
     for (const s of suggestions) items.push({ label: s, click: () => a.replaceMisspelling(s) });
-    items.push({ label: 'Ajouter au dictionnaire', click: () => a.addToDictionary(word) }, SEP);
+    items.push({ label: t('context.addToDictionary'), click: () => a.addToDictionary(word) }, SEP);
   }
 
   if (p.linkURL) {
     const url = p.linkURL;
     items.push(
-      { label: 'Ouvrir le lien dans le navigateur', click: () => a.openLink(url) },
-      { label: 'Copier l’adresse du lien', click: () => a.copyLink(url) },
+      { label: t('context.openLink'), click: () => a.openLink(url) },
+      { label: t('context.copyLink'), click: () => a.copyLink(url) },
       SEP
     );
   }
 
   if (p.mediaType === 'image')
-    items.push({ label: 'Copier l’image', click: () => a.copyImage() }, SEP);
+    items.push({ label: t('context.copyImage'), click: () => a.copyImage() }, SEP);
 
   if (p.isEditable) {
     items.push(
-      { label: 'Annuler', role: 'undo', enabled: f.canUndo },
-      { label: 'Rétablir', role: 'redo', enabled: f.canRedo },
+      { label: t('context.undo'), role: 'undo', enabled: f.canUndo },
+      { label: t('context.redo'), role: 'redo', enabled: f.canRedo },
       SEP,
-      { label: 'Couper', role: 'cut', enabled: f.canCut },
-      { label: 'Copier', role: 'copy', enabled: f.canCopy },
-      { label: 'Coller', role: 'paste', enabled: f.canPaste },
-      { label: 'Coller sans mise en forme', role: 'pasteAndMatchStyle', enabled: f.canPaste },
-      { label: 'Tout sélectionner', role: 'selectAll', enabled: f.canSelectAll }
+      { label: t('context.cut'), role: 'cut', enabled: f.canCut },
+      { label: t('context.copy'), role: 'copy', enabled: f.canCopy },
+      { label: t('context.paste'), role: 'paste', enabled: f.canPaste },
+      { label: t('context.pasteMatchStyle'), role: 'pasteAndMatchStyle', enabled: f.canPaste },
+      { label: t('context.selectAll'), role: 'selectAll', enabled: f.canSelectAll }
     );
   } else if (p.selectionText) {
     items.push(
-      { label: 'Copier', role: 'copy', enabled: f.canCopy },
-      { label: 'Tout sélectionner', role: 'selectAll', enabled: f.canSelectAll }
+      { label: t('context.copy'), role: 'copy', enabled: f.canCopy },
+      { label: t('context.selectAll'), role: 'selectAll', enabled: f.canSelectAll }
     );
   }
 
   if (items.at(-1) !== SEP && items.length > 0) items.push(SEP);
-  items.push({ label: 'Inspecter l’élément', click: () => a.inspect() });
+  items.push({ label: t('context.inspect'), click: () => a.inspect() });
   return items;
 }

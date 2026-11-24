@@ -1,0 +1,128 @@
+// Interface translations, shared by the main process (menus, dialogs, context menu) and the
+// renderer (sidebar). Shared file: it must not import anything from Node or Electron.
+//
+// To add a language: add its tag to LOCALES, then add a `Record<MessageKey, string>` below.
+// TypeScript refuses a translation that misses a key.
+
+export const LOCALES = ['en', 'fr'] as const;
+export type Locale = (typeof LOCALES)[number];
+export const DEFAULT_LOCALE: Locale = 'en';
+
+const en = {
+  // sidebar
+  'sidebar.accounts': 'Accounts',
+  'sidebar.addAccount': '+ Add account',
+  'account.rename': 'Rename',
+  'account.delete': 'Delete',
+  'account.nameLabel': 'Account name',
+  'layout.label': 'Layout',
+  'layout.single': 'Single',
+  'layout.columns': 'Columns',
+  'column.reload': 'Reload',
+
+  // delete confirmation
+  'dialog.deleteTitle': 'Delete “{name}”?',
+  'dialog.deleteDetail':
+    'This account’s session (sign-in, cookies, local data) will be erased from this app. The account itself, at the service, is not affected.',
+  'dialog.delete': 'Delete',
+  'dialog.cancel': 'Cancel',
+
+  // application menu
+  'menu.file': 'File',
+  'menu.accounts': 'Accounts',
+  'menu.newAccount': 'New account',
+  'menu.nextAccount': 'Next account',
+  'menu.previousAccount': 'Previous account',
+  'menu.reloadActive': 'Reload the active account',
+  'menu.view': 'View',
+  'menu.showSingle': 'Show a single account',
+  'menu.showColumns': 'Show in columns',
+  'menu.zoomIn': 'Zoom in',
+  'menu.zoomOut': 'Zoom out',
+  'menu.actualSize': 'Actual size',
+  'menu.maximizeWindow': 'Maximize window',
+  'menu.devTools': 'Developer tools (active account)',
+
+  // right-click menu
+  'context.noSuggestion': 'No suggestion',
+  'context.addToDictionary': 'Add to dictionary',
+  'context.openLink': 'Open link in browser',
+  'context.copyLink': 'Copy link address',
+  'context.copyImage': 'Copy image',
+  'context.undo': 'Undo',
+  'context.redo': 'Redo',
+  'context.cut': 'Cut',
+  'context.copy': 'Copy',
+  'context.paste': 'Paste',
+  'context.pasteMatchStyle': 'Paste and match style',
+  'context.selectAll': 'Select all',
+  'context.inspect': 'Inspect element',
+} as const;
+
+export type MessageKey = keyof typeof en;
+
+const fr: Record<MessageKey, string> = {
+  'sidebar.accounts': 'Comptes',
+  'sidebar.addAccount': '+ Ajouter un compte',
+  'account.rename': 'Renommer',
+  'account.delete': 'Supprimer',
+  'account.nameLabel': 'Nom du compte',
+  'layout.label': 'Mise en page',
+  'layout.single': 'Un seul',
+  'layout.columns': 'Colonnes',
+  'column.reload': 'Recharger',
+
+  'dialog.deleteTitle': 'Supprimer « {name} » ?',
+  'dialog.deleteDetail':
+    'La session de ce compte (connexion, cookies, données locales) sera effacée de cet outil. Le compte lui-même, chez le service, n’est pas touché.',
+  'dialog.delete': 'Supprimer',
+  'dialog.cancel': 'Annuler',
+
+  'menu.file': 'Fichier',
+  'menu.accounts': 'Comptes',
+  'menu.newAccount': 'Nouveau compte',
+  'menu.nextAccount': 'Compte suivant',
+  'menu.previousAccount': 'Compte précédent',
+  'menu.reloadActive': 'Recharger le compte actif',
+  'menu.view': 'Affichage',
+  'menu.showSingle': 'Afficher un seul compte',
+  'menu.showColumns': 'Afficher en colonnes',
+  'menu.zoomIn': 'Zoom avant',
+  'menu.zoomOut': 'Zoom arrière',
+  'menu.actualSize': 'Taille réelle',
+  'menu.maximizeWindow': 'Agrandir la fenêtre',
+  'menu.devTools': 'Outils de développement (compte actif)',
+
+  'context.noSuggestion': 'Aucune suggestion',
+  'context.addToDictionary': 'Ajouter au dictionnaire',
+  'context.openLink': 'Ouvrir le lien dans le navigateur',
+  'context.copyLink': 'Copier l’adresse du lien',
+  'context.copyImage': 'Copier l’image',
+  'context.undo': 'Annuler',
+  'context.redo': 'Rétablir',
+  'context.cut': 'Couper',
+  'context.copy': 'Copier',
+  'context.paste': 'Coller',
+  'context.pasteMatchStyle': 'Coller sans mise en forme',
+  'context.selectAll': 'Tout sélectionner',
+  'context.inspect': 'Inspecter l’élément',
+};
+
+export const messages: Record<Locale, Record<MessageKey, string>> = { en, fr };
+
+/** Picks the interface language from a system language tag ("fr-FR", "en_US"…). */
+export function resolveLocale(tag: string | undefined): Locale {
+  const base = (tag ?? '').toLowerCase().split(/[-_]/)[0];
+  return LOCALES.find((l) => l === base) ?? DEFAULT_LOCALE;
+}
+
+export type Translate = (key: MessageKey, params?: Record<string, string | number>) => string;
+
+/** A `t(key, { name })` function for a language; `{name}` in a message is replaced. */
+export function translator(locale: Locale): Translate {
+  const table = messages[locale];
+  return (key, params) =>
+    table[key].replace(/\{(\w+)\}/g, (whole, name: string) =>
+      params && name in params ? String(params[name]) : whole
+    );
+}

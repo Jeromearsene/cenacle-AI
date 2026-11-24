@@ -1,4 +1,5 @@
 import type { Account } from '../../shared/types';
+import { useT } from '../i18n';
 import { api } from '../use-multi';
 import { IconButton } from './IconButton';
 import { RenameInput } from './RenameInput';
@@ -27,6 +28,7 @@ export function AccountItem({
   onRename,
   onCancelRename,
 }: Props) {
+  const t = useT();
   return (
     // biome-ignore lint/a11y/useSemanticElements: the row contains other buttons (rename, delete); a nested <button> would be invalid
     <div
@@ -71,10 +73,10 @@ export function AccountItem({
           <span
             class={`actions gap-0.5 ${shortcut ? 'hidden' : 'hidden group-focus-within:flex group-hover:flex'}`}
           >
-            <IconButton label="Renommer" glyph="✎" onClick={onStartRename} />
+            <IconButton label={t('account.rename')} glyph="✎" onClick={onStartRename} />
             {removable && (
               <IconButton
-                label="Supprimer"
+                label={t('account.delete')}
                 glyph="✕"
                 onClick={() => void api.removeAccount(account.id)}
               />

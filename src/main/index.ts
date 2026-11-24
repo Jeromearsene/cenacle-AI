@@ -21,6 +21,7 @@ import {
   WebContentsView,
 } from 'electron';
 import { name as packageName } from '../../package.json';
+import { resolveLocale, translator } from '../shared/i18n';
 import { MAX_ACCOUNT_SHORTCUTS } from '../shared/shortcuts';
 import type { Account, Layout, PersistedState, PublicState, Rect } from '../shared/types';
 import { dotDataUrl, identityArgument } from './account-notifications';
@@ -47,6 +48,11 @@ const resource = (file: string) => path.join(RESOURCES, file);
 const SIDEBAR_W = 220; // sidebar width (px)
 const HEADER_H = 32; // height of each column header (px)
 const isMac = process.platform === 'darwin';
+
+// Interface language: the system language (English or French, English by default). Tests can
+// force it with CENACLE_LANG; ignored in a packaged app.
+const locale = resolveLocale((!app.isPackaged && process.env.CENACLE_LANG) || app.getLocale());
+const t = translator(locale);
 
 // Browser identifier. Chromium mis-encodes accents in a User-Agent ("Cénacle" turns into
 // "CÃ©nacle"), so the app name appears there without the accent.
@@ -226,11 +232,11 @@ function createView(acc: Account, parent: BrowserWindow): WebContentsView {
   const wc = view.webContents;
   const onWindowOpen = makeWindowOpenHandler(provider);
   wc.setWindowOpenHandler(onWindowOpen);
-  attachContextMenu(wc);
+  attachContextMenu(wc, t);
   trackShortcutHint(wc);
   wc.on('did-create-window', (child) => {
     child.webContents.setWindowOpenHandler(onWindowOpen);
-    attachContextMenu(child.webContents);
+    attachContextMenu(child.webContents, t);
   });
   wc.on('focus', () => {
     // A hidden view (another account, "single" mode) does not choose the active account: when the
@@ -308,6 +314,7 @@ function applyLayout(): void {
 function publicState(): PublicState {
   return {
     appName: app.getName(),
+    locale,
     providers: Object.values(PROVIDERS).map(({ id, label }) => ({ id, label })),
     accounts: state.accounts,
     activeId: state.activeId,
@@ -377,12 +384,11 @@ async function removeAccount(id: string): Promise<boolean> {
   if (!acc || state.accounts.length <= 1) return false;
   const options = {
     type: 'warning' as const,
-    buttons: ['Supprimer', 'Annuler'],
+    buttons: [t('dialog.delete'), t('dialog.cancel')],
     defaultId: 1,
     cancelId: 1,
-    message: `Supprimer « ${acc.name} » ?`,
-    detail:
-      'La session de ce compte (connexion, cookies, données locales) sera effacée de cet outil. Le compte lui-même, chez le service, n’est pas touché.',
+    message: t('dialog.deleteTitle', { name: acc.name }),
+    detail: t('dialog.deleteDetail'),
   };
   const { response } = win
     ? await dialog.showMessageBox(win, options)
@@ -461,13 +467,13 @@ function buildMenu(): void {
   const template: MenuItemConstructorOptions[] = [
     ...(isMac
       ? [{ role: 'appMenu' } as const]
-      : [{ label: 'Fichier', submenu: [{ role: 'quit' } as const] }]),
+      : [{ label: t('menu.file'), submenu: [{ role: 'quit' } as const] }]),
     { role: 'editMenu' },
     {
-      label: 'Comptes',
+      label: t('menu.accounts'),
       submenu: [
         {
-          label: 'Nouveau compte',
+          label: t('menu.newAccount'),
           submenu: Object.values(PROVIDERS).map((p) => ({
             label: p.label,
             click: () => addAccount(p.id),
@@ -476,40 +482,44 @@ function buildMenu(): void {
         { type: 'separator' },
         ...accountItems,
         { type: 'separator' },
-        { label: 'Compte suivant', accelerator: 'Ctrl+Tab', click: () => cycleAccount(1) },
-        { label: 'Compte précédent', accelerator: 'Ctrl+Shift+Tab', click: () => cycleAccount(-1) },
+        { label: t('menu.nextAccount'), accelerator: 'Ctrl+Tab', click: () => cycleAccount(1) },
+        {
+          label: t('menu.previousAccount'),
+          accelerator: 'Ctrl+Shift+Tab',
+          click: () => cycleAccount(-1),
+        },
         { type: 'separator' },
         {
-          label: 'Recharger le compte actif',
+          label: t('menu.reloadActive'),
           accelerator: 'CmdOrCtrl+R',
           click: () => reloadAccount(state.activeId),
         },
       ],
     },
     {
-      label: 'Affichage',
+      label: t('menu.view'),
       submenu: [
         {
-          label: state.layout === 'columns' ? 'Afficher un seul compte' : 'Afficher en colonnes',
+          label: state.layout === 'columns' ? t('menu.showSingle') : t('menu.showColumns'),
           accelerator: 'CmdOrCtrl+Shift+L',
           click: () => setLayout(state.layout === 'columns' ? 'single' : 'columns'),
         },
         { type: 'separator' },
-        { label: 'Zoom avant', accelerator: 'CmdOrCtrl+Plus', click: () => zoomActive(0.5) },
-        { label: 'Zoom arrière', accelerator: 'CmdOrCtrl+-', click: () => zoomActive(-0.5) },
-        { label: 'Taille réelle', accelerator: 'CmdOrCtrl+0', click: () => zoomActive(0) },
+        { label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+Plus', click: () => zoomActive(0.5) },
+        { label: t('menu.zoomOut'), accelerator: 'CmdOrCtrl+-', click: () => zoomActive(-0.5) },
+        { label: t('menu.actualSize'), accelerator: 'CmdOrCtrl+0', click: () => zoomActive(0) },
         { type: 'separator' },
         { role: 'togglefullscreen', accelerator: isMac ? 'Ctrl+Cmd+F' : 'F11' },
         ...(isMac
           ? []
           : [
               {
-                label: 'Agrandir la fenêtre',
+                label: t('menu.maximizeWindow'),
                 click: () => win && (win.isMaximized() ? win.unmaximize() : win.maximize()),
               },
             ]),
         {
-          label: 'Outils de développement (compte actif)',
+          label: t('menu.devTools'),
           accelerator: 'CmdOrCtrl+Alt+I',
           click: () => activeContents()?.openDevTools({ mode: 'detach' }),
         },

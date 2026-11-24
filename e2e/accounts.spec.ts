@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 import { accountNames, evalIn, expect, test, waitForServices } from './fixtures';
 
 async function addAccount(sidebar: Page, label: string): Promise<void> {
-  await sidebar.getByRole('button', { name: '+ Ajouter un compte' }).click();
+  await sidebar.getByRole('button', { name: '+ Add account' }).click();
   await sidebar.getByRole('menuitem', { name: label }).click();
   // The new account arrives in rename mode: keep the proposed name.
   await sidebar.locator('input.rename').press('Enter');
@@ -32,10 +32,10 @@ test('shows all accounts in columns', async ({ launch }) => {
   await addAccount(sidebar, 'Claude');
   await expect(sidebar.locator('.col-head')).toHaveCount(1);
 
-  await sidebar.getByRole('button', { name: 'Colonnes' }).click();
+  await sidebar.getByRole('button', { name: 'Columns' }).click();
   await expect(sidebar.locator('.col-head')).toHaveCount(2);
 
-  await sidebar.getByRole('button', { name: 'Un seul' }).click();
+  await sidebar.getByRole('button', { name: 'Single' }).click();
   await expect(sidebar.locator('.col-head')).toHaveCount(1);
 });
 

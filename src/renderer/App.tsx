@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'preact/hooks';
+import { translator } from '../shared/i18n';
 import { accountShortcutLabel } from '../shared/shortcuts';
 import { ColumnHeaders } from './components/ColumnHeaders';
 import { Sidebar } from './components/Sidebar';
+import { I18nProvider } from './i18n';
 import { api, useMultiState, useRenameRequest, useShortcutHint } from './use-multi';
 
 const isMac = api.platform === 'darwin';
@@ -15,6 +17,9 @@ export function App() {
   useEffect(() => {
     if (state) document.title = state.appName;
   }, [state?.appName]);
+  useEffect(() => {
+    if (state) document.documentElement.lang = state.locale;
+  }, [state?.locale]);
 
   if (!state) return null;
   const providerLabel = (id: string) => state.providers.find((p) => p.id === id)?.label ?? id;
@@ -28,7 +33,7 @@ export function App() {
       : null;
 
   return (
-    <>
+    <I18nProvider value={translator(state.locale)}>
       <Sidebar
         state={state}
         isMac={isMac}
@@ -38,6 +43,6 @@ export function App() {
         shortcutOf={shortcutOf}
       />
       <ColumnHeaders state={state} providerLabel={providerLabel} shortcutOf={shortcutOf} />
-    </>
+    </I18nProvider>
   );
 }

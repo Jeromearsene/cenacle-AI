@@ -86,7 +86,7 @@ Le binaire d'Electron (environ 100 Mo) est téléchargé par `yarn install` (scr
 
 ## Utilisation
 
-- **+ Ajouter un compte** demande le service, puis crée une session vide. Connecte-toi une fois, elle est conservée entre deux lancements.
+- **+ Ajouter un compte** (« + Add account » en anglais) demande le service, puis crée une session vide. Connecte-toi une fois, elle est conservée entre deux lancements.
 - **Un seul / Colonnes** : un compte à la fois, ou tous côte à côte (pratique pour comparer des réponses).
 - Double-clic sur un nom (ou ✎) pour renommer, ✕ pour supprimer la session d'un compte.
 - **Fenêtre** : au premier lancement elle occupe toute la zone utile de l'écran (sous la barre de menus et le Dock, ou la barre des tâches). Ensuite, l'app retrouve sa dernière taille, ou son état agrandi / plein écran. Si l'écran utilisé a été débranché, elle revient sur l'écran principal.
@@ -110,7 +110,11 @@ Sur macOS, ⌘ est la touche Commande ; sous Windows et Linux, utilise Ctrl à l
 
 Nouveau compte : menu Comptes → Nouveau compte, ou bouton de la barre latérale.
 
-> L'interface est pour l'instant uniquement en français. Sa traduction est dans la feuille de route.
+## Langue
+
+L'interface existe en anglais et en français. Elle suit la langue du système et retombe sur l'anglais pour toute autre langue.
+
+Pour ajouter une langue, ajoute son code à `LOCALES` et un jeu complet de messages dans `src/shared/i18n.ts` (TypeScript refuse un jeu incomplet), puis une ligne de test dans `e2e/i18n.spec.ts`. Pour essayer une langue sans changer celle du système, lance l'app non empaquetée avec `CENACLE_LANG=fr yarn dev`.
 
 ## Gemini et la connexion Google
 
@@ -213,7 +217,6 @@ e2e/                              tests Playwright
 - Mémoire partagée entre comptes via un serveur MCP commun (selon la prise en charge des connecteurs par chaque service et chaque forfait).
 - Suivi des quotas par compte, temps restant avant la prochaine utilisation, notification quand un compte redevient utilisable.
 - Icône dans la barre de menus, bascule manuelle clair / sombre, raccourcis personnalisables.
-- Traduction de l'interface (anglais / français).
 - Signature et notarisation du code (nécessaires aux mises à jour macOS, à Touch ID et aux passkeys).
 - Autres services.
 

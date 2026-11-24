@@ -94,7 +94,7 @@ test.describe('shortcut numbers (⌘ / Ctrl held)', () => {
     service,
   }) => {
     const { app, sidebar } = await launch();
-    await sidebar.getByRole('button', { name: '+ Ajouter un compte' }).click();
+    await sidebar.getByRole('button', { name: '+ Add account' }).click();
     await sidebar.getByRole('menuitem', { name: 'ChatGPT' }).click();
     await sidebar.locator('input.rename').press('Enter');
     await expect(sidebar.locator('#accounts .account')).toHaveCount(2);
@@ -119,7 +119,7 @@ test.describe('shortcut numbers (⌘ / Ctrl held)', () => {
       label(2) as string,
     ]);
     // also in columns mode, above each page
-    await sidebar.getByRole('button', { name: 'Colonnes' }).click();
+    await sidebar.getByRole('button', { name: 'Columns' }).click();
     await expect(sidebar.locator('.col-head .shortcut')).toHaveText([
       label(1) as string,
       label(2) as string,

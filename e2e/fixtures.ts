@@ -15,6 +15,11 @@ export interface FakeService {
   pageUserAgents: string[];
 }
 
+export interface LaunchOptions {
+  /** Interface language (tests default to English whatever the machine language is). */
+  lang?: string;
+}
+
 export interface Launched {
   app: ElectronApplication;
   sidebar: Page;
@@ -24,7 +29,7 @@ interface Fixtures {
   service: FakeService;
   userDataDir: string;
   /** Launches the app (can be done several times with the same data folder). */
-  launch: () => Promise<Launched>;
+  launch: (options?: LaunchOptions) => Promise<Launched>;
 }
 
 async function startService(): Promise<{ service: FakeService; close: () => Promise<void> }> {
@@ -64,14 +69,14 @@ export const test = base.extend<Fixtures>({
 
   launch: async ({ service, userDataDir }, use, testInfo) => {
     const launched: Launched[] = [];
-    await use(async () => {
+    await use(async ({ lang = 'en' }: LaunchOptions = {}) => {
       // On Linux, Chromium's sandbox is refused as root (container) and on GitHub runners
       // (Ubuntu 24.04 restricts user namespaces).
       const asRoot = typeof process.getuid === 'function' && process.getuid() === 0;
       const noSandbox = process.platform === 'linux' && (asRoot || Boolean(process.env.CI));
       const app = await electron.launch({
         args: [APP_ROOT, `--user-data-dir=${userDataDir}`, ...(noSandbox ? ['--no-sandbox'] : [])],
-        env: { ...process.env, MULTI_TEST_URL: service.url },
+        env: { ...process.env, MULTI_TEST_URL: service.url, CENACLE_LANG: lang },
       });
       const sidebar = await findSidebar(app);
       launched.push({ app, sidebar });

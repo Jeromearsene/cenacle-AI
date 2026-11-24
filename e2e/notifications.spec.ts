@@ -51,7 +51,7 @@ const notifTitle = (app: Parameters<typeof evalIn>[0], id: number, title: string
   evalIn<string>(app, id, `new Notification(${JSON.stringify(title)}).title`);
 
 async function addAccount(sidebar: Page, label: string): Promise<void> {
-  await sidebar.getByRole('button', { name: '+ Ajouter un compte' }).click();
+  await sidebar.getByRole('button', { name: '+ Add account' }).click();
   await sidebar.getByRole('menuitem', { name: label }).click();
   await sidebar.locator('input.rename').press('Enter');
 }

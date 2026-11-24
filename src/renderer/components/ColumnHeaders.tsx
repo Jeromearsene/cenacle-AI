@@ -1,4 +1,5 @@
 import type { PublicState } from '../../shared/types';
+import { useT } from '../i18n';
 import { api } from '../use-multi';
 import { IconButton } from './IconButton';
 
@@ -12,6 +13,7 @@ export function ColumnHeaders({
   providerLabel: (id: string) => string;
   shortcutOf: (id: string) => string | null;
 }) {
+  const t = useT();
   return (
     <div class="pointer-events-none absolute inset-0">
       {state.rects.map((r) => {
@@ -44,7 +46,7 @@ export function ColumnHeaders({
               </span>
             )}
             <IconButton
-              label="Recharger"
+              label={t('column.reload')}
               glyph="↻"
               onClick={() => void api.reloadAccount(acc.id)}
             />

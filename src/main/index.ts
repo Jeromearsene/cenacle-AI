@@ -418,6 +418,13 @@ function removeFromGrid(id: string): boolean {
   return true;
 }
 
+/** Back to every account side by side, equal sizes (also brings back the ones taken out). */
+function resetGrid(): void {
+  if (state.layout !== 'grid') return;
+  state.grid = null;
+  refresh();
+}
+
 function resizeGrid(path: number[], index: number, size: number): void {
   if (state.layout !== 'grid') return;
   state.grid = setSplitSize(state.grid, path, index, size);
@@ -425,6 +432,11 @@ function resizeGrid(path: number[], index: number, size: number): void {
   applyLayout();
   notify();
   scheduleSave();
+}
+
+/** A reloaded or crashed interface cannot finish its drag: show the pages again. */
+function stopDragging(): void {
+  if (dragging) setDragging(false);
 }
 
 function setDragging(active: boolean): void {
@@ -590,6 +602,7 @@ function buildMenu(): void {
           accelerator: 'CmdOrCtrl+Shift+L',
           click: () => setLayout(state.layout === 'grid' ? 'single' : 'grid'),
         },
+        { label: t('menu.resetGrid'), enabled: state.layout === 'grid', click: resetGrid },
         { type: 'separator' },
         { label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+Plus', click: () => zoomActive(0.5) },
         { label: t('menu.zoomOut'), accelerator: 'CmdOrCtrl+-', click: () => zoomActive(-0.5) },
@@ -645,6 +658,8 @@ function createWindow(): void {
     },
   });
   win = w;
+  w.webContents.on('did-start-loading', stopDragging);
+  w.webContents.on('render-process-gone', stopDragging);
 
   const devUrl = process.env.ELECTRON_RENDERER_URL;
   if (!app.isPackaged && devUrl) void w.loadURL(devUrl);

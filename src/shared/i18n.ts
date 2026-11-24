@@ -22,7 +22,7 @@ const en = {
   'cell.reload': 'Reload',
   'cell.move': 'Drag to rearrange',
   'cell.remove': 'Remove from the grid',
-  'grid.resize': 'Drag to resize',
+  'grid.resize': 'Resize (drag, or use the arrow keys)',
 
   // delete confirmation
   'dialog.deleteTitle': 'Delete “{name}”?',
@@ -41,6 +41,7 @@ const en = {
   'menu.view': 'View',
   'menu.showSingle': 'Show a single account',
   'menu.showGrid': 'Show as a grid',
+  'menu.resetGrid': 'Reset the grid',
   'menu.zoomIn': 'Zoom in',
   'menu.zoomOut': 'Zoom out',
   'menu.actualSize': 'Actual size',
@@ -78,7 +79,7 @@ const fr: Record<MessageKey, string> = {
   'cell.reload': 'Recharger',
   'cell.move': 'Glisser pour réorganiser',
   'cell.remove': 'Retirer de la grille',
-  'grid.resize': 'Glisser pour redimensionner',
+  'grid.resize': 'Redimensionner (glisser, ou flèches du clavier)',
 
   'dialog.deleteTitle': 'Supprimer « {name} » ?',
   'dialog.deleteDetail':
@@ -95,6 +96,7 @@ const fr: Record<MessageKey, string> = {
   'menu.view': 'Affichage',
   'menu.showSingle': 'Afficher un seul compte',
   'menu.showGrid': 'Afficher en grille',
+  'menu.resetGrid': 'Réinitialiser la grille',
   'menu.zoomIn': 'Zoom avant',
   'menu.zoomOut': 'Zoom arrière',
   'menu.actualSize': 'Taille réelle',

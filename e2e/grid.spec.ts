@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { ElectronApplication, Page } from '@playwright/test';
 import { parseState } from '../src/main/state';
 import {
   appendLeaf,
@@ -362,4 +362,118 @@ test('a new account joins the end of the grid', async ({ launch }) => {
   await sidebar.getByRole('button', { name: 'Grid' }).click();
   await addAccount(sidebar, 'Gemini');
   await expect.poll(() => headNames(sidebar)).toEqual(['Claude 1', 'Gemini 1']);
+});
+
+// Native side: the service pages are separate views placed by the main process.
+const nativeViews = (app: ElectronApplication) =>
+  app.evaluate(({ BrowserWindow }) =>
+    (BrowserWindow.getAllWindows()[0]?.contentView.children ?? []).map((v) => ({
+      ...(v as unknown as { getBounds(): Electron.Rectangle }).getBounds(),
+      visible: (v as unknown as { getVisible(): boolean }).getVisible(),
+    }))
+  );
+
+test('each service page sits right under its header, and pages are hidden while dragging', async ({
+  launch,
+}) => {
+  const { app, sidebar } = await launch();
+  await addAccount(sidebar, 'ChatGPT');
+  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await expect(heads(sidebar)).toHaveCount(2);
+  // a stacked layout too: the second account goes under the first one
+  const grip = await centerOf(
+    heads(sidebar).nth(1).getByRole('button', { name: 'Drag to rearrange' })
+  );
+  const first = (await heads(sidebar).nth(0).boundingBox()) as { x: number; width: number };
+  const height = await sidebar.evaluate(() => window.innerHeight);
+  await dragTo(sidebar, { x: grip.x, y: grip.y }, { x: first.x + first.width / 2, y: height - 10 });
+  await expect(sidebar.locator('.cell-body')).toHaveCount(0);
+
+  await expect
+    .poll(async () => {
+      const boxes = await heads(sidebar).evaluateAll((els) =>
+        els.map((e) => {
+          const r = e.getBoundingClientRect();
+          return { x: Math.round(r.x), y: Math.round(r.bottom), width: Math.round(r.width) };
+        })
+      );
+      const views = await nativeViews(app);
+      return boxes.every((b) =>
+        views.some((v) => v.visible && v.x === b.x && v.y === b.y && v.width === b.width)
+      );
+    })
+    .toBe(true);
+
+  // while a drag is going on, no page is shown (they would swallow the mouse)
+  await sidebar.mouse.move(grip.x, grip.y);
+  await sidebar.mouse.down();
+  await sidebar.mouse.move(grip.x + 40, grip.y + 40, { steps: 5 });
+  await expect.poll(async () => (await nativeViews(app)).some((v) => v.visible)).toBe(false);
+  await sidebar.mouse.up();
+  await expect.poll(async () => (await nativeViews(app)).filter((v) => v.visible).length).toBe(2);
+});
+
+test('the pages come back when the system cancels the pointer', async ({ launch }) => {
+  const { app, sidebar } = await launch();
+  await addAccount(sidebar, 'ChatGPT');
+  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  const grip = await centerOf(
+    heads(sidebar).nth(1).getByRole('button', { name: 'Drag to rearrange' })
+  );
+  await sidebar.mouse.move(grip.x, grip.y);
+  await sidebar.mouse.down();
+  await sidebar.mouse.move(grip.x - 80, grip.y + 80, { steps: 5 });
+  await expect(sidebar.locator('.cell-body')).toHaveCount(2);
+  await sidebar.evaluate(() => window.dispatchEvent(new PointerEvent('pointercancel')));
+  await expect(sidebar.locator('.cell-body')).toHaveCount(0);
+  await expect.poll(async () => (await nativeViews(app)).filter((v) => v.visible).length).toBe(2);
+  await sidebar.mouse.up();
+});
+
+test('a resize handle works with the arrow keys', async ({ launch }) => {
+  const { sidebar } = await launch();
+  await addAccount(sidebar, 'ChatGPT');
+  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  const width = async () => (await heads(sidebar).nth(0).boundingBox())?.width ?? 0;
+  const before = await width();
+  await sidebar.locator('.divider').focus();
+  await sidebar.keyboard.press('ArrowRight');
+  await sidebar.keyboard.press('ArrowRight');
+  await expect.poll(width).toBeGreaterThan(before + 60);
+  await sidebar.keyboard.press('ArrowLeft');
+  await sidebar.keyboard.press('ArrowLeft');
+  await sidebar.keyboard.press('ArrowLeft');
+  await expect.poll(width).toBeLessThan(before - 20);
+});
+
+test('the whole header moves a cell, except in the title bar on macOS', async ({ launch }) => {
+  test.skip(process.platform === 'darwin', 'the top row of headers is the title bar on macOS');
+  const { sidebar } = await launch();
+  await addAccount(sidebar, 'ChatGPT');
+  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  const name = await centerOf(heads(sidebar).nth(1).locator('.name'));
+  const first = (await heads(sidebar).nth(0).boundingBox()) as { x: number };
+  const height = await sidebar.evaluate(() => window.innerHeight);
+  await dragTo(sidebar, { x: name.x, y: name.y }, { x: first.x + 12, y: height / 2 });
+  await expect.poll(() => headNames(sidebar)).toEqual(['ChatGPT 1', 'Claude 1']);
+});
+
+test('"Reset the grid" brings every account back side by side', async ({ launch }) => {
+  const { app, sidebar } = await launch();
+  const reset = () =>
+    app.evaluate(({ Menu }) => {
+      const view = Menu.getApplicationMenu()?.items.find((i) => i.label === 'View');
+      const item = view?.submenu?.items.find((i) => i.label === 'Reset the grid');
+      if (item?.enabled) item.click();
+      return item?.enabled ?? null;
+    });
+  await addAccount(sidebar, 'ChatGPT');
+  await addAccount(sidebar, 'Gemini');
+  expect(await reset()).toBe(false); // nothing to reset in single mode
+  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await heads(sidebar).nth(2).getByRole('button', { name: 'Remove from the grid' }).click();
+  await heads(sidebar).nth(1).getByRole('button', { name: 'Remove from the grid' }).click();
+  await expect(heads(sidebar)).toHaveCount(1);
+  expect(await reset()).toBe(true);
+  await expect.poll(() => headNames(sidebar)).toEqual(['Claude 1', 'ChatGPT 1', 'Gemini 1']);
 });

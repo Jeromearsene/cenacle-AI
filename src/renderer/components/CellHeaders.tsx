@@ -5,6 +5,7 @@ import { IconButton } from './IconButton';
 
 interface Props {
   state: PublicState;
+  isMac: boolean;
   providerLabel: (id: string) => string;
   shortcutOf: (id: string) => string | null;
   /** A press on the grip of a header: the start of a drag. */
@@ -12,7 +13,7 @@ interface Props {
 }
 
 /** A header above each cell; the service views are placed by the main process. */
-export function CellHeaders({ state, providerLabel, shortcutOf, onDragStart }: Props) {
+export function CellHeaders({ state, isMac, providerLabel, shortcutOf, onDragStart }: Props) {
   const t = useT();
   const grid = state.layout === 'grid';
   // With a single cell there is nothing to rearrange and the last one cannot be removed.
@@ -23,12 +24,18 @@ export function CellHeaders({ state, providerLabel, shortcutOf, onDragStart }: P
         const acc = state.accounts.find((a) => a.id === r.id);
         if (!acc) return null;
         const current = grid && acc.id === state.activeId;
-        // Only the top row of headers moves the window (title bar).
-        const windowDrag = r.y === 0 ? '[-webkit-app-region:drag]' : '';
+        // On macOS the top row of headers is the title bar: it moves the window, so only the grip
+        // starts a drag there. Everywhere else the whole header does.
+        const titleBar = isMac && r.y === 0;
+        const windowDrag = titleBar ? '[-webkit-app-region:drag]' : '';
+        const headerDrag = editable && !titleBar;
         return (
           <div
             key={r.id}
-            class={`cell-head pointer-events-auto absolute flex items-center gap-2 border-b border-line bg-bg pr-2 pl-3 ${windowDrag} ${current ? 'active' : ''}`}
+            class={`cell-head pointer-events-auto absolute flex items-center gap-2 border-b border-line bg-bg pr-2 pl-3 ${windowDrag} ${current ? 'active' : ''} ${headerDrag ? 'cursor-grab' : ''}`}
+            onPointerDown={(e) => {
+              if (headerDrag && !(e.target as Element).closest('button')) onDragStart(acc.id, e);
+            }}
             style={{
               left: `${r.x}px`,
               top: `${r.y}px`,

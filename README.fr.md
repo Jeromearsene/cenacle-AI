@@ -114,8 +114,9 @@ Nouveau compte : menu Comptes → Nouveau compte, ou bouton de la barre latéral
 
 En mode **Grille**, chaque compte est une case avec son en-tête. Au départ elles sont côte à côte ; tu les organises ensuite :
 
-- **Déplacer** : glisse un compte depuis la barre latérale, ou la poignée ⠿ de l'en-tête d'une case, sur une autre case. Dépose-le sur un **bord** pour couper cette case (gauche / droite : côte à côte, haut / bas : empilées) ; la zone en surbrillance montre où il ira. Dépose-le au **centre** pour échanger les deux cases (ou, pour un compte absent de la grille, remplacer la case).
-- **Redimensionner** : glisse la poignée entre deux cases. Les tailles sont conservées d'un lancement à l'autre, comme la disposition.
+- **Déplacer** : glisse un compte depuis la barre latérale, ou un en-tête de case (la poignée ⠿ sur la rangée du haut sous macOS, où elle déplace la fenêtre), sur une autre case. Dépose-le sur un **bord** pour couper cette case (gauche / droite : côte à côte, haut / bas : empilées) ; la zone en surbrillance montre où il ira. Dépose-le au **centre** pour échanger les deux cases (ou, pour un compte absent de la grille, remplacer la case).
+- **Redimensionner** : glisse la poignée entre deux cases, ou donne-lui le focus (Tab) et utilise les flèches. Les tailles sont conservées d'un lancement à l'autre, comme la disposition.
+- **Réinitialiser** : Affichage → Réinitialiser la grille remet tous les comptes côte à côte.
 - **Retirer** : le ✕ de l'en-tête retire le compte de la grille ; il reste dans la barre latérale (grisé, sa session est conservée) et revient quand tu le sélectionnes ou le glisses sur une case. La dernière case ne peut pas être retirée.
 - Un nouveau compte s'ajoute à la fin de la grille.
 

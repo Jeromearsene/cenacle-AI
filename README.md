@@ -114,8 +114,9 @@ New account: Accounts → New account in the menu, or the sidebar button.
 
 In **Grid** mode every account is a cell with its own header. At first they sit side by side; you then arrange them:
 
-- **Move**: drag an account from the sidebar, or the ⠿ grip of a cell header, onto another cell. Drop it on an **edge** to split that cell (left / right: side by side, top / bottom: stacked); the highlighted area shows where it will land. Drop it on the **center** to swap the two cells (or, for an account that is not in the grid, to replace the cell).
-- **Resize**: drag the handle between two cells. Sizes are kept between launches, like the arrangement.
+- **Move**: drag an account from the sidebar, or a cell header (the ⠿ grip on the top row on macOS, where that row moves the window), onto another cell. Drop it on an **edge** to split that cell (left / right: side by side, top / bottom: stacked); the highlighted area shows where it will land. Drop it on the **center** to swap the two cells (or, for an account that is not in the grid, to replace the cell).
+- **Resize**: drag the handle between two cells, or focus it (Tab) and use the arrow keys. Sizes are kept between launches, like the arrangement.
+- **Reset**: View → Reset the grid puts every account back side by side.
 - **Remove**: ✕ in a cell header takes the account out of the grid; it stays in the sidebar (dimmed, its session is kept) and comes back when you select it or drag it onto a cell. The last cell cannot be removed.
 - A new account is added at the end of the grid.
 

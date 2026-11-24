@@ -50,6 +50,7 @@ export function App() {
       />
       <CellHeaders
         state={state}
+        isMac={isMac}
         providerLabel={providerLabel}
         shortcutOf={shortcutOf}
         onDragStart={startAccountDrag}

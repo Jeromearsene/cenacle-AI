@@ -1,8 +1,12 @@
 import type { Divider } from '../../shared/grid';
-import { dropPreview } from '../../shared/grid';
+import { dropPreview, MIN_SIZE } from '../../shared/grid';
 import type { PublicState } from '../../shared/types';
 import { useT } from '../i18n';
 import type { DragState } from '../use-grid-drag';
+import { api } from '../use-multi';
+
+/** Share of a split moved by one press of an arrow key. */
+const KEY_STEP = 0.05;
 
 interface Props {
   state: PublicState;
@@ -53,13 +57,27 @@ export function GridOverlay({ state, drag, resizing, onDividerDown }: Props) {
         />
       )}
       {state.dividers.map((d) => (
-        // biome-ignore lint/a11y/useSemanticElements: a resize handle is a "window splitter", an <hr> cannot take the pointer
+        // biome-ignore lint/a11y/useSemanticElements: a focusable "window splitter" (WAI-ARIA); an <hr> cannot take the pointer or the arrow keys
         <div
           key={`${d.path.join('.')}/${d.index}`}
           role="separator"
           aria-orientation={d.axis === 'row' ? 'vertical' : 'horizontal'}
+          aria-label={t('grid.resize')}
+          aria-valuenow={Math.round(d.size * 100)}
+          aria-valuemin={Math.round(MIN_SIZE * 100)}
+          aria-valuemax={Math.round((d.pair - MIN_SIZE) * 100)}
+          tabIndex={0}
           title={t('grid.resize')}
-          class={`divider pointer-events-auto absolute hover:bg-accent/60 ${d.axis === 'row' ? 'cursor-col-resize' : 'cursor-row-resize'} ${resizing ? 'bg-accent/60' : ''}`}
+          onKeyDown={(e) => {
+            const [less, more] =
+              d.axis === 'row' ? ['ArrowLeft', 'ArrowRight'] : ['ArrowUp', 'ArrowDown'];
+            const step = e.key === more ? KEY_STEP : e.key === less ? -KEY_STEP : 0;
+            if (!step) return;
+            e.preventDefault();
+            const size = Math.min(Math.max(d.size + step, MIN_SIZE), d.pair - MIN_SIZE);
+            void api.resizeGrid(d.path, d.index, size);
+          }}
+          class={`divider pointer-events-auto absolute hover:bg-accent/60 focus-visible:bg-accent/60 focus-visible:outline-none ${d.axis === 'row' ? 'cursor-col-resize' : 'cursor-row-resize'} ${resizing ? 'bg-accent/60' : ''}`}
           style={{
             left: `${d.x}px`,
             top: `${d.y}px`,

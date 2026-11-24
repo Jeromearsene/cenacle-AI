@@ -20,8 +20,8 @@ export interface DragState {
   over: DropTarget | null;
 }
 
-/** Runs `onMove` / `onEnd` for the pointer until it is released, Escape is pressed or the window
- * loses focus. Returns a function that stops listening. */
+/** Runs `onMove` / `onEnd` for the pointer until it is released, Escape is pressed, the system
+ * cancels the pointer (touch screens) or the window loses focus. Returns a function that stops listening. */
 function trackPointer(
   onMove: (e: PointerEvent) => void,
   onEnd: (e: PointerEvent | null, cancelled: boolean) => void
@@ -29,6 +29,7 @@ function trackPointer(
   const stop = () => {
     window.removeEventListener('pointermove', onMove);
     window.removeEventListener('pointerup', up);
+    window.removeEventListener('pointercancel', cancel);
     window.removeEventListener('keydown', key);
     window.removeEventListener('blur', blur);
   };
@@ -41,12 +42,17 @@ function trackPointer(
     stop();
     onEnd(null, true);
   };
+  const cancel = () => {
+    stop();
+    onEnd(null, true);
+  };
   const blur = () => {
     stop();
     onEnd(null, true);
   };
   window.addEventListener('pointermove', onMove);
   window.addEventListener('pointerup', up);
+  window.addEventListener('pointercancel', cancel);
   window.addEventListener('keydown', key);
   window.addEventListener('blur', blur);
   return stop;

@@ -1,12 +1,4 @@
-import type { Page } from '@playwright/test';
-import { accountNames, evalIn, expect, test, waitForServices } from './fixtures';
-
-async function addAccount(sidebar: Page, label: string): Promise<void> {
-  await sidebar.getByRole('button', { name: '+ Add account' }).click();
-  await sidebar.getByRole('menuitem', { name: label }).click();
-  // The new account arrives in rename mode: keep the proposed name.
-  await sidebar.locator('input.rename').press('Enter');
-}
+import { accountNames, addAccount, evalIn, expect, test, waitForServices } from './fixtures';
 
 test('adds an account of the chosen service', async ({ launch }) => {
   const { sidebar } = await launch();
@@ -16,7 +8,7 @@ test('adds an account of the chosen service', async ({ launch }) => {
 
   await expect.poll(() => accountNames(sidebar)).toEqual(['Claude 1', 'ChatGPT 1']);
   await expect(sidebar.locator('.account.active .name')).toHaveText('ChatGPT 1');
-  await expect(sidebar.locator('.col-head .tag')).toHaveText('ChatGPT');
+  await expect(sidebar.locator('.cell-head .tag')).toHaveText('ChatGPT');
 });
 
 test('renames an account on double click', async ({ launch }) => {
@@ -27,16 +19,16 @@ test('renames an account on double click', async ({ launch }) => {
   await expect.poll(() => accountNames(sidebar)).toEqual(['Perso']);
 });
 
-test('shows all accounts in columns', async ({ launch }) => {
+test('shows all accounts in the grid', async ({ launch }) => {
   const { sidebar } = await launch();
   await addAccount(sidebar, 'Claude');
-  await expect(sidebar.locator('.col-head')).toHaveCount(1);
+  await expect(sidebar.locator('.cell-head')).toHaveCount(1);
 
-  await sidebar.getByRole('button', { name: 'Columns' }).click();
-  await expect(sidebar.locator('.col-head')).toHaveCount(2);
+  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await expect(sidebar.locator('.cell-head')).toHaveCount(2);
 
   await sidebar.getByRole('button', { name: 'Single' }).click();
-  await expect(sidebar.locator('.col-head')).toHaveCount(1);
+  await expect(sidebar.locator('.cell-head')).toHaveCount(1);
 });
 
 test('isolates the cookies and storage of each account', async ({ launch, service }) => {

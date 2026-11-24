@@ -21,6 +21,18 @@ import {
   WebContentsView,
 } from 'electron';
 import { name as packageName } from '../../package.json';
+import {
+  appendLeaf,
+  computeGrid,
+  type Divider,
+  type DropZone,
+  gridFromIds,
+  leaves,
+  placeLeaf,
+  pruneTo,
+  removeLeaf,
+  setSplitSize,
+} from '../shared/grid';
 import { resolveLocale, translator } from '../shared/i18n';
 import { MAX_ACCOUNT_SHORTCUTS } from '../shared/shortcuts';
 import type { Account, Layout, PersistedState, PublicState, Rect } from '../shared/types';
@@ -46,7 +58,7 @@ const RESOURCES = path.join(__dirname, '../../resources');
 const resource = (file: string) => path.join(RESOURCES, file);
 
 const SIDEBAR_W = 220; // sidebar width (px)
-const HEADER_H = 32; // height of each column header (px)
+const HEADER_H = 32; // height of each cell header (px)
 const isMac = process.platform === 'darwin';
 
 // Interface language: the system language (English or French, English by default). Tests can
@@ -90,6 +102,10 @@ let state: PersistedState;
 let win: BrowserWindow | null = null;
 const views = new Map<string, WebContentsView>();
 let rects: Rect[] = [];
+let dividers: Divider[] = [];
+// True while the interface drags an account or a resize handle: the service pages are hidden so
+// the interface receives every mouse event, and they are placed again when it ends.
+let dragging = false;
 let saveTimer: NodeJS.Timeout | null = null;
 
 // The "claude-" prefix is historical (the tool only handled Claude): it names the session
@@ -270,41 +286,51 @@ function activeContents(): WebContents | null {
 
 // ------------------------------------------------------------------ layout
 
-function computeRects(w: BrowserWindow): Rect[] {
+/** The grid keeps exactly the existing accounts, plus the active one so it is always visible. */
+function ensureGrid(): void {
+  const ids = state.accounts.map((a) => a.id);
+  let grid = pruneTo(state.grid, new Set(ids)) ?? gridFromIds(ids);
+  if (!leaves(grid).includes(state.activeId)) grid = appendLeaf(grid, state.activeId);
+  state.grid = grid;
+}
+
+function computeRects(w: BrowserWindow): { rects: Rect[]; dividers: Divider[] } {
   const [width = 0, height = 0] = w.getContentSize();
-  const areaX = SIDEBAR_W;
-  const areaW = Math.max(0, width - SIDEBAR_W);
-  const shown =
-    state.layout === 'columns'
-      ? state.accounts
-      : state.accounts.filter((a) => a.id === state.activeId);
-  const n = Math.max(1, shown.length);
-  const colW = Math.floor(areaW / n);
-  return shown.map((acc, i) => {
-    const left = areaX + i * colW;
-    const right = i === n - 1 ? areaX + areaW : left + colW;
-    const gap = i > 0 ? 1 : 0; // 1 px separator between columns
-    return {
-      id: acc.id,
-      x: left + gap,
-      y: 0,
-      width: right - left - gap,
-      headerH: HEADER_H,
-      viewY: HEADER_H,
-      viewHeight: Math.max(0, height - HEADER_H),
-    };
+  const area = { x: SIDEBAR_W, y: 0, width: Math.max(0, width - SIDEBAR_W), height };
+  const toRect = (c: {
+    id: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }): Rect => ({
+    ...c,
+    headerH: HEADER_H,
   });
+  if (state.layout === 'grid') {
+    ensureGrid();
+    const geometry = computeGrid(state.grid, area);
+    return { rects: geometry.cells.map(toRect), dividers: geometry.dividers };
+  }
+  return { rects: [toRect({ id: state.activeId, ...area })], dividers: [] };
 }
 
 function applyLayout(): void {
   if (!win || win.isDestroyed()) return;
-  rects = computeRects(win);
+  ({ rects, dividers } = computeRects(win));
+  // While dragging, the pages stay hidden and are not moved: they are placed once at the end.
+  if (dragging) return;
   const shown = new Set(rects.map((r) => r.id));
   for (const r of rects) {
     const acc = findAccount(r.id);
     if (!acc) continue;
     const view = views.get(r.id) ?? createView(acc, win);
-    view.setBounds({ x: r.x, y: r.viewY, width: r.width, height: r.viewHeight });
+    view.setBounds({
+      x: r.x,
+      y: r.y + r.headerH,
+      width: r.width,
+      height: Math.max(0, r.height - r.headerH),
+    });
     view.setVisible(true);
   }
   // Hidden views stay loaded: their conversations keep running in the background.
@@ -320,6 +346,7 @@ function publicState(): PublicState {
     activeId: state.activeId,
     layout: state.layout,
     rects,
+    dividers,
     sidebarW: SIDEBAR_W,
   };
 }
@@ -341,6 +368,8 @@ function addAccount(providerId: string): string {
   const acc = makeAccount(state.accounts, providerId);
   state.accounts.push(acc);
   state.activeId = acc.id;
+  // A new account joins the end of the grid (a grid not shown yet will include it anyway).
+  if (state.grid) state.grid = appendLeaf(state.grid, acc.id);
   refresh();
   if (win && !win.isDestroyed()) win.webContents.send('rename-request', acc.id);
   return acc.id;
@@ -362,9 +391,47 @@ function cycleAccount(step: number): void {
 }
 
 function setLayout(mode: Layout): void {
-  if (mode !== 'single' && mode !== 'columns') return;
+  if (mode !== 'single' && mode !== 'grid') return;
   state.layout = mode;
   refresh();
+}
+
+/** Drops an account on a cell of the grid. */
+function placeAccount(id: string, targetId: string, zone: DropZone): boolean {
+  if (state.layout !== 'grid' || !findAccount(id) || !findAccount(targetId)) return false;
+  ensureGrid();
+  state.grid = placeLeaf(state.grid, id, targetId, zone);
+  state.activeId = id;
+  refresh();
+  return true;
+}
+
+/** Takes an account out of the grid: it stays in the sidebar, session kept. The last one stays. */
+function removeFromGrid(id: string): boolean {
+  if (state.layout !== 'grid') return false;
+  ensureGrid();
+  const inGrid = leaves(state.grid);
+  if (inGrid.length <= 1 || !inGrid.includes(id)) return false;
+  state.grid = removeLeaf(state.grid, id);
+  if (state.activeId === id) state.activeId = leaves(state.grid)[0] ?? state.activeId;
+  refresh();
+  return true;
+}
+
+function resizeGrid(path: number[], index: number, size: number): void {
+  if (state.layout !== 'grid') return;
+  state.grid = setSplitSize(state.grid, path, index, size);
+  // Called for every mouse move: only the layout (no menu rebuild).
+  applyLayout();
+  notify();
+  scheduleSave();
+}
+
+function setDragging(active: boolean): void {
+  if (dragging === active) return;
+  dragging = active;
+  if (active) for (const view of views.values()) view.setVisible(false);
+  else applyLayout();
 }
 
 function renameAccount(id: string, name: unknown): boolean {
@@ -400,6 +467,7 @@ async function removeAccount(id: string): Promise<boolean> {
   await ses.clearStorageData().catch(() => {});
   await ses.clearCache().catch(() => {});
   state.accounts = state.accounts.filter((a) => a.id !== id);
+  if (state.grid) state.grid = removeLeaf(state.grid, id);
   const first = state.accounts[0];
   if (state.activeId === id && first) state.activeId = first.id;
   refresh();
@@ -449,6 +517,24 @@ handle('accounts:select', (id) => isId(id) && selectAccount(id));
 handle('accounts:rename', (id, name) => isId(id) && renameAccount(id, name));
 handle('accounts:remove', (id) => (isId(id) ? removeAccount(id) : false));
 handle('layout:set', (mode) => setLayout(mode as Layout));
+handle('grid:place', (id, targetId, zone) => {
+  const zones = ['left', 'right', 'top', 'bottom', 'center'];
+  return (
+    isId(id) &&
+    isId(targetId) &&
+    zones.includes(zone as string) &&
+    placeAccount(id, targetId, zone as DropZone)
+  );
+});
+handle('grid:remove', (id) => isId(id) && removeFromGrid(id));
+handle('grid:resize', (path, index, size) => {
+  const validPath =
+    Array.isArray(path) && path.length <= 8 && path.every((n) => Number.isInteger(n) && n >= 0);
+  if (validPath && Number.isInteger(index) && typeof size === 'number') {
+    resizeGrid(path as number[], index as number, size);
+  }
+});
+handle('grid:dragging', (active) => setDragging(active === true));
 handle('account:reload', (id) => isId(id) && reloadAccount(id));
 
 // ------------------------------------------------------------------ menu
@@ -500,9 +586,9 @@ function buildMenu(): void {
       label: t('menu.view'),
       submenu: [
         {
-          label: state.layout === 'columns' ? t('menu.showSingle') : t('menu.showColumns'),
+          label: state.layout === 'grid' ? t('menu.showSingle') : t('menu.showGrid'),
           accelerator: 'CmdOrCtrl+Shift+L',
-          click: () => setLayout(state.layout === 'columns' ? 'single' : 'columns'),
+          click: () => setLayout(state.layout === 'grid' ? 'single' : 'grid'),
         },
         { type: 'separator' },
         { label: t('menu.zoomIn'), accelerator: 'CmdOrCtrl+Plus', click: () => zoomActive(0.5) },
@@ -595,6 +681,7 @@ function createWindow(): void {
     w.show();
   });
   w.on('closed', () => {
+    dragging = false;
     views.clear();
     win = null;
   });

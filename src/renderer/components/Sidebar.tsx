@@ -12,6 +12,8 @@ interface Props {
   setRenamingId: (id: string | null) => void;
   providerLabel: (id: string) => string;
   shortcutOf: (id: string) => string | null;
+  /** A press on an account: it may turn into a drag onto the grid. */
+  onDragStart: (id: string, event: PointerEvent) => void;
 }
 
 export function Sidebar({
@@ -21,8 +23,10 @@ export function Sidebar({
   setRenamingId,
   providerLabel,
   shortcutOf,
+  onDragStart,
 }: Props) {
   const t = useT();
+  const gridIds = new Set(state.rects.map((r) => r.id));
   return (
     <aside
       class="absolute inset-y-0 left-0 flex flex-col border-r border-line bg-panel px-2.5 pb-3"
@@ -43,6 +47,8 @@ export function Sidebar({
             providerLabel={providerLabel(acc.provider)}
             shortcut={shortcutOf(acc.id)}
             active={acc.id === state.activeId}
+            outsideGrid={state.layout === 'grid' && !gridIds.has(acc.id)}
+            onDragStart={(e) => onDragStart(acc.id, e)}
             removable={state.accounts.length > 1}
             editing={renamingId === acc.id}
             onStartRename={() => setRenamingId(acc.id)}

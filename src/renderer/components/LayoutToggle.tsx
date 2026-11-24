@@ -5,7 +5,7 @@ import { api } from '../use-multi';
 
 const OPTIONS: { mode: Layout; label: MessageKey }[] = [
   { mode: 'single', label: 'layout.single' },
-  { mode: 'columns', label: 'layout.columns' },
+  { mode: 'grid', label: 'layout.grid' },
 ];
 
 export function LayoutToggle({ layout }: { layout: Layout }) {

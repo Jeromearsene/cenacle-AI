@@ -87,12 +87,12 @@ The Electron binary (about 100 MB) is downloaded by `yarn install` (the `postins
 ## Using the app
 
 - **+ Add account** asks which service, then creates an empty session. Sign in once; it is kept between launches.
-- **Single / Columns**: one account at a time, or all side by side (handy to compare answers).
+- **Single / Grid**: one account at a time, or several at once in a layout you arrange (handy to compare answers). See [The grid](#the-grid).
 - Double-click a name (or ✎) to rename, ✕ to delete an account's session.
 - **Window**: on first launch it fills the usable area of the screen (below the menu bar and the Dock, or the taskbar). After that the app restores its last size, or its maximized / full-screen state. If the screen it was on has been unplugged, it comes back on the main display.
 - Full screen: green button (macOS), ⌃⌘F / F11 or the View menu. Maximize: double-click the top bar (macOS) or the title bar (Windows, Linux).
 - Hidden accounts stay loaded, so their conversations keep running in the background.
-- **Hold ⌘ (macOS) or Ctrl (Windows, Linux)** for a moment: the shortcut number of each account (⌘1…⌘9 / Ctrl+1…9) appears next to its name, in the sidebar and above the columns.
+- **Hold ⌘ (macOS) or Ctrl (Windows, Linux)** for a moment: the shortcut number of each account (⌘1…⌘9 / Ctrl+1…9) appears next to its name, in the sidebar and above each cell of the grid.
 - **Notifications**: a web notification raised by a service shows the account's name in its title and the account's color dot as its icon, so you know which account it comes from. Clicking it brings the app forward on that account.
 - **Right-click** in a service page opens a context menu: cut / copy / paste, spelling suggestions, open or copy a link, copy an image, inspect element.
 
@@ -102,13 +102,24 @@ On macOS ⌘ is the Command key; on Windows and Linux use Ctrl instead.
 | ------------------------- | ------------------------------------- |
 | ⌘1 … ⌘9 / Ctrl+1 … 9      | Go to account n                       |
 | Ctrl+Tab / Ctrl+Shift+Tab | Next / previous account               |
-| ⌘⇧L / Ctrl+Shift+L        | Toggle single / columns               |
+| ⌘⇧L / Ctrl+Shift+L        | Toggle single / grid                  |
 | ⌘R / Ctrl+R               | Reload the active account             |
 | ⌘+ ⌘- ⌘0 / Ctrl+ + - 0    | Zoom the active account               |
 | ⌘⌥I / Ctrl+Alt+I          | Developer tools of the active account |
 | ⌃⌘F (macOS) / F11         | Full screen                           |
 
 New account: Accounts → New account in the menu, or the sidebar button.
+
+## The grid
+
+In **Grid** mode every account is a cell with its own header. At first they sit side by side; you then arrange them:
+
+- **Move**: drag an account from the sidebar, or the ⠿ grip of a cell header, onto another cell. Drop it on an **edge** to split that cell (left / right: side by side, top / bottom: stacked); the highlighted area shows where it will land. Drop it on the **center** to swap the two cells (or, for an account that is not in the grid, to replace the cell).
+- **Resize**: drag the handle between two cells. Sizes are kept between launches, like the arrangement.
+- **Remove**: ✕ in a cell header takes the account out of the grid; it stays in the sidebar (dimmed, its session is kept) and comes back when you select it or drag it onto a cell. The last cell cannot be removed.
+- A new account is added at the end of the grid.
+
+The service pages are hidden while you drag, so the interface can follow the mouse; they come back when you let go. Escape cancels a drag.
 
 ## Language
 
@@ -190,7 +201,7 @@ yarn check       # lint + typecheck
 yarn test:e2e    # builds the app, then runs the end-to-end tests
 ```
 
-The tests drive the Electron app with Playwright against a fake local service (the `MULTI_TEST_URL` variable, ignored in a packaged app): no network access, no real account. They cover adding and renaming an account, the columns layout, cookie and storage isolation between accounts, the browser identifier of each service, persistence after a restart, and the right-click context menu. On Linux without a display: `xvfb-run -a yarn test:e2e` (the tests add `--no-sandbox` by themselves when running as root or in CI). On Linux, if Electron stops at startup with a "SUID sandbox helper" error (common on recent Ubuntu), run `yarn dev --no-sandbox`.
+The tests drive the Electron app with Playwright against a fake local service (the `MULTI_TEST_URL` variable, ignored in a packaged app): no network access, no real account. They cover adding and renaming an account, the grid layout (dragging, removing, resizing), cookie and storage isolation between accounts, the browser identifier of each service, persistence after a restart, and the right-click context menu. On Linux without a display: `xvfb-run -a yarn test:e2e` (the tests add `--no-sandbox` by themselves when running as root or in CI). On Linux, if Electron stops at startup with a "SUID sandbox helper" error (common on recent Ubuntu), run `yarn dev --no-sandbox`.
 
 **Continuous integration** (`.github/workflows/ci.yml`) runs on every push to `main` and on every pull request: lint and format, type check and build on Linux, then the end-to-end tests on macOS, Linux and Windows. Dependabot proposes weekly dependency updates.
 
@@ -205,8 +216,9 @@ src/main/context-menu*.ts         right-click menu (pure template + wiring)
 src/main/account-notifications.ts notification title and color dot of an account
 src/preload/index.ts              minimal bridge to the interface (contextBridge)
 src/preload/service.ts            preload of service pages: exposes nothing, dresses up notifications
+src/shared/grid.ts                grid layout tree: drops, resizing, geometry (pure, tested)
 src/shared/types.ts               types shared by the three
-src/renderer/                     Preact + Tailwind interface (sidebar, column headers)
+src/renderer/                     Preact + Tailwind interface (sidebar, cell headers, grid overlay)
 resources/                        app icon (SVG source, PNG, ICO, ICNS)
 e2e/                              Playwright tests
 .github/                          CI workflow and Dependabot

@@ -87,12 +87,12 @@ Le binaire d'Electron (environ 100 Mo) est téléchargé par `yarn install` (scr
 ## Utilisation
 
 - **+ Ajouter un compte** (« + Add account » en anglais) demande le service, puis crée une session vide. Connecte-toi une fois, elle est conservée entre deux lancements.
-- **Un seul / Colonnes** : un compte à la fois, ou tous côte à côte (pratique pour comparer des réponses).
+- **Single / Grid** (« Un seul / Grille ») : un compte à la fois, ou plusieurs en même temps selon une disposition que tu définis (pratique pour comparer des réponses). Voir [La grille](#la-grille).
 - Double-clic sur un nom (ou ✎) pour renommer, ✕ pour supprimer la session d'un compte.
 - **Fenêtre** : au premier lancement elle occupe toute la zone utile de l'écran (sous la barre de menus et le Dock, ou la barre des tâches). Ensuite, l'app retrouve sa dernière taille, ou son état agrandi / plein écran. Si l'écran utilisé a été débranché, elle revient sur l'écran principal.
 - Plein écran : bouton vert (macOS), ⌃⌘F / F11 ou menu Affichage. Agrandir : double-clic sur la barre du haut (macOS) ou sur la barre de titre (Windows, Linux).
 - Les comptes masqués restent chargés : leurs conversations continuent en arrière-plan.
-- **Maintiens ⌘ (macOS) ou Ctrl (Windows, Linux)** un instant : le numéro de raccourci de chaque compte (⌘1…⌘9 / Ctrl+1…9) s'affiche à côté de son nom, dans la barre latérale et au-dessus des colonnes.
+- **Maintiens ⌘ (macOS) ou Ctrl (Windows, Linux)** un instant : le numéro de raccourci de chaque compte (⌘1…⌘9 / Ctrl+1…9) s'affiche à côté de son nom, dans la barre latérale et au-dessus de chaque case de la grille.
 - **Notifications** : une notification web émise par un service affiche le nom du compte dans son titre et la pastille de couleur du compte en guise d'icône, pour savoir de quel compte elle vient. Un clic dessus ramène l'app au premier plan sur ce compte.
 - **Clic droit** dans une page de service : menu contextuel avec couper / copier / coller, suggestions d'orthographe, ouvrir ou copier un lien, copier une image, inspecter l'élément.
 
@@ -102,13 +102,24 @@ Sur macOS, ⌘ est la touche Commande ; sous Windows et Linux, utilise Ctrl à l
 | ----------------------- | --------------------------------------- |
 | ⌘1 … ⌘9 / Ctrl+1 … 9    | Aller au compte n                       |
 | Ctrl+Tab / Ctrl+Maj+Tab | Compte suivant / précédent              |
-| ⌘Maj+L / Ctrl+Maj+L     | Basculer un seul / colonnes             |
+| ⌘Maj+L / Ctrl+Maj+L     | Basculer un seul / grille               |
 | ⌘R / Ctrl+R             | Recharger le compte actif               |
 | ⌘+ ⌘- ⌘0 / Ctrl+ + - 0  | Zoom du compte actif                    |
 | ⌘⌥I / Ctrl+Alt+I        | Outils de développement du compte actif |
 | ⌃⌘F (macOS) / F11       | Plein écran                             |
 
 Nouveau compte : menu Comptes → Nouveau compte, ou bouton de la barre latérale.
+
+## La grille
+
+En mode **Grille**, chaque compte est une case avec son en-tête. Au départ elles sont côte à côte ; tu les organises ensuite :
+
+- **Déplacer** : glisse un compte depuis la barre latérale, ou la poignée ⠿ de l'en-tête d'une case, sur une autre case. Dépose-le sur un **bord** pour couper cette case (gauche / droite : côte à côte, haut / bas : empilées) ; la zone en surbrillance montre où il ira. Dépose-le au **centre** pour échanger les deux cases (ou, pour un compte absent de la grille, remplacer la case).
+- **Redimensionner** : glisse la poignée entre deux cases. Les tailles sont conservées d'un lancement à l'autre, comme la disposition.
+- **Retirer** : le ✕ de l'en-tête retire le compte de la grille ; il reste dans la barre latérale (grisé, sa session est conservée) et revient quand tu le sélectionnes ou le glisses sur une case. La dernière case ne peut pas être retirée.
+- Un nouveau compte s'ajoute à la fin de la grille.
+
+Les pages des services sont masquées pendant le glissement, pour que l'interface suive la souris ; elles reviennent au relâchement. Échap annule un glissement.
 
 ## Langue
 
@@ -190,7 +201,7 @@ yarn check       # lint + typecheck
 yarn test:e2e    # construit l'app puis lance les tests de bout en bout
 ```
 
-Les tests lancent l'app Electron avec Playwright, contre un faux service local (variable `MULTI_TEST_URL`, ignorée dans une app empaquetée) : aucun accès réseau ni compte réel. Ils vérifient l'ajout et le renommage d'un compte, la mise en colonnes, l'isolation des cookies et du stockage entre comptes, l'identifiant de navigateur de chaque service, la persistance après redémarrage et le menu du clic droit. Sous Linux sans écran : `xvfb-run -a yarn test:e2e` (les tests ajoutent `--no-sandbox` tout seuls quand ils tournent en root ou en CI). Sous Linux, si Electron s'arrête au démarrage avec une erreur « SUID sandbox helper » (fréquent sur Ubuntu récent), lance `yarn dev --no-sandbox`.
+Les tests lancent l'app Electron avec Playwright, contre un faux service local (variable `MULTI_TEST_URL`, ignorée dans une app empaquetée) : aucun accès réseau ni compte réel. Ils vérifient l'ajout et le renommage d'un compte, la grille (glisser-déposer, retrait, redimensionnement), l'isolation des cookies et du stockage entre comptes, l'identifiant de navigateur de chaque service, la persistance après redémarrage et le menu du clic droit. Sous Linux sans écran : `xvfb-run -a yarn test:e2e` (les tests ajoutent `--no-sandbox` tout seuls quand ils tournent en root ou en CI). Sous Linux, si Electron s'arrête au démarrage avec une erreur « SUID sandbox helper » (fréquent sur Ubuntu récent), lance `yarn dev --no-sandbox`.
 
 **Intégration continue** (`.github/workflows/ci.yml`) : à chaque envoi sur `main` et à chaque pull request, lint et format, vérification des types et build sous Linux, puis tests de bout en bout sous macOS, Linux et Windows. Dependabot propose chaque semaine les mises à jour des dépendances.
 
@@ -205,8 +216,9 @@ src/main/context-menu*.ts         menu du clic droit (modèle pur + branchement)
 src/main/account-notifications.ts titre et pastille de couleur des notifications d'un compte
 src/preload/index.ts              pont minimal vers l'interface (contextBridge)
 src/preload/service.ts            preload des pages de service : n'expose rien, habille les notifications
+src/shared/grid.ts                arbre de la grille : dépôts, redimensionnement, géométrie (pur, testé)
 src/shared/types.ts               types partagés entre les trois
-src/renderer/                     interface Preact + Tailwind (barre latérale, en-têtes de colonnes)
+src/renderer/                     interface Preact + Tailwind (barre latérale, en-têtes de cases, grille)
 resources/                        icône de l'app (source SVG, PNG, ICO, ICNS)
 e2e/                              tests Playwright
 .github/                          workflow CI et Dependabot

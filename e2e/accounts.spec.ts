@@ -8,7 +8,7 @@ async function addAccount(sidebar: Page, label: string): Promise<void> {
   await sidebar.locator('input.rename').press('Enter');
 }
 
-test('ajoute un compte du service choisi', async ({ launch }) => {
+test('adds an account of the chosen service', async ({ launch }) => {
   const { sidebar } = await launch();
   await expect.poll(() => accountNames(sidebar)).toEqual(['Claude 1']);
 
@@ -19,7 +19,7 @@ test('ajoute un compte du service choisi', async ({ launch }) => {
   await expect(sidebar.locator('.col-head .tag')).toHaveText('ChatGPT');
 });
 
-test('renomme un compte par double-clic', async ({ launch }) => {
+test('renames an account on double click', async ({ launch }) => {
   const { sidebar } = await launch();
   await sidebar.locator('.account .name').dblclick();
   await sidebar.locator('input.rename').fill('Perso');
@@ -27,7 +27,7 @@ test('renomme un compte par double-clic', async ({ launch }) => {
   await expect.poll(() => accountNames(sidebar)).toEqual(['Perso']);
 });
 
-test('affiche tous les comptes en colonnes', async ({ launch }) => {
+test('shows all accounts in columns', async ({ launch }) => {
   const { sidebar } = await launch();
   await addAccount(sidebar, 'Claude');
   await expect(sidebar.locator('.col-head')).toHaveCount(1);
@@ -39,7 +39,7 @@ test('affiche tous les comptes en colonnes', async ({ launch }) => {
   await expect(sidebar.locator('.col-head')).toHaveCount(1);
 });
 
-test('isole les cookies et le stockage de chaque compte', async ({ launch, service }) => {
+test('isolates the cookies and storage of each account', async ({ launch, service }) => {
   const { app, sidebar } = await launch();
   await addAccount(sidebar, 'Claude');
   const [a, b] = await waitForServices(app, service.url, 2);

@@ -9,12 +9,12 @@ import {
 } from '../src/main/account-notifications';
 import { evalIn, expect, test, waitForServices } from './fixtures';
 
-test.describe('pastille et titre des notifications', () => {
-  test('le titre commence par le nom du compte', () => {
+test.describe('notification dot and title', () => {
+  test('the title starts with the account name', () => {
     expect(notificationTitle('Personal', 'Reply ready')).toBe('Personal · Reply ready');
   });
 
-  test('la pastille est un PNG valide de la couleur du compte, fond transparent', () => {
+  test('the dot is a valid PNG in the account color with a transparent background', () => {
     const png = dotPng('#d97757', 64);
     expect([...png.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     expect(png.readUInt32BE(16)).toBe(64); // largeur
@@ -32,7 +32,7 @@ test.describe('pastille et titre des notifications', () => {
     expect(pixel(0, 0)[3]).toBe(0);
   });
 
-  test('refuse une couleur invalide', () => {
+  test('rejects an invalid color', () => {
     expect(() => dotPng('rouge')).toThrow();
     expect(() => dotPng('#12345')).toThrow();
     expect(dotDataUrl('#6a9bcc')).toMatch(/^data:image\/png;base64,/);
@@ -56,7 +56,7 @@ async function addAccount(sidebar: Page, label: string): Promise<void> {
   await sidebar.locator('input.rename').press('Enter');
 }
 
-test.describe('notifications des pages de service', () => {
+test.describe('service page notifications', () => {
   test('carry the account name and color dot, even when created at load', async ({
     launch,
     service,

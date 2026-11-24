@@ -3,7 +3,7 @@ import { expect, test } from './fixtures';
 
 // Safety net for whoever adds a service: these checks do not launch the app.
 
-test.describe('registre des services', () => {
+test.describe('provider registry', () => {
   test('every entry is valid and consistent', () => {
     const entries = Object.entries(PROVIDERS);
     expect(entries.length).toBeGreaterThan(0);

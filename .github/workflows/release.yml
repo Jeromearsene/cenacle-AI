@@ -41,10 +41,11 @@ jobs:
         id: changesets
         uses: changesets/action@v2
         with:
-          version: yarn changeset version
-          publish: yarn changeset tag
+          version-script: yarn changeset version
+          publish-script: yarn changeset tag
           title: "Version packages"
-          commit: "chore: version packages"
+          commit-message: "chore: version packages"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Name the tag to build

@@ -124,6 +124,8 @@ In **Grid** mode every account is a cell with its own header. At first they sit 
 - **Reset**: View → Reset the grid puts every account back as at the start.
 - A new account is added to the grid when there is room for it.
 
+Changes of layout glide instead of jumping (unless the system asks for reduced motion).
+
 The service pages are hidden while you drag, so the interface can follow the mouse; they come back when you let go. Escape cancels a drag.
 
 ## Language

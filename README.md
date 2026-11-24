@@ -51,7 +51,17 @@ example: {
 | Linux    | supported; the end-to-end tests run on Linux in CI                                   |
 | Windows  | supported; the end-to-end tests run on Windows in CI, but the author does not use it |
 
-Installers are not published yet: for now, run the app from source (below). Platform-specific remarks are marked "macOS", "Windows" or "Linux" in this document.
+Installers (macOS `.dmg`, Windows `.exe`, Linux AppImage and `.deb`) are attached to each [release](https://github.com/Jeromearsene/cenacle-AI/releases); you can also run the app from source (below). The installers are **not code-signed yet**: macOS blocks the first launch (see below), Windows shows a SmartScreen warning, and macOS cannot update itself until the app is signed. Platform-specific remarks are marked "macOS", "Windows" or "Linux" in this document.
+
+**First launch on macOS** (the app is not signed or notarized yet):
+
+1. Open the `.dmg`, drag Cénacle to Applications and launch it. macOS refuses to open it.
+2. Open System Settings → Privacy & Security, scroll to the message about Cénacle, click "Open Anyway" and confirm. On macOS 15 (Sequoia) and later, the right-click → Open shortcut no longer works.
+3. If macOS says the app is "damaged", remove the quarantine flag and launch it again: `xattr -dr com.apple.quarantine /Applications/Cénacle.app`.
+
+Until the app is signed, macOS cannot update it: download each new version from the releases page.
+
+**Updates**: an installed app (not one run from source) checks GitHub Releases at startup and downloads new versions in the background; the update is applied the next time the app quits. On Linux this works for the AppImage, not for the `.deb`. To turn the check off, set the environment variable `CENACLE_DISABLE_UPDATES` to any non-empty value before launching the app.
 
 ## Getting started
 
@@ -167,6 +177,9 @@ Careful: any local process that can reach this port controls every signed-in ses
 Stack: Electron, TypeScript (strict), [electron-vite](https://electron-vite.org), Preact, Tailwind CSS 4, [Biome](https://biomejs.dev) (lint and format), Playwright. The interface (sidebar) is about 30 KB of JavaScript; the service pages are real web pages, with no code of ours.
 
 ```bash
+yarn dist        # build the installers for the current system into release/
+yarn dist:dir    # same, unpacked (quick check of the packaging)
+yarn changeset   # describe a change for the changelog (see below)
 yarn lint        # Biome: lint + format check (yarn lint:fix to fix, yarn format to format)
 yarn typecheck   # TypeScript, main process + interface
 yarn check       # lint + typecheck
@@ -176,6 +189,8 @@ yarn test:e2e    # builds the app, then runs the end-to-end tests
 The tests drive the Electron app with Playwright against a fake local service (the `MULTI_TEST_URL` variable, ignored in a packaged app): no network access, no real account. They cover adding and renaming an account, the columns layout, cookie and storage isolation between accounts, the browser identifier of each service, persistence after a restart, and the right-click context menu. On Linux without a display: `xvfb-run -a yarn test:e2e` (the tests add `--no-sandbox` by themselves when running as root or in CI). On Linux, if Electron stops at startup with a "SUID sandbox helper" error (common on recent Ubuntu), run `yarn dev --no-sandbox`.
 
 **Continuous integration** (`.github/workflows/ci.yml`) runs on every push to `main` and on every pull request: lint and format, type check and build on Linux, then the end-to-end tests on macOS, Linux and Windows. Dependabot proposes weekly dependency updates.
+
+**Releases and changelog** use [Changesets](https://github.com/changesets/changesets). A change that users can notice comes with a changeset (`yarn changeset`, one line describing it). Once merged on `main`, a bot keeps a "Version packages" pull request up to date; merging it bumps the version, updates `CHANGELOG.md`, tags the release and builds the installers for the three systems (`.github/workflows/release.yml`). The app checks for updates on startup when packaged (`src/main/updater.ts`).
 
 ```
 src/main/index.ts                 main process: window, one view per account, layout, menu
@@ -199,7 +214,7 @@ e2e/                              Playwright tests
 - Per-account quota tracking, time left before next use, notification when an account becomes usable again.
 - Menu bar icon, manual light / dark switch, customizable shortcuts.
 - Interface translation (English / French).
-- Installable packages for macOS, Linux and Windows (electron-builder or Electron Forge).
+- Code signing and notarization (needed for macOS updates, Touch ID and passkeys).
 - More services.
 
 ## License

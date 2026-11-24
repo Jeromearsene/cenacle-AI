@@ -36,6 +36,7 @@ import {
 } from './providers';
 import { createShortcutHint, type KeyInput, shortcutModifierFor } from './shortcut-hint';
 import { isId, MAX_NAME, makeAccount, readState, writeStateFile } from './state';
+import { checkForUpdates } from './updater';
 
 // ------------------------------------------------------------------ constants
 
@@ -609,6 +610,7 @@ if (!app.requestSingleInstanceLock()) {
       app.dock?.setIcon(nativeImage.createFromPath(resource('icon-mac.png')));
     buildMenu();
     createWindow();
+    checkForUpdates();
   });
 
   app.on('before-quit', () => {

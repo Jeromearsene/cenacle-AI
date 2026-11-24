@@ -9,3 +9,5 @@ out/
 .pnp.*
 test-results/
 playwright-report/
+release/
+package.tgz

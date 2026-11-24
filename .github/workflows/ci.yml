@@ -57,6 +57,10 @@ jobs:
       - name: Build
         run: yarn build
 
+      # Makes sure the installer configuration still works (no installer is produced).
+      - name: Check the packaging
+        run: yarn dist:dir
+
   e2e:
     name: E2E (${{ matrix.os }})
     needs: quality

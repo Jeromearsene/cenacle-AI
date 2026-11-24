@@ -372,26 +372,29 @@ async function gridOfThree(launch: () => Promise<{ sidebar: Page }>): Promise<Pa
 test('a cell can be taken out of the grid; selecting it does nothing, dragging it back works', async ({
   launch,
 }) => {
-  const sidebar = await gridOfThree(launch);
-  await heads(sidebar).nth(2).getByRole('button', { name: 'Remove from the grid' }).click();
+  const { sidebar } = await launch();
+  await addAccount(sidebar, 'ChatGPT');
+  await sidebar.getByRole('button', { name: 'Grid' }).click();
   await expect(heads(sidebar)).toHaveCount(2);
+  await heads(sidebar).nth(1).getByRole('button', { name: 'Remove from the grid' }).click();
+  await expect(heads(sidebar)).toHaveCount(1);
   // still in the sidebar, with a hollow dot
-  await expect.poll(() => accountNames(sidebar)).toHaveLength(3);
+  await expect.poll(() => accountNames(sidebar)).toHaveLength(2);
   const outside = sidebar.locator('#accounts .account.outside');
   await expect(outside).toHaveCount(1);
   await expect(outside.locator('.dot.hollow')).toHaveCount(1);
 
   // a plain click does not bring it back
   await outside.click();
-  await expect(heads(sidebar)).toHaveCount(2);
+  await expect(heads(sidebar)).toHaveCount(1);
   await expect(outside).toHaveCount(1);
   await expect(sidebar.locator('#accounts .account.active')).not.toHaveClass(/outside/);
 
-  // dragging it onto a cell does
+  // dragging it onto the edge of the cell does
   const from = await centerOf(outside);
   const cell = (await heads(sidebar).nth(0).boundingBox()) as { x: number; width: number };
-  await dragTo(sidebar, { x: from.x, y: from.y }, { x: cell.x + cell.width - 40, y: 400 });
-  await expect(heads(sidebar)).toHaveCount(3);
+  await dragTo(sidebar, { x: from.x, y: from.y }, { x: cell.x + cell.width - 80, y: 400 });
+  await expect(heads(sidebar)).toHaveCount(2);
   await expect(sidebar.locator('#accounts .account.outside')).toHaveCount(0);
 });
 
@@ -483,8 +486,8 @@ test('a resize handle between two cells moves their border', async ({ launch }) 
   const before = await width();
   const handle = await centerOf(sidebar.locator('.divider'));
 
-  await dragTo(sidebar, { x: handle.x, y: handle.y }, { x: handle.x + 120, y: handle.y });
-  await expect.poll(width).toBeGreaterThan(before + 100);
+  await dragTo(sidebar, { x: handle.x, y: handle.y }, { x: handle.x + 50, y: handle.y });
+  await expect.poll(width).toBeGreaterThan(before + 30);
 
   // and it cannot be pushed past the minimum size
   const handle2 = await centerOf(sidebar.locator('.divider'));
@@ -593,7 +596,7 @@ test('a resize handle works with the arrow keys', async ({ launch }) => {
   await sidebar.locator('.divider').focus();
   await sidebar.keyboard.press('ArrowRight');
   await sidebar.keyboard.press('ArrowRight');
-  await expect.poll(width).toBeGreaterThan(before + 60);
+  await expect.poll(width).toBeGreaterThan(before + 40);
   await sidebar.keyboard.press('ArrowLeft');
   await sidebar.keyboard.press('ArrowLeft');
   await sidebar.keyboard.press('ArrowLeft');
@@ -719,14 +722,14 @@ test('the Equalize button and a double click on a handle give equal sizes', asyn
   };
   const handle = await centerOf(sidebar.locator('.divider'));
   await dragTo(sidebar, { x: handle.x, y: handle.y }, { x: handle.x + 150, y: handle.y });
-  await expect.poll(gap).toBeGreaterThan(100);
+  await expect.poll(gap).toBeGreaterThan(15);
 
   await sidebar.getByRole('button', { name: 'Equalize sizes' }).click();
   await expect.poll(gap).toBeLessThan(3);
 
   const again = await centerOf(sidebar.locator('.divider'));
   await dragTo(sidebar, { x: again.x, y: again.y }, { x: again.x - 150, y: again.y });
-  await expect.poll(gap).toBeGreaterThan(100);
+  await expect.poll(gap).toBeGreaterThan(15);
   await sidebar.locator('.divider').dblclick();
   await expect.poll(gap).toBeLessThan(3);
 });

@@ -27,6 +27,8 @@ The README explains the project layout, the supported platforms and how to add a
 
 - **One change per pull request**, small enough to review. Open an issue first for anything big.
 - **Code in English**: names, comments, test names, commit messages and logs.
+- **User-facing texts** (buttons, menus, dialogs, labels) go in `src/shared/i18n.ts`, in both
+  English and French, never hard-coded in a component. English is the reference.
 - **Tests**: a bug fix comes with a test that fails without the fix; a feature comes with tests
   of what it does. The suite must pass on macOS, Linux and Windows (CI runs all three).
 - **Lint and types**: `yarn check` must pass. Biome formats the code (`yarn lint:fix`).

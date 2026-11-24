@@ -356,9 +356,11 @@ function placeViews(list: Rect[]): void {
 const ANIMATION_MS = 160;
 let tween: NodeJS.Timeout | null = null;
 
-/** Off when the system asks for reduced motion (and in the tests, unless they ask for it). */
+/** Off when the system asks for reduced motion. `CENACLE_ANIMATIONS` (0 or 1) overrides the
+ * system, which the tests need: the CI machines have their animations switched off. */
 function animationsEnabled(): boolean {
   if (process.env.CENACLE_ANIMATIONS === '0') return false;
+  if (process.env.CENACLE_ANIMATIONS === '1') return true;
   try {
     return !systemPreferences.getAnimationSettings().prefersReducedMotion;
   } catch {

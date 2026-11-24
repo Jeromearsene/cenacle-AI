@@ -405,9 +405,12 @@ test('each service page sits right under its header, and pages are hidden while 
     .toBe(true);
 
   // while a drag is going on, no page is shown (they would swallow the mouse)
-  await sidebar.mouse.move(grip.x, grip.y);
+  const stacked = await centerOf(
+    heads(sidebar).nth(1).getByRole('button', { name: 'Drag to rearrange' })
+  );
+  await sidebar.mouse.move(stacked.x, stacked.y);
   await sidebar.mouse.down();
-  await sidebar.mouse.move(grip.x + 40, grip.y + 40, { steps: 5 });
+  await sidebar.mouse.move(stacked.x + 40, stacked.y - 40, { steps: 5 });
   await expect.poll(async () => (await nativeViews(app)).some((v) => v.visible)).toBe(false);
   await sidebar.mouse.up();
   await expect.poll(async () => (await nativeViews(app)).filter((v) => v.visible).length).toBe(2);

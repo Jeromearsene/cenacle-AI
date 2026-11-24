@@ -1,6 +1,6 @@
 // Types shared between the main process, the preload and the interface.
 // Types only: this file must not import anything from Node or Electron.
-import type { Divider, DropZone, GridNode } from './grid';
+import type { Area, Divider, DropZone, GridNode } from './grid';
 import type { Locale } from './i18n';
 
 export type Layout = 'single' | 'grid';
@@ -60,6 +60,9 @@ export interface PublicState {
   rects: Rect[];
   /** Resize handles between the cells (grid mode only). */
   dividers: Divider[];
+  /** The grid tree (grid mode only) and the area its cells are drawn in. */
+  grid: GridNode | null;
+  area: Area;
   sidebarW: number;
 }
 
@@ -74,6 +77,8 @@ export interface MultiApi {
   setLayout(mode: Layout): Promise<void>;
   /** Drops an account on a cell of the grid: next to it (an edge) or in its place (center). */
   placeAccount(id: string, targetId: string, zone: DropZone): Promise<void>;
+  /** Equal sizes for the whole grid, or for the split found at `path`. */
+  equalizeGrid(path?: number[]): Promise<void>;
   /** Takes an account out of the grid (it stays in the sidebar). */
   removeFromGrid(id: string): Promise<void>;
   /** Sets the share of child `index` of the split found at `path`. */

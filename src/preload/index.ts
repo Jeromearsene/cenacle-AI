@@ -12,6 +12,7 @@ const api: MultiApi = {
   removeAccount: (id: string) => ipcRenderer.invoke('accounts:remove', id),
   setLayout: (mode: Layout) => ipcRenderer.invoke('layout:set', mode),
   placeAccount: (id, targetId, zone) => ipcRenderer.invoke('grid:place', id, targetId, zone),
+  equalizeGrid: (path) => ipcRenderer.invoke('grid:equalize', path),
   removeFromGrid: (id) => ipcRenderer.invoke('grid:remove', id),
   resizeGrid: (path, index, size) => ipcRenderer.invoke('grid:resize', path, index, size),
   setDragging: (active) => ipcRenderer.invoke('grid:dragging', active),

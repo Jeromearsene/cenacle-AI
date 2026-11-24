@@ -1,9 +1,9 @@
-import type { Divider } from '../../shared/grid';
-import { dropPreview, MIN_SIZE } from '../../shared/grid';
+import { clampShare, type Divider } from '../../shared/grid';
 import type { PublicState } from '../../shared/types';
 import { useT } from '../i18n';
 import type { DragState } from '../use-grid-drag';
 import { api } from '../use-multi';
+import { NoRoomIcon, ReplaceIcon, SwapIcon } from './icons';
 
 /** Share of a split moved by one press of an arrow key. */
 const KEY_STEP = 0.05;
@@ -21,8 +21,18 @@ export function GridOverlay({ state, drag, resizing, onDividerDown }: Props) {
   const t = useT();
   const busy = drag !== null || resizing;
   const dragged = drag ? state.accounts.find((a) => a.id === drag.id) : undefined;
-  const target = drag?.over ? state.rects.find((r) => r.id === drag.over?.cellId) : undefined;
-  const preview = target && drag?.over ? dropPreview(target, drag.over.zone) : null;
+  const plan = drag?.over ?? null;
+  const inGrid = drag ? state.rects.some((r) => r.id === drag.id) : false;
+  // On a center, the drop trades places with the cell, or replaces it for an account from outside.
+  const verdict = !plan
+    ? null
+    : !plan.allowed
+      ? { icon: <NoRoomIcon />, text: t('grid.noRoom') }
+      : plan.zone === 'center'
+        ? inGrid
+          ? { icon: <SwapIcon />, text: t('grid.swap') }
+          : { icon: <ReplaceIcon />, text: t('grid.replace') }
+        : null;
   return (
     <div class="pointer-events-none absolute inset-0">
       {busy &&
@@ -31,7 +41,7 @@ export function GridOverlay({ state, drag, resizing, onDividerDown }: Props) {
           return (
             <div
               key={r.id}
-              class="cell-body absolute grid place-items-center border-t border-line bg-panel text-muted"
+              class="cell-body absolute grid place-items-start border-t p-3 border-line bg-panel text-muted"
               style={{
                 left: `${r.x}px`,
                 top: `${r.y + r.headerH}px`,
@@ -44,17 +54,25 @@ export function GridOverlay({ state, drag, resizing, onDividerDown }: Props) {
             </div>
           );
         })}
-      {preview && (
+      {plan && (
         <div
-          class="drop-preview absolute rounded-sm border-2 border-accent bg-accent/25"
-          data-zone={drag?.over?.zone}
+          class={`drop-preview absolute grid place-items-center rounded-sm border-2 ${plan.allowed ? 'border-accent bg-accent/25 text-ink' : 'border-dashed border-danger bg-danger/15 text-danger'}`}
+          data-zone={plan.zone}
+          data-allowed={plan.allowed}
           style={{
-            left: `${preview.x}px`,
-            top: `${preview.y}px`,
-            width: `${preview.width}px`,
-            height: `${preview.height}px`,
+            left: `${plan.preview.x}px`,
+            top: `${plan.preview.y}px`,
+            width: `${plan.preview.width}px`,
+            height: `${plan.preview.height}px`,
           }}
-        />
+        >
+          {verdict && (
+            <div class="verdict flex items-center gap-1.5 rounded-md bg-bg/90 px-2.5 py-1 font-medium shadow-sm">
+              {verdict.icon}
+              {verdict.text}
+            </div>
+          )}
+        </div>
       )}
       {state.dividers.map((d) => (
         // biome-ignore lint/a11y/useSemanticElements: a focusable "window splitter" (WAI-ARIA); an <hr> cannot take the pointer or the arrow keys
@@ -64,8 +82,8 @@ export function GridOverlay({ state, drag, resizing, onDividerDown }: Props) {
           aria-orientation={d.axis === 'row' ? 'vertical' : 'horizontal'}
           aria-label={t('grid.resize')}
           aria-valuenow={Math.round(d.size * 100)}
-          aria-valuemin={Math.round(MIN_SIZE * 100)}
-          aria-valuemax={Math.round((d.pair - MIN_SIZE) * 100)}
+          aria-valuemin={Math.round(d.min * 100)}
+          aria-valuemax={Math.round(d.max * 100)}
           tabIndex={0}
           title={t('grid.resize')}
           onKeyDown={(e) => {
@@ -74,9 +92,9 @@ export function GridOverlay({ state, drag, resizing, onDividerDown }: Props) {
             const step = e.key === more ? KEY_STEP : e.key === less ? -KEY_STEP : 0;
             if (!step) return;
             e.preventDefault();
-            const size = Math.min(Math.max(d.size + step, MIN_SIZE), d.pair - MIN_SIZE);
-            void api.resizeGrid(d.path, d.index, size);
+            void api.resizeGrid(d.path, d.index, clampShare(d.size + step, d.min, d.max));
           }}
+          onDblClick={() => void api.equalizeGrid(d.path)}
           class={`divider pointer-events-auto absolute hover:bg-accent/60 focus-visible:bg-accent/60 focus-visible:outline-none ${d.axis === 'row' ? 'cursor-col-resize' : 'cursor-row-resize'} ${resizing ? 'bg-accent/60' : ''}`}
           style={{
             left: `${d.x}px`,

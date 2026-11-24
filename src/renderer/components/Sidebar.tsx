@@ -3,6 +3,7 @@ import { useT } from '../i18n';
 import { api } from '../use-multi';
 import { AccountItem } from './AccountItem';
 import { AddAccount } from './AddAccount';
+import { EqualizeIcon } from './icons';
 import { LayoutToggle } from './LayoutToggle';
 
 interface Props {
@@ -63,6 +64,16 @@ export function Sidebar({
       </nav>
       <AddAccount providers={state.providers} />
       <div class="flex-1" />
+      {state.layout === 'grid' && state.rects.length > 1 && (
+        <button
+          type="button"
+          class="equalize mb-2 flex h-[28px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-line bg-transparent text-muted hover:bg-hover hover:text-ink focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent"
+          onClick={() => void api.equalizeGrid()}
+        >
+          <EqualizeIcon />
+          {t('grid.equalize')}
+        </button>
+      )}
       <LayoutToggle layout={state.layout} />
     </aside>
   );

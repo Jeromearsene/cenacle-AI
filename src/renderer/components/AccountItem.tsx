@@ -56,8 +56,12 @@ export function AccountItem({
       }}
     >
       <span
-        class="dot size-[9px] flex-none rounded-full"
-        style={{ backgroundColor: account.color }}
+        class={`dot size-[9px] flex-none rounded-full ${outsideGrid ? 'hollow' : ''}`}
+        style={
+          outsideGrid
+            ? { boxShadow: `inset 0 0 0 1.5px ${account.color}` }
+            : { backgroundColor: account.color }
+        }
       />
       {editing ? (
         <RenameInput initial={account.name} onCommit={onRename} onCancel={onCancelRename} />

@@ -11,6 +11,7 @@
   --color-hover: rgb(0 0 0 / 0.06);
   --color-active: rgb(0 0 0 / 0.1);
   --color-accent: #d97757;
+  --color-danger: #c0392b;
   --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
@@ -23,6 +24,7 @@
     --color-muted: #9b978b;
     --color-hover: rgb(255 255 255 / 0.06);
     --color-active: rgb(255 255 255 / 0.1);
+    --color-danger: #e5826f;
   }
 }
 

@@ -22,18 +22,23 @@ import {
 } from 'electron';
 import { name as packageName } from '../../package.json';
 import {
-  appendLeaf,
+  type Area,
+  appendFitting,
   computeGrid,
   type Divider,
   type DropZone,
-  gridFromIds,
+  equalizeAll,
+  equalizeSplit,
+  fits,
+  isDropZone,
   leaves,
   placeLeaf,
-  pruneTo,
   removeLeaf,
-  setSplitSize,
+  resizeSplit,
+  syncGrid,
 } from '../shared/grid';
 import { resolveLocale, translator } from '../shared/i18n';
+import { isId } from '../shared/id';
 import { MAX_ACCOUNT_SHORTCUTS } from '../shared/shortcuts';
 import type { Account, Layout, PersistedState, PublicState, Rect } from '../shared/types';
 import { dotDataUrl, identityArgument } from './account-notifications';
@@ -48,7 +53,7 @@ import {
   providerOf,
 } from './providers';
 import { createShortcutHint, type KeyInput, shortcutModifierFor } from './shortcut-hint';
-import { isId, MAX_NAME, makeAccount, readState, writeStateFile } from './state';
+import { MAX_NAME, makeAccount, readState, writeStateFile } from './state';
 import { checkForUpdates } from './updater';
 
 // ------------------------------------------------------------------ constants
@@ -286,17 +291,28 @@ function activeContents(): WebContents | null {
 
 // ------------------------------------------------------------------ layout
 
-/** The grid keeps exactly the existing accounts, plus the active one so it is always visible. */
-function ensureGrid(): void {
-  const ids = state.accounts.map((a) => a.id);
-  let grid = pruneTo(state.grid, new Set(ids)) ?? gridFromIds(ids);
-  if (!leaves(grid).includes(state.activeId)) grid = appendLeaf(grid, state.activeId);
-  state.grid = grid;
+/** Where the cells are drawn: the window minus the sidebar. */
+function contentArea(w: BrowserWindow): Area {
+  const [width = 0, height = 0] = w.getContentSize();
+  return { x: SIDEBAR_W, y: 0, width: Math.max(0, width - SIDEBAR_W), height };
+}
+
+/** Brings the grid in line with the accounts (and, in grid mode, makes the active account one of
+ * its cells). Called before every layout so that computing the layout changes nothing. */
+function syncGridState(): void {
+  if (!win || win.isDestroyed()) return;
+  const synced = syncGrid(
+    state.grid,
+    state.accounts.map((a) => a.id),
+    state.activeId,
+    contentArea(win)
+  );
+  state.grid = synced.grid;
+  if (state.layout === 'grid') state.activeId = synced.activeId;
 }
 
 function computeRects(w: BrowserWindow): { rects: Rect[]; dividers: Divider[] } {
-  const [width = 0, height = 0] = w.getContentSize();
-  const area = { x: SIDEBAR_W, y: 0, width: Math.max(0, width - SIDEBAR_W), height };
+  const area = contentArea(w);
   const toRect = (c: {
     id: string;
     x: number;
@@ -308,7 +324,6 @@ function computeRects(w: BrowserWindow): { rects: Rect[]; dividers: Divider[] } 
     headerH: HEADER_H,
   });
   if (state.layout === 'grid') {
-    ensureGrid();
     const geometry = computeGrid(state.grid, area);
     return { rects: geometry.cells.map(toRect), dividers: geometry.dividers };
   }
@@ -347,6 +362,9 @@ function publicState(): PublicState {
     layout: state.layout,
     rects,
     dividers,
+    grid: state.layout === 'grid' ? state.grid : null,
+    area:
+      win && !win.isDestroyed() ? contentArea(win) : { x: SIDEBAR_W, y: 0, width: 0, height: 0 },
     sidebarW: SIDEBAR_W,
   };
 }
@@ -356,6 +374,7 @@ function notify(): void {
 }
 
 function refresh({ relayout = true } = {}): void {
+  syncGridState();
   if (relayout) applyLayout();
   buildMenu();
   notify();
@@ -368,15 +387,22 @@ function addAccount(providerId: string): string {
   const acc = makeAccount(state.accounts, providerId);
   state.accounts.push(acc);
   state.activeId = acc.id;
-  // A new account joins the end of the grid (a grid not shown yet will include it anyway).
-  if (state.grid) state.grid = appendLeaf(state.grid, acc.id);
+  // A new account joins the grid where there is room (a grid not shown yet will include it).
+  if (state.grid && win && !win.isDestroyed()) {
+    state.grid = appendFitting(state.grid, acc.id, contentArea(win)) ?? state.grid;
+  }
   refresh();
   if (win && !win.isDestroyed()) win.webContents.send('rename-request', acc.id);
   return acc.id;
 }
 
+/** The accounts one can switch to: in grid mode, only the ones that are in the grid. */
+function selectableIds(): string[] {
+  return state.layout === 'grid' ? leaves(state.grid) : state.accounts.map((a) => a.id);
+}
+
 function selectAccount(id: string): boolean {
-  if (!findAccount(id)) return false;
+  if (!findAccount(id) || !selectableIds().includes(id)) return false;
   state.activeId = id;
   refresh();
   activeContents()?.focus();
@@ -384,10 +410,10 @@ function selectAccount(id: string): boolean {
 }
 
 function cycleAccount(step: number): void {
-  const n = state.accounts.length;
-  const i = state.accounts.findIndex((a) => a.id === state.activeId);
-  const next = state.accounts[(i + step + n) % n];
-  if (next) selectAccount(next.id);
+  const ids = selectableIds();
+  const n = ids.length;
+  const next = ids[(ids.indexOf(state.activeId) + step + n) % n];
+  if (next) selectAccount(next);
 }
 
 function setLayout(mode: Layout): void {
@@ -396,11 +422,12 @@ function setLayout(mode: Layout): void {
   refresh();
 }
 
-/** Drops an account on a cell of the grid. */
+/** Drops an account on a cell of the grid, unless a cell would get too small. */
 function placeAccount(id: string, targetId: string, zone: DropZone): boolean {
-  if (state.layout !== 'grid' || !findAccount(id) || !findAccount(targetId)) return false;
-  ensureGrid();
-  state.grid = placeLeaf(state.grid, id, targetId, zone);
+  if (state.layout !== 'grid' || !win || !findAccount(id) || !findAccount(targetId)) return false;
+  const next = placeLeaf(state.grid, id, targetId, zone);
+  if (!next || next === state.grid || !fits(next, contentArea(win))) return false;
+  state.grid = next;
   state.activeId = id;
   refresh();
   return true;
@@ -409,7 +436,6 @@ function placeAccount(id: string, targetId: string, zone: DropZone): boolean {
 /** Takes an account out of the grid: it stays in the sidebar, session kept. The last one stays. */
 function removeFromGrid(id: string): boolean {
   if (state.layout !== 'grid') return false;
-  ensureGrid();
   const inGrid = leaves(state.grid);
   if (inGrid.length <= 1 || !inGrid.includes(id)) return false;
   state.grid = removeLeaf(state.grid, id);
@@ -418,16 +444,24 @@ function removeFromGrid(id: string): boolean {
   return true;
 }
 
-/** Back to every account side by side, equal sizes (also brings back the ones taken out). */
+/** Back to every account side by side where they fit, equal sizes (also brings back the ones
+ * taken out). */
 function resetGrid(): void {
   if (state.layout !== 'grid') return;
   state.grid = null;
   refresh();
 }
 
-function resizeGrid(path: number[], index: number, size: number): void {
+/** Equal sizes for the whole grid, or for the one split found at `path`. */
+function equalizeGrid(path?: number[]): void {
   if (state.layout !== 'grid') return;
-  state.grid = setSplitSize(state.grid, path, index, size);
+  state.grid = path ? equalizeSplit(state.grid, path) : equalizeAll(state.grid);
+  refresh();
+}
+
+function resizeGrid(path: number[], index: number, size: number): void {
+  if (state.layout !== 'grid' || !win || win.isDestroyed()) return;
+  state.grid = resizeSplit(state.grid, contentArea(win), path, index, size);
   // Called for every mouse move: only the layout (no menu rebuild).
   applyLayout();
   notify();
@@ -529,22 +563,22 @@ handle('accounts:select', (id) => isId(id) && selectAccount(id));
 handle('accounts:rename', (id, name) => isId(id) && renameAccount(id, name));
 handle('accounts:remove', (id) => (isId(id) ? removeAccount(id) : false));
 handle('layout:set', (mode) => setLayout(mode as Layout));
-handle('grid:place', (id, targetId, zone) => {
-  const zones = ['left', 'right', 'top', 'bottom', 'center'];
-  return (
-    isId(id) &&
-    isId(targetId) &&
-    zones.includes(zone as string) &&
-    placeAccount(id, targetId, zone as DropZone)
-  );
-});
+handle(
+  'grid:place',
+  (id, targetId, zone) =>
+    isId(id) && isId(targetId) && isDropZone(zone) && placeAccount(id, targetId, zone)
+);
 handle('grid:remove', (id) => isId(id) && removeFromGrid(id));
+/** The path of a split in the grid tree, as sent by the interface. */
+const isPath = (v: unknown): v is number[] =>
+  Array.isArray(v) && v.length <= 8 && v.every((n) => Number.isInteger(n) && n >= 0);
 handle('grid:resize', (path, index, size) => {
-  const validPath =
-    Array.isArray(path) && path.length <= 8 && path.every((n) => Number.isInteger(n) && n >= 0);
-  if (validPath && Number.isInteger(index) && typeof size === 'number') {
-    resizeGrid(path as number[], index as number, size);
+  if (isPath(path) && Number.isInteger(index) && typeof size === 'number') {
+    resizeGrid(path, index as number, size);
   }
+});
+handle('grid:equalize', (path) => {
+  if (path === undefined || isPath(path)) equalizeGrid(path);
 });
 handle('grid:dragging', (active) => setDragging(active === true));
 handle('account:reload', (id) => isId(id) && reloadAccount(id));
@@ -601,6 +635,11 @@ function buildMenu(): void {
           label: state.layout === 'grid' ? t('menu.showSingle') : t('menu.showGrid'),
           accelerator: 'CmdOrCtrl+Shift+L',
           click: () => setLayout(state.layout === 'grid' ? 'single' : 'grid'),
+        },
+        {
+          label: t('menu.equalizeGrid'),
+          enabled: state.layout === 'grid' && leaves(state.grid).length > 1,
+          click: () => equalizeGrid(),
         },
         { label: t('menu.resetGrid'), enabled: state.layout === 'grid', click: resetGrid },
         { type: 'separator' },

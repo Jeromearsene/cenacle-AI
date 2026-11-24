@@ -29,8 +29,10 @@ export function App() {
   if (!state) return null;
   const providerLabel = (id: string) => state.providers.find((p) => p.id === id)?.label ?? id;
   // Shortcut of each account, only while ⌘ / Ctrl is held.
+  const inGrid = new Set(state.rects.map((r) => r.id));
   const shortcutOf = (id: string): string | null =>
-    showHints
+    // an account outside the grid cannot be switched to, so it has no shortcut either
+    showHints && (state.layout !== 'grid' || inGrid.has(id))
       ? accountShortcutLabel(
           state.accounts.findIndex((a) => a.id === id),
           isMac

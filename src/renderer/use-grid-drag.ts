@@ -1,23 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import type { Divider } from '../shared/grid';
-import { cellAt, type DropZone, dropZone, MIN_SIZE } from '../shared/grid';
+import { clampShare, type Divider, type DropPlan, planDrop } from '../shared/grid';
 import type { PublicState } from '../shared/types';
 import { api } from './use-multi';
 
 /** Distance (px) the pointer must travel before a press becomes a drag: a click stays a click. */
 const DRAG_THRESHOLD = 5;
 
-export interface DropTarget {
-  cellId: string;
-  zone: DropZone;
-}
-
 export interface DragState {
   /** The account being dragged and where the pointer is. */
   id: string;
   x: number;
   y: number;
-  over: DropTarget | null;
+  over: DropPlan | null;
 }
 
 /** Runs `onMove` / `onEnd` for the pointer until it is released, Escape is pressed, the system
@@ -78,13 +72,11 @@ export function useAccountDrag(state: PublicState | null) {
     if (down.button !== 0 || latest.current?.layout !== 'grid') return;
     const origin = { x: down.clientX, y: down.clientY };
     let active = false;
-    let over: DropTarget | null = null;
+    let over: DropPlan | null = null;
 
-    const targetAt = (x: number, y: number): DropTarget | null => {
-      const cell = cellAt(latest.current?.rects ?? [], x, y);
-      // Dropping an account on its own cell would change nothing.
-      if (!cell || cell.id === id) return null;
-      return { cellId: cell.id, zone: dropZone(cell, x, y) };
+    const targetAt = (x: number, y: number): DropPlan | null => {
+      const s = latest.current;
+      return s ? planDrop(s.grid, s.area, s.rects, id, x, y) : null;
     };
 
     trackPointer(
@@ -100,7 +92,7 @@ export function useAccountDrag(state: PublicState | null) {
       (e, cancelled) => {
         if (active) {
           if (!cancelled && e) over = targetAt(e.clientX, e.clientY);
-          if (!cancelled && over) void api.placeAccount(id, over.cellId, over.zone);
+          if (!cancelled && over?.allowed) void api.placeAccount(id, over.target, over.zone);
           void api.setDragging(false);
           swallowNextClick();
         }
@@ -133,7 +125,7 @@ export function useDividerDrag() {
       (e) => {
         const delta = (row ? e.clientX : e.clientY) - origin;
         const shift = divider.total > 0 ? delta / divider.total : 0;
-        size = Math.min(Math.max(divider.size + shift, MIN_SIZE), divider.pair - MIN_SIZE);
+        size = clampShare(divider.size + shift, divider.min, divider.max);
         if (!frame) frame = requestAnimationFrame(send);
       },
       () => {

@@ -2,11 +2,29 @@
 // Pure functions only (no Electron, no DOM) so the main process, the interface and the tests
 // share them. Trees are never mutated: every function returns a new tree.
 
+import { isId } from './id';
+
 /** `row`: children side by side. `column`: children stacked. */
 export type Axis = 'row' | 'column';
 export type Edge = 'left' | 'right' | 'top' | 'bottom';
-/** Where an account is dropped on a cell: on one of its edges (split) or on its center (swap). */
-export type DropZone = Edge | 'center';
+/** The four edges of the whole grid (not of one cell). */
+export type RootZone = 'root-left' | 'root-right' | 'root-top' | 'root-bottom';
+/** Where an account is dropped: on an edge of a cell (split it), on its center (swap or replace),
+ * or on an edge of the whole grid (a new row or column spanning all of it). */
+export type DropZone = Edge | 'center' | RootZone;
+const DROP_ZONES: readonly string[] = [
+  'left',
+  'right',
+  'top',
+  'bottom',
+  'center',
+  'root-left',
+  'root-right',
+  'root-top',
+  'root-bottom',
+];
+export const isDropZone = (v: unknown): v is DropZone =>
+  typeof v === 'string' && DROP_ZONES.includes(v);
 
 export interface GridLeaf {
   type: 'leaf';
@@ -25,10 +43,14 @@ export type GridNode = GridLeaf | GridSplit;
 
 /** Width of the gutter between two cells (px): room for the resize handle. */
 export const GRID_GAP = 5;
-/** A cell never gets smaller than this share of its split. */
+/** Smallest cell a user action can create: below this, a chat page stops being readable. */
+export const MIN_CELL_WIDTH = 320;
+export const MIN_CELL_HEIGHT = 240; // header included
+/** Fallback share for a cell when the size of the area is not known. */
 export const MIN_SIZE = 0.1;
+/** Width (px) of the band along the outer border of the grid where a drop targets the whole grid. */
+export const ROOT_BAND = 24;
 const MAX_DEPTH = 8;
-const ID_RE = /^[\w-]{1,32}$/;
 
 export const leaf = (id: string): GridLeaf => ({ type: 'leaf', id });
 
@@ -105,7 +127,7 @@ export function parseGrid(raw: unknown, depth = 0): GridNode | null {
   if (typeof raw !== 'object' || raw === null || depth > MAX_DEPTH) return null;
   const node = raw as Record<string, unknown>;
   if (node.type === 'leaf') {
-    return typeof node.id === 'string' && ID_RE.test(node.id) ? leaf(node.id) : null;
+    return isId(node.id) ? leaf(node.id) : null;
   }
   if (node.type !== 'split' || (node.axis !== 'row' && node.axis !== 'column')) return null;
   if (!Array.isArray(node.children)) return null;
@@ -158,14 +180,28 @@ export function placeLeaf(
   target: string,
   zone: DropZone
 ): GridNode | null {
-  if (!node || id === target || !leaves(node).includes(target)) return node;
+  if (!node || !leaves(node).includes(target)) return node;
+  if (zone.startsWith('root-')) return placeAtRoot(node, id, zone.slice(5) as Edge);
+  if (id === target) return node;
   const placed = leaves(node).includes(id);
   if (zone === 'center') {
     if (placed) return mapLeaves(node, (l) => (l === id ? target : l === target ? id : l));
     return mapLeaves(node, (l) => (l === target ? id : l));
   }
   const without = removeLeaf(node, id);
-  return without && insertBeside(without, id, target, zone);
+  return without && insertBeside(without, id, target, zone as Edge);
+}
+
+/** A new row or column along one edge of the whole grid, as wide as its siblings. */
+function placeAtRoot(node: GridNode, id: string, edge: Edge): GridNode {
+  const without = removeLeaf(node, id);
+  if (!without) return node;
+  const axis = axisOf(edge);
+  const siblings = without.type === 'split' && without.axis === axis ? without.children.length : 1;
+  const share = 1 / (siblings + 1);
+  const after = edge === 'right' || edge === 'bottom';
+  const pair = after ? [without, leaf(id)] : [leaf(id), without];
+  return makeSplit(axis, pair, after ? [1 - share, share] : [share, 1 - share]) as GridNode;
 }
 
 /** Adds an account at the end of the grid (a new column when the grid is made of columns). */
@@ -182,6 +218,9 @@ export function appendLeaf(node: GridNode | null, id: string): GridNode {
   }
   return makeSplit('row', [node, leaf(id)]) as GridNode;
 }
+
+export const clampShare = (size: number, min: number, max: number): number =>
+  Math.min(Math.max(size, min), max);
 
 /** Sets the share of child `index` of the split found at `path` (indexes from the root); its
  * next sibling takes the difference. Out-of-range values are clamped. */
@@ -209,7 +248,7 @@ export function setSplitSize(
     return node;
   }
   const pair = (node.sizes[index] as number) + (node.sizes[index + 1] as number);
-  const first = Math.min(Math.max(size, MIN_SIZE), pair - MIN_SIZE);
+  const first = clampShare(size, MIN_SIZE, pair - MIN_SIZE);
   const sizes = [...node.sizes];
   sizes[index] = first;
   sizes[index + 1] = pair - first;
@@ -240,6 +279,9 @@ export interface Divider extends Area {
   pair: number;
   /** Pixels shared by the children of the split (its length without the gutters). */
   total: number;
+  /** The share of the child before the handle stays between these, so no cell gets too small. */
+  min: number;
+  max: number;
 }
 
 export interface GridGeometry {
@@ -274,6 +316,11 @@ export function computeGrid(node: GridNode | null, area: Area): GridGeometry {
         [...path, i]
       );
       if (i < count - 1) {
+        const next = n.children[i + 1] as GridNode;
+        const pair = (n.sizes[i] as number) + (n.sizes[i + 1] as number);
+        const lo = total > 0 ? minExtent(child, n.axis) / total : MIN_SIZE;
+        const hi = pair - (total > 0 ? minExtent(next, n.axis) / total : MIN_SIZE);
+        const size = n.sizes[i] as number;
         dividers.push({
           path,
           index: i,
@@ -282,9 +329,12 @@ export function computeGrid(node: GridNode | null, area: Area): GridGeometry {
           y: row ? box.y : start + length,
           width: row ? GRID_GAP : box.width,
           height: row ? box.height : GRID_GAP,
-          size: n.sizes[i] as number,
-          pair: (n.sizes[i] as number) + (n.sizes[i + 1] as number),
+          size,
+          pair,
           total,
+          // A window too small for the cells it holds: the handle stays where it is.
+          min: lo <= hi ? lo : size,
+          max: lo <= hi ? hi : size,
         });
       }
       offset += length;
@@ -294,12 +344,153 @@ export function computeGrid(node: GridNode | null, area: Area): GridGeometry {
   return { cells, dividers };
 }
 
+/** Pixels a node needs along `axis` so that none of its cells is smaller than the minimum. */
+export function minExtent(node: GridNode, axis: Axis): number {
+  if (node.type === 'leaf') return axis === 'row' ? MIN_CELL_WIDTH : MIN_CELL_HEIGHT;
+  const parts = node.children.map((c) => minExtent(c, axis));
+  return node.axis === axis
+    ? parts.reduce((a, b) => a + b, 0) + GRID_GAP * (parts.length - 1)
+    : Math.max(...parts);
+}
+
+/** Whether every cell of the tree can keep its minimum size inside `area`. */
+export function fits(node: GridNode | null, area: Area): boolean {
+  return (
+    !node || (minExtent(node, 'row') <= area.width && minExtent(node, 'column') <= area.height)
+  );
+}
+
+/** The accounts side by side as long as they fit, then in rows; the ones that do not fit at all
+ * are left out (they stay in the sidebar). */
+export function arrangeGrid(ids: string[], area: Area): GridNode | null {
+  const columns = Math.max(1, Math.floor((area.width + GRID_GAP) / (MIN_CELL_WIDTH + GRID_GAP)));
+  const maxRows = Math.max(1, Math.floor((area.height + GRID_GAP) / (MIN_CELL_HEIGHT + GRID_GAP)));
+  const shown = ids.slice(0, columns * maxRows);
+  const rows = Math.ceil(shown.length / columns);
+  const perRow = Math.ceil(shown.length / Math.max(1, rows));
+  const lines: GridNode[] = [];
+  for (let i = 0; i < shown.length; i += perRow) {
+    const line = makeSplit('row', shown.slice(i, i + perRow).map(leaf));
+    if (line) lines.push(line);
+  }
+  return makeSplit('column', lines);
+}
+
+/** Adds an account to the grid where there is room (a new column, or under an existing cell);
+ * null when there is none. */
+export function appendFitting(node: GridNode | null, id: string, area: Area): GridNode | null {
+  if (!node) return fits(leaf(id), area) ? leaf(id) : null;
+  if (leaves(node).includes(id)) return node;
+  const candidates = [
+    appendLeaf(node, id),
+    ...leaves(node)
+      .reverse()
+      .map((target) => placeLeaf(node, id, target, 'bottom')),
+  ];
+  return candidates.find((c): c is GridNode => c !== null && fits(c, area)) ?? null;
+}
+
+/** The grid for the accounts that exist: unknown ones leave it, and a grid that was never
+ * shown is arranged. In grid mode the active account must be one of the cells. */
+export function syncGrid(
+  grid: GridNode | null,
+  ids: string[],
+  activeId: string,
+  area: Area
+): { grid: GridNode | null; activeId: string } {
+  const synced = pruneTo(grid, new Set(ids)) ?? arrangeGrid(ids, area);
+  const inGrid = leaves(synced);
+  const first = inGrid[0];
+  return { grid: synced, activeId: first && !inGrid.includes(activeId) ? first : activeId };
+}
+
+/** Every split of the tree shares its length equally between its children. */
+export function equalizeAll(node: GridNode | null): GridNode | null {
+  if (!node || node.type === 'leaf') return node;
+  const children = node.children.map((c) => equalizeAll(c) as GridNode);
+  return { ...node, children, sizes: children.map(() => 1 / children.length) };
+}
+
+/** Same for the single split found at `path`. */
+export function equalizeSplit(node: GridNode | null, path: number[]): GridNode | null {
+  if (!node || node.type === 'leaf') return node;
+  if (path.length === 0) return { ...node, sizes: node.sizes.map(() => 1 / node.sizes.length) };
+  const [head, ...rest] = path as [number, ...number[]];
+  if (!node.children[head]) return node;
+  const children = node.children.map((c, i) =>
+    i === head ? (equalizeSplit(c, rest) as GridNode) : c
+  );
+  return { ...node, children };
+}
+
+/** Moves a handle within the limits that keep every cell readable in `area`. */
+export function resizeSplit(
+  node: GridNode | null,
+  area: Area,
+  path: number[],
+  index: number,
+  size: number
+): GridNode | null {
+  const handle = computeGrid(node, area).dividers.find(
+    (d) =>
+      d.index === index && d.path.length === path.length && d.path.every((p, i) => p === path[i])
+  );
+  if (!handle || !Number.isFinite(size)) return node;
+  return setSplitSize(node, path, index, clampShare(size, handle.min, handle.max));
+}
+
+/** What dropping `id` at a point would do. */
+export interface DropPlan {
+  /** The cell under the pointer and the zone of it (or of the whole grid) that is aimed at. */
+  target: string;
+  zone: DropZone;
+  /** False when the result would leave a cell too small. */
+  allowed: boolean;
+  /** Where the dropped account would end up. */
+  preview: Area;
+}
+
+function rootZoneAt(area: Area, x: number, y: number): RootZone | null {
+  const distances: [RootZone, number][] = [
+    ['root-left', x - area.x],
+    ['root-right', area.x + area.width - x],
+    ['root-top', y - area.y],
+    ['root-bottom', area.y + area.height - y],
+  ];
+  const nearest = distances.reduce((best, d) => (d[1] < best[1] ? d : best));
+  return nearest[1] < ROOT_BAND ? nearest[0] : null;
+}
+
+/** The drop under the pointer, or null when nothing would change. */
+export function planDrop(
+  node: GridNode | null,
+  area: Area,
+  cells: Cell[],
+  id: string,
+  x: number,
+  y: number
+): DropPlan | null {
+  const cell = cellAt(cells, x, y);
+  if (!node || !cell) return null;
+  const zone = rootZoneAt(area, x, y) ?? dropZone(cell, x, y);
+  if (cell.id === id && !zone.startsWith('root-')) return null;
+  const next = placeLeaf(node, id, cell.id, zone);
+  if (!next || next === node) return null;
+  const preview = computeGrid(next, area).cells.find((c) => c.id === id) ?? cell;
+  return {
+    target: cell.id,
+    zone,
+    allowed: fits(next, area),
+    preview: { x: preview.x, y: preview.y, width: preview.width, height: preview.height },
+  };
+}
+
 export function cellAt<T extends Area>(cells: T[], x: number, y: number): T | undefined {
   return cells.find((c) => x >= c.x && x < c.x + c.width && y >= c.y && y < c.y + c.height);
 }
 
 /** The drop zone under a point of a cell: the center, or the nearest edge. */
-export function dropZone(cell: Area, x: number, y: number): DropZone {
+export function dropZone(cell: Area, x: number, y: number): Edge | 'center' {
   const rx = (x - cell.x) / Math.max(1, cell.width);
   const ry = (y - cell.y) / Math.max(1, cell.height);
   if (rx > 0.25 && rx < 0.75 && ry > 0.25 && ry < 0.75) return 'center';
@@ -310,22 +501,4 @@ export function dropZone(cell: Area, x: number, y: number): DropZone {
     ['bottom', 1 - ry],
   ];
   return distances.reduce((best, d) => (d[1] < best[1] ? d : best))[0];
-}
-
-/** The part of a cell that a drop would take (half of it for an edge, all of it for the center). */
-export function dropPreview(cell: Area, zone: DropZone): Area {
-  const halfW = Math.floor(cell.width / 2);
-  const halfH = Math.floor(cell.height / 2);
-  switch (zone) {
-    case 'left':
-      return { x: cell.x, y: cell.y, width: halfW, height: cell.height };
-    case 'right':
-      return { x: cell.x + halfW, y: cell.y, width: cell.width - halfW, height: cell.height };
-    case 'top':
-      return { x: cell.x, y: cell.y, width: cell.width, height: halfH };
-    case 'bottom':
-      return { x: cell.x, y: cell.y + halfH, width: cell.width, height: cell.height - halfH };
-    default:
-      return { x: cell.x, y: cell.y, width: cell.width, height: cell.height };
-  }
 }

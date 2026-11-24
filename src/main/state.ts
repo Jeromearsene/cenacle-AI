@@ -2,11 +2,11 @@ import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseGrid, pruneTo } from '../shared/grid';
+import { isId } from '../shared/id';
 import type { Account, Bounds, PersistedState } from '../shared/types';
 import { DEFAULT_PROVIDER, isProviderId, providerOf } from './providers';
 
 export const MAX_NAME = 40;
-export const ID_RE = /^[\w-]{1,32}$/;
 const COLOR_RE = /^#[0-9a-f]{6}$/i;
 const PALETTE = [
   '#d97757',
@@ -18,8 +18,6 @@ const PALETTE = [
   '#cc6b8e',
   '#8d8d8d',
 ];
-
-export const isId = (v: unknown): v is string => typeof v === 'string' && ID_RE.test(v);
 
 export function makeAccount(existing: Account[], providerId: string = DEFAULT_PROVIDER): Account {
   const provider = providerOf(providerId);

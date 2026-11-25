@@ -10,6 +10,8 @@ export type Layout = 'single' | 'grid';
 /** 'system' follows the OS light/dark setting. */
 export type Theme = 'light' | 'dark' | 'system';
 
+export const isTheme = (v: unknown): v is Theme => v === 'light' || v === 'dark' || v === 'system';
+
 export interface Account {
   id: string;
   name: string;

@@ -119,7 +119,7 @@ test.describe('shortcut numbers (⌘ / Ctrl held)', () => {
       label(2) as string,
     ]);
     // also in grid mode, above each page
-    await sidebar.getByRole('button', { name: 'Grid' }).click();
+    await sidebar.getByRole('radio', { name: 'Grid' }).click();
     await expect(sidebar.locator('.cell-head .shortcut')).toHaveText([
       label(1) as string,
       label(2) as string,

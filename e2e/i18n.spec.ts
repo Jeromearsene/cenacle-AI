@@ -43,7 +43,7 @@ test.describe('interface language (without launching the app)', () => {
 test('English interface by default', async ({ launch }) => {
   const { app, sidebar } = await launch();
   await expect(sidebar.getByRole('button', { name: '+ Add account' })).toBeVisible();
-  await expect(sidebar.getByRole('button', { name: 'Grid' })).toBeVisible();
+  await expect(sidebar.getByRole('radio', { name: 'Grid' })).toBeVisible();
   await expect(sidebar.locator('html')).toHaveAttribute('lang', 'en');
   const labels = await app.evaluate(({ Menu }) =>
     Menu.getApplicationMenu()?.items.map((item) => item.label)
@@ -54,8 +54,8 @@ test('English interface by default', async ({ launch }) => {
 test('French interface when the system language is French', async ({ launch }) => {
   const { app, sidebar } = await launch({ lang: 'fr-FR' });
   await expect(sidebar.getByRole('button', { name: '+ Ajouter un compte' })).toBeVisible();
-  await expect(sidebar.getByRole('button', { name: 'Grille' })).toBeVisible();
-  await expect(sidebar.getByRole('button', { name: 'Un seul' })).toBeVisible();
+  await expect(sidebar.getByRole('radio', { name: 'Grille' })).toBeVisible();
+  await expect(sidebar.getByRole('radio', { name: 'Un seul' })).toBeVisible();
   await expect(sidebar.locator('html')).toHaveAttribute('lang', 'fr');
   const labels = await app.evaluate(({ Menu }) =>
     Menu.getApplicationMenu()?.items.map((item) => item.label)

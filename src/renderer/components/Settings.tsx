@@ -3,6 +3,7 @@ import { LOCALE_LABELS, LOCALES, type MessageKey } from '../../shared/i18n';
 import type { PublicState, Theme } from '../../shared/types';
 import { useT } from '../i18n';
 import { api } from '../use-multi';
+import { SegmentedControl } from './SegmentedControl';
 
 const THEMES: { value: Theme; label: MessageKey }[] = [
   { value: 'light', label: 'settings.themeLight' },
@@ -10,56 +11,46 @@ const THEMES: { value: Theme; label: MessageKey }[] = [
   { value: 'system', label: 'settings.system' },
 ];
 
-function OptionGroup<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: T;
-  options: { value: T; label: string }[];
-  onChange: (value: T) => void;
-}) {
-  return (
-    <div>
-      <div class="mb-1 px-0.5 text-[11px] text-muted">{label}</div>
-      {/* flex-wrap (not a fixed grid): the language group grows past 3 options once another
-          language is added, and a language's own name must never be truncated. */}
-      {/* biome-ignore lint/a11y/useSemanticElements: a <fieldset> imposes its default styling; role="group" is equivalent for screen readers */}
-      <div role="group" aria-label={label} class="flex flex-wrap gap-0.5 rounded-lg bg-hover p-0.5">
-        {options.map((o) => (
-          <button
-            key={o.value}
-            type="button"
-            aria-pressed={value === o.value}
-            class="h-[26px] flex-1 cursor-pointer whitespace-nowrap rounded-md border-0 bg-transparent px-2 text-muted aria-pressed:bg-bg aria-pressed:text-ink aria-pressed:shadow-sm"
-            onClick={() => onChange(o.value)}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function Settings({ state }: { state: PublicState }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
+  const dialog = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
-    wrap.current?.querySelector<HTMLElement>('[role=group] button')?.focus();
+    // The default selection ('system' for both groups' first render) is also the only tabbable
+    // radio in its group (roving tabindex, see SegmentedControl): target that one, not just "the
+    // first button", which may no longer be reachable by Tab.
+    wrap.current
+      ?.querySelector<HTMLElement>('[role=radiogroup] [role=radio][tabindex="0"]')
+      ?.focus();
     const onClick = (e: MouseEvent) => {
       if (!wrap.current?.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      setOpen(false);
-      button.current?.focus();
+      if (e.key === 'Escape') {
+        setOpen(false);
+        button.current?.focus();
+        return;
+      }
+      // Keep Tab inside the open panel: nothing behind it should be reachable while it's shown,
+      // and the dialog has no backdrop to make that obvious otherwise.
+      if (e.key !== 'Tab') return;
+      const focusable = dialog.current?.querySelectorAll<HTMLElement>(
+        'button:not([tabindex="-1"])'
+      );
+      if (!focusable || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
     };
     document.addEventListener('click', onClick);
     document.addEventListener('keydown', onKey);
@@ -84,11 +75,13 @@ export function Settings({ state }: { state: PublicState }) {
       </button>
       {open && (
         <div
+          ref={dialog}
           role="dialog"
+          aria-modal="true"
           aria-label={t('settings.title')}
           class="absolute inset-x-0 bottom-[calc(100%+4px)] z-10 flex flex-col gap-2.5 rounded-lg border border-line bg-bg p-2.5 shadow-lg"
         >
-          <OptionGroup
+          <SegmentedControl
             label={t('settings.language')}
             value={state.localeOverride ?? 'system'}
             options={[
@@ -97,7 +90,7 @@ export function Settings({ state }: { state: PublicState }) {
             ]}
             onChange={(pref) => void api.setLocale(pref)}
           />
-          <OptionGroup
+          <SegmentedControl
             label={t('settings.theme')}
             value={state.theme}
             options={THEMES.map(({ value, label }) => ({ value, label: t(label) }))}

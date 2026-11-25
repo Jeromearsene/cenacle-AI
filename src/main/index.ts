@@ -46,7 +46,14 @@ import { computeUsage, type ResourceUsage } from '../shared/metrics';
 import { activeFilter } from '../shared/provider-view';
 import type { QuotaInfo } from '../shared/quota';
 import { MAX_ACCOUNT_SHORTCUTS } from '../shared/shortcuts';
-import type { Account, Layout, PersistedState, PublicState, Rect, Theme } from '../shared/types';
+import {
+  type Account,
+  isTheme,
+  type Layout,
+  type PersistedState,
+  type PublicState,
+  type Rect,
+} from '../shared/types';
 import { dotDataUrl, identityArgument } from './account-notifications';
 import { attachContextMenu } from './context-menu';
 import { OAUTH_PATH, restorableUrl } from './last-url';
@@ -98,6 +105,8 @@ const t: Translate = (key, params) => translator(locale)(key, params);
 
 // Window background shown before a page paints (also the "frame" around maximized/resized
 // content); kept in sync with the chosen theme by the nativeTheme 'updated' listener below.
+// Must match --palette-light-bg / --palette-dark-bg in styles.css by hand: a native window
+// background has to be a literal hex string, so it can't reference that CSS variable directly.
 const BG_LIGHT = '#f5f4ee';
 const BG_DARK = '#1f1e1d';
 
@@ -217,6 +226,10 @@ function notifyQuotaBack(id: string, previous: QuotaInfo): void {
 
 // Recomputes the effective interface language from the current override (or the system
 // language). Must run once after `state` is loaded, and again whenever the override changes.
+//
+// Unlike applyTheme() below, this cannot also react to the OS setting changing while the app is
+// running: Electron has no equivalent of nativeTheme's 'updated' event for the system language,
+// so "System" only re-reads app.getLocale() the next time the app starts.
 function applyLocale(): void {
   locale = state.localeOverride ?? systemLocale();
 }
@@ -235,14 +248,14 @@ nativeTheme.on('updated', () => {
     win.setBackgroundColor(nativeTheme.shouldUseDarkColors ? BG_DARK : BG_LIGHT);
 });
 
+// 'system' resets the override (see applyLocale); it isn't itself a Locale, hence the extra check
+// isLocale doesn't cover, unlike isTheme below where 'system' is already one of Theme's members.
 function setLocaleOverride(pref: unknown): void {
   if (pref !== 'system' && !isLocale(pref)) return;
   state.localeOverride = pref === 'system' ? null : pref;
   applyLocale();
   refresh({ relayout: false });
 }
-
-const isTheme = (v: unknown): v is Theme => v === 'light' || v === 'dark' || v === 'system';
 
 function setTheme(pref: unknown): void {
   if (!isTheme(pref)) return;

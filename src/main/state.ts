@@ -5,7 +5,13 @@ import { parseGrid, pruneTo } from '../shared/grid';
 import { isLocale } from '../shared/i18n';
 import { isId } from '../shared/id';
 import { activeFilter } from '../shared/provider-view';
-import type { Account, AccountView, Bounds, PersistedState } from '../shared/types';
+import {
+  type Account,
+  type AccountView,
+  type Bounds,
+  isTheme,
+  type PersistedState,
+} from '../shared/types';
 import { MAX_URL_LENGTH } from './last-url';
 import { DEFAULT_PROVIDER, isProviderId, providerOf } from './providers';
 
@@ -106,7 +112,7 @@ export function parseState(raw: unknown): PersistedState {
     maximized: raw.maximized === true,
     fullscreen: raw.fullscreen === true,
     localeOverride: isLocale(raw.localeOverride) ? raw.localeOverride : null,
-    theme: raw.theme === 'light' || raw.theme === 'dark' ? raw.theme : 'system',
+    theme: isTheme(raw.theme) ? raw.theme : 'system',
   };
 }
 

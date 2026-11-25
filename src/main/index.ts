@@ -498,6 +498,9 @@ function placeAccount(id: string, targetId: string, zone: DropZone): boolean {
   }
   state.grid = next;
   state.activeId = id;
+  // The drop ends the drag (the interface says so right after): the pages come back by gliding
+  // from where they were, which they could not do while the drag was still on.
+  dragging = false;
   refresh({ animate: true });
   // The dropped account is the active one: what is typed next goes to it.
   activeContents()?.focus();

@@ -19,6 +19,21 @@ test('adds an account of the chosen service', async ({ launch }) => {
   await expect(sidebar.locator('.col-head .tag')).toHaveText('ChatGPT');
 });
 
+test('Tab stays inside the open "Add account" menu', async ({ launch }) => {
+  const { sidebar } = await launch();
+  await sidebar.getByRole('button', { name: '+ Add account' }).click();
+  const items = sidebar.getByRole('menuitem');
+  const first = items.first();
+  const last = items.last();
+  await expect(first).toBeFocused();
+
+  await sidebar.keyboard.press('Shift+Tab');
+  // Wraps to the last item instead of leaving the menu for whatever precedes it in the sidebar.
+  await expect(last).toBeFocused();
+  await sidebar.keyboard.press('Tab');
+  await expect(first).toBeFocused();
+});
+
 test('renames an account on double click', async ({ launch }) => {
   const { sidebar } = await launch();
   await sidebar.locator('.account .name').dblclick();

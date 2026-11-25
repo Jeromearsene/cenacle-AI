@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { Layout, MultiApi, PublicState } from '../shared/types';
+import type { Locale } from '../shared/i18n';
+import type { Layout, MultiApi, PublicState, Theme } from '../shared/types';
 
 // Minimal surface exposed to the interface (sidebar). Service pages see none of it: their
 // preload (service.ts) exposes nothing.
@@ -17,6 +18,8 @@ const api: MultiApi = {
   removeFromGrid: (id) => ipcRenderer.invoke('grid:remove', id),
   resizeGrid: (path, index, size) => ipcRenderer.invoke('grid:resize', path, index, size),
   setDragging: (active) => ipcRenderer.invoke('grid:dragging', active),
+  setLocale: (pref: Locale | 'system') => ipcRenderer.invoke('settings:setLocale', pref),
+  setTheme: (pref: Theme) => ipcRenderer.invoke('settings:setTheme', pref),
   reloadAccount: (id: string) => ipcRenderer.invoke('account:reload', id),
   onState: (cb) => {
     const listener = (_event: unknown, s: PublicState) => cb(s);

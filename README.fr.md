@@ -34,7 +34,7 @@ Un forfait gratuit ici, un compte pro là, un compte perso à côté. Cénacle l
 - **Des notifications qu'on distingue** : le nom et la couleur du compte sur chaque notification ; un clic t'amène au bon compte.
 - **Rapide à piloter** : ⌘1…⌘9 pour aller à un compte, Ctrl+Tab pour les parcourir. Les comptes masqués continuent de tourner : une longue réponse n'est pas interrompue.
 - **Privé par conception** : pas d'API, pas de clé, pas de serveur chez nous. L'app affiche les sites des services eux-mêmes, avec seulement les permissions dont un chat a besoin.
-- **Multiplateforme, en français et en anglais** : macOS, Windows et Linux.
+- **Multiplateforme, en français et en anglais** : macOS, Windows et Linux, avec un thème clair, sombre ou système ([⚙ Paramètres](docs/fr/usage.md#langue-et-thème)).
 
 ## ⬇️ Télécharger
 

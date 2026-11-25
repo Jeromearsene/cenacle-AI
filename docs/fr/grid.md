@@ -6,7 +6,7 @@
 
 En mode **Grille**, chaque compte est une case avec son en-tête. Au départ elles sont côte à côte (sur plusieurs rangées si elles ne tiennent pas toutes) ; tu les organises ensuite :
 
-- **Déplacer** : glisse un compte depuis la barre latérale, ou un en-tête de case (la poignée ⠿ sur la rangée du haut sous macOS, où elle déplace la fenêtre), sur la grille. La zone en surbrillance montre où il ira :
+- **Déplacer** : glisse un compte depuis la barre latérale, ou un en-tête de case (la poignée de déplacement sur la rangée du haut sous macOS, où elle déplace la fenêtre), sur la grille. La zone en surbrillance montre où il ira :
   - sur un **bord de case** : coupe cette case (gauche / droite : côte à côte, haut / bas : empilées) ;
   - au **centre** d'une case : échange les deux cases (ou, pour un compte absent de la grille, remplace la case) ;
   - le long du **bord extérieur de la grille** : une nouvelle rangée ou colonne sur toute la grille.

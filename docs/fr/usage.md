@@ -49,6 +49,6 @@ _Un compte à sa limite, dans la barre latérale et dans son en-tête. Le conten
 
 Le bandeau est reconnu à ce qu'il dit (un court texte qui nomme une limite et donne une heure), et non à la structure de la page, en anglais comme en français. Seule cette phrase est lue ; elle est analysée sur ton ordinateur et n'en sort jamais. La limite reste affichée jusqu'à l'heure de réinitialisation même si la page n'affiche plus le bandeau. Claude uniquement, pour l'instant.
 
-## Langue
+## Langue et thème
 
-L'interface existe en anglais et en français. Elle suit la langue du système et retombe sur l'anglais pour toute autre langue.
+L'interface existe en anglais et en français, et en thème clair, sombre ou système. Les deux suivent le système par défaut (anglais pour toute autre langue système) ; ouvre **⚙ Paramètres** en bas de la barre latérale pour les régler indépendamment. Le choix est enregistré et s'applique immédiatement, sans redémarrage.

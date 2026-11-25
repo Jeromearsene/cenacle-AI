@@ -49,6 +49,6 @@ _An account at its limit, in the sidebar and in its cell header. Page content is
 
 The banner is recognized by what it says (a short text that names a limit and gives a time of day), not by the page's markup, in English or in French. Only that sentence is read; it is parsed on your computer and never leaves it. The limit stays shown until its reset time even if the page stops displaying the banner. Claude only, for now.
 
-## Language
+## Language and theme
 
-The interface is available in English and French. It follows the system language and falls back to English for any other language.
+The interface is available in English and French, and in a light, dark or system theme. Both follow the system by default (English for any other system language); open **⚙ Settings** at the bottom of the sidebar to override either one. The choice is saved and applies immediately, with no restart.

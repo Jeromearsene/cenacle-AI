@@ -9,6 +9,7 @@ import { EqualizeIcon } from './icons';
 import { LayoutToggle } from './LayoutToggle';
 import { ProviderFilter } from './ProviderFilter';
 import { ResourceUsagePanel } from './ResourceUsagePanel';
+import { Settings } from './Settings';
 
 interface Props {
   state: PublicState;
@@ -101,6 +102,7 @@ export function Sidebar({
       )}
       <LayoutToggle layout={state.layout} />
       <ResourceUsagePanel accounts={state.accounts} locale={state.locale} />
+      <Settings state={state} />
     </aside>
   );
 }

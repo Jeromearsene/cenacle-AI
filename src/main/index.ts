@@ -40,13 +40,13 @@ import {
   resizeSplit,
   syncGrid,
 } from '../shared/grid';
-import { resolveLocale, translator } from '../shared/i18n';
+import { isLocale, type Locale, resolveLocale, type Translate, translator } from '../shared/i18n';
 import { isId } from '../shared/id';
 import { computeUsage, type ResourceUsage } from '../shared/metrics';
 import { activeFilter } from '../shared/provider-view';
 import type { QuotaInfo } from '../shared/quota';
 import { MAX_ACCOUNT_SHORTCUTS } from '../shared/shortcuts';
-import type { Account, Layout, PersistedState, PublicState, Rect } from '../shared/types';
+import type { Account, Layout, PersistedState, PublicState, Rect, Theme } from '../shared/types';
 import { dotDataUrl, identityArgument } from './account-notifications';
 import { attachContextMenu } from './context-menu';
 import { OAUTH_PATH, restorableUrl } from './last-url';
@@ -86,10 +86,20 @@ const isMac = process.platform === 'darwin';
 // value (`appId` in electron-builder.yml); setting it here also names them when run from source.
 if (process.platform === 'win32') app.setAppUserModelId('io.github.jeromearsene.cenacle');
 
-// Interface language: the system language (English or French, English by default). Tests can
-// force it with CENACLE_LANG; ignored in a packaged app.
-const locale = resolveLocale((!app.isPackaged && process.env.CENACLE_LANG) || app.getLocale());
-const t = translator(locale);
+// Interface language: the system language by default (English or French, English as the
+// fallback), or the user's override (see applyLocale). Tests can force the system language with
+// CENACLE_LANG; ignored in a packaged app.
+const systemLocale = (): Locale =>
+  resolveLocale((!app.isPackaged && process.env.CENACLE_LANG) || app.getLocale());
+let locale: Locale = systemLocale();
+// Reads `locale` at call time (not when `t` was handed out), so every menu, dialog and context
+// menu follows a language change without having to be rebuilt by hand.
+const t: Translate = (key, params) => translator(locale)(key, params);
+
+// Window background shown before a page paints (also the "frame" around maximized/resized
+// content); kept in sync with the chosen theme by the nativeTheme 'updated' listener below.
+const BG_LIGHT = '#f5f4ee';
+const BG_DARK = '#1f1e1d';
 
 // Browser identifier. Chromium mis-encodes accents in a User-Agent ("Cénacle" turns into
 // "CÃ©nacle"), so the app name appears there without the accent.
@@ -201,6 +211,44 @@ function notifyQuotaBack(id: string, previous: QuotaInfo): void {
     selectAccount(id);
   });
   n.show();
+}
+
+// ------------------------------------------------------------------ settings (language, theme)
+
+// Recomputes the effective interface language from the current override (or the system
+// language). Must run once after `state` is loaded, and again whenever the override changes.
+function applyLocale(): void {
+  locale = state.localeOverride ?? systemLocale();
+}
+
+// `nativeTheme.themeSource` is what actually drives the look: Electron matches
+// `prefers-color-scheme` in every renderer (this interface and every service page) to it, so our
+// CSS (styles.css) and each service's own dark mode follow without further wiring.
+function applyTheme(): void {
+  nativeTheme.themeSource = state.theme;
+}
+
+// Keeps the window's own background in step: on an explicit theme change (above) and whenever
+// 'system' tracks the OS and the OS theme itself changes.
+nativeTheme.on('updated', () => {
+  if (win && !win.isDestroyed())
+    win.setBackgroundColor(nativeTheme.shouldUseDarkColors ? BG_DARK : BG_LIGHT);
+});
+
+function setLocaleOverride(pref: unknown): void {
+  if (pref !== 'system' && !isLocale(pref)) return;
+  state.localeOverride = pref === 'system' ? null : pref;
+  applyLocale();
+  refresh({ relayout: false });
+}
+
+const isTheme = (v: unknown): v is Theme => v === 'light' || v === 'dark' || v === 'system';
+
+function setTheme(pref: unknown): void {
+  if (!isTheme(pref)) return;
+  state.theme = pref;
+  applyTheme();
+  refresh({ relayout: false });
 }
 
 // ------------------------------------------------------------------ links and popups
@@ -487,6 +535,8 @@ function publicState(): PublicState {
   return {
     appName: app.getName(),
     locale,
+    localeOverride: state.localeOverride,
+    theme: state.theme,
     providers: Object.values(PROVIDERS).map(({ id, label }) => ({ id, label })),
     accounts: state.accounts,
     activeId: state.activeId,
@@ -824,6 +874,8 @@ handle('grid:equalize', (path) => {
   if (path === undefined || isPath(path)) equalizeGrid(path);
 });
 handle('grid:dragging', (active) => setDragging(active === true));
+handle('settings:setLocale', (pref) => setLocaleOverride(pref));
+handle('settings:setTheme', (pref) => setTheme(pref));
 handle('account:reload', (id) => isId(id) && reloadAccount(id));
 handle('resource-usage:get', () => resourceUsage());
 
@@ -949,7 +1001,7 @@ function createWindow(): void {
     // macOS takes the icon from the bundle (or the Dock, see below); Windows prefers .ico, Linux .png
     icon: isMac ? undefined : resource(process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     show: false,
-    backgroundColor: nativeTheme.shouldUseDarkColors ? '#1f1e1d' : '#f5f4ee',
+    backgroundColor: nativeTheme.shouldUseDarkColors ? BG_DARK : BG_LIGHT,
     titleBarStyle: isMac ? 'hiddenInset' : 'default',
     trafficLightPosition: { x: 14, y: 14 },
     webPreferences: {
@@ -1024,6 +1076,8 @@ if (!app.requestSingleInstanceLock()) {
 
   void app.whenReady().then(() => {
     state = readState(stateFile());
+    applyLocale();
+    applyTheme();
     // Outside a package (yarn dev / start), the Dock shows Electron's icon: set ours.
     if (isMac && !app.isPackaged)
       app.dock?.setIcon(nativeImage.createFromPath(resource('icon-mac.png')));

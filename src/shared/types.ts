@@ -7,6 +7,9 @@ import type { QuotaInfo } from './quota';
 
 export type Layout = 'single' | 'grid';
 
+/** 'system' follows the OS light/dark setting. */
+export type Theme = 'light' | 'dark' | 'system';
+
 export interface Account {
   id: string;
   name: string;
@@ -46,6 +49,9 @@ export interface PersistedState {
   bounds: Bounds | null;
   maximized: boolean;
   fullscreen: boolean;
+  /** Manual language override; null follows the system language. */
+  localeOverride: Locale | null;
+  theme: Theme;
 }
 
 /** Position of a cell (header + service view below it), in window pixels. */
@@ -67,7 +73,11 @@ export interface ProviderInfo {
 /** What the interface receives from the main process. */
 export interface PublicState {
   appName: string;
+  /** Interface language actually in use (the override, or the resolved system language). */
   locale: Locale;
+  /** The user's choice: null means "follow the system language". */
+  localeOverride: Locale | null;
+  theme: Theme;
   providers: ProviderInfo[];
   accounts: Account[];
   activeId: string;
@@ -107,6 +117,8 @@ export interface MultiApi {
   resizeGrid(path: number[], index: number, size: number): Promise<void>;
   /** True while the interface is dragging or resizing: the service pages are hidden meanwhile. */
   setDragging(active: boolean): Promise<void>;
+  setLocale(pref: Locale | 'system'): Promise<void>;
+  setTheme(pref: Theme): Promise<void>;
   reloadAccount(id: string): Promise<void>;
   onState(cb: (state: PublicState) => void): () => void;
   onRenameRequest(cb: (id: string) => void): () => void;

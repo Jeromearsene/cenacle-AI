@@ -19,6 +19,8 @@
 }
 
 @media (prefers-color-scheme: dark) {
+  /* "System" (Settings): Electron keeps this matching the OS choice, including nativeTheme
+     overrides — see src/main/index.ts's applyTheme(). */
   :root {
     --color-bg: #1f1e1d;
     --color-panel: #262523;
@@ -32,6 +34,31 @@
     --color-quota-full: #ee9686;
     --color-quota-ok: #8fc48a;
   }
+}
+
+/* An explicit "Light"/"Dark" choice (Settings) is applied here too, independently of the media
+   query above: a `[data-theme]` attribute selector outscores a bare `:root` one, so these always
+   win over it, in either direction — including overriding a dark OS setting back to light. This
+   also keeps the choice reliable in the (rare) case where the platform's `prefers-color-scheme`
+   does not actually follow nativeTheme's override. */
+:root[data-theme="dark"] {
+  --color-bg: #1f1e1d;
+  --color-panel: #262523;
+  --color-line: #3a3835;
+  --color-ink: #ece9e1;
+  --color-muted: #9b978b;
+  --color-hover: rgb(255 255 255 / 0.06);
+  --color-active: rgb(255 255 255 / 0.1);
+}
+
+:root[data-theme="light"] {
+  --color-bg: #f5f4ee;
+  --color-panel: #ebe9df;
+  --color-line: #d6d3c6;
+  --color-ink: #2b2a27;
+  --color-muted: #7a776c;
+  --color-hover: rgb(0 0 0 / 0.06);
+  --color-active: rgb(0 0 0 / 0.1);
 }
 
 @layer base {

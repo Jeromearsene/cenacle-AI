@@ -1,12 +1,19 @@
 // Interface translations, shared by the main process (menus, dialogs, context menu) and the
 // renderer (sidebar). Shared file: it must not import anything from Node or Electron.
 //
-// To add a language: add its tag to LOCALES, then add a `Record<MessageKey, string>` below.
-// TypeScript refuses a translation that misses a key.
+// To add a language: add its tag to LOCALES, its name (in its own language) to LOCALE_LABELS,
+// then add a `Record<MessageKey, string>` below. TypeScript refuses a translation that misses a
+// key.
 
 export const LOCALES = ['en', 'fr'] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = 'en';
+
+/** Name of each language, in itself (never translated: a lost user must still recognize it). */
+export const LOCALE_LABELS: Record<Locale, string> = { en: 'English', fr: 'Français' };
+
+export const isLocale = (v: unknown): v is Locale =>
+  typeof v === 'string' && (LOCALES as readonly string[]).includes(v);
 
 const en = {
   // sidebar
@@ -53,6 +60,14 @@ const en = {
   'usage.shared': 'Shared',
   'usage.total': 'Total',
   'usage.note': 'Approximate. Shared: interface, graphics, network and frames from other sites.',
+
+  // settings panel
+  'settings.title': 'Settings',
+  'settings.language': 'Language',
+  'settings.theme': 'Theme',
+  'settings.system': 'System',
+  'settings.themeLight': 'Light',
+  'settings.themeDark': 'Dark',
 
   // delete confirmation
   'dialog.deleteTitle': 'Delete “{name}”?',
@@ -163,6 +178,13 @@ const fr: Record<MessageKey, string> = {
   'usage.total': 'Total',
   'usage.note':
     'Approximatif. Commun : interface, graphismes, réseau et cadres issus d’autres sites.',
+
+  'settings.title': 'Paramètres',
+  'settings.language': 'Langue',
+  'settings.theme': 'Thème',
+  'settings.system': 'Système',
+  'settings.themeLight': 'Clair',
+  'settings.themeDark': 'Sombre',
 
   'dialog.deleteTitle': 'Supprimer « {name} » ?',
   'dialog.deleteDetail':

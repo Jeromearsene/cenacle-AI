@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { parseGrid, pruneTo } from '../shared/grid';
+import { isLocale } from '../shared/i18n';
 import { isId } from '../shared/id';
 import { activeFilter } from '../shared/provider-view';
 import type { Account, AccountView, Bounds, PersistedState } from '../shared/types';
@@ -44,6 +45,8 @@ export function defaultState(): PersistedState {
     bounds: null,
     maximized: false,
     fullscreen: false,
+    localeOverride: null,
+    theme: 'system',
   };
 }
 
@@ -102,6 +105,8 @@ export function parseState(raw: unknown): PersistedState {
     bounds: parseBounds(raw.bounds),
     maximized: raw.maximized === true,
     fullscreen: raw.fullscreen === true,
+    localeOverride: isLocale(raw.localeOverride) ? raw.localeOverride : null,
+    theme: raw.theme === 'light' || raw.theme === 'dark' ? raw.theme : 'system',
   };
 }
 

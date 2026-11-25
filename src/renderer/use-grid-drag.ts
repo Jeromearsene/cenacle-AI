@@ -104,9 +104,9 @@ export function useAccountDrag(state: PublicState | null) {
   return { drag, start };
 }
 
-/** Dragging a resize handle between two cells. `resizing` is true meanwhile. */
+/** Dragging a resize handle between two cells. `resizing` is that handle meanwhile. */
 export function useDividerDrag() {
-  const [resizing, setResizing] = useState(false);
+  const [resizing, setResizing] = useState<Divider | null>(null);
 
   const start = useCallback((divider: Divider, down: PointerEvent) => {
     if (down.button !== 0) return;
@@ -119,7 +119,7 @@ export function useDividerDrag() {
       frame = 0;
       void api.resizeGrid(divider.path, divider.index, size);
     };
-    setResizing(true);
+    setResizing(divider);
     void api.setDragging(true);
     trackPointer(
       (e) => {
@@ -132,7 +132,7 @@ export function useDividerDrag() {
         if (frame) cancelAnimationFrame(frame);
         void api.resizeGrid(divider.path, divider.index, size);
         void api.setDragging(false);
-        setResizing(false);
+        setResizing(null);
       }
     );
   }, []);
@@ -140,13 +140,16 @@ export function useDividerDrag() {
   return { resizing, start };
 }
 
-/** Grabbing cursor everywhere while something is being dragged. */
-export function useGrabCursor(active: boolean): void {
+/** The cursor of the drag, everywhere (the pointer leaves the thin handle it started on), and no
+ * text selection while it lasts. `null`: nothing is being dragged. */
+export function useDragCursor(cursor: string | null): void {
   useEffect(() => {
-    if (!active) return;
-    document.body.style.cursor = 'grabbing';
+    if (!cursor) return;
+    document.body.style.cursor = cursor;
+    document.body.style.userSelect = 'none';
     return () => {
       document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     };
-  }, [active]);
+  }, [cursor]);
 }

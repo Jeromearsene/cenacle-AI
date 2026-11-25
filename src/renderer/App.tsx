@@ -5,7 +5,7 @@ import { CellHeaders } from './components/CellHeaders';
 import { GridOverlay } from './components/GridOverlay';
 import { Sidebar } from './components/Sidebar';
 import { I18nProvider } from './i18n';
-import { useAccountDrag, useDividerDrag, useGrabCursor } from './use-grid-drag';
+import { useAccountDrag, useDividerDrag, useDragCursor } from './use-grid-drag';
 import { api, useMultiState, useRenameRequest, useShortcutHint } from './use-multi';
 
 const isMac = api.platform === 'darwin';
@@ -15,7 +15,9 @@ export function App() {
   const showHints = useShortcutHint();
   const { drag, start: startAccountDrag } = useAccountDrag(state);
   const { resizing, start: startDividerDrag } = useDividerDrag();
-  useGrabCursor(drag !== null);
+  useDragCursor(
+    drag ? 'grabbing' : resizing ? (resizing.axis === 'row' ? 'col-resize' : 'row-resize') : null
+  );
   const [renamingId, setRenamingId] = useState<string | null>(null);
   useRenameRequest(useCallback((id: string) => setRenamingId(id), []));
 

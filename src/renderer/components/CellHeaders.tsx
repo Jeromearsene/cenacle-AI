@@ -2,6 +2,7 @@ import type { PublicState } from '../../shared/types';
 import { useT } from '../i18n';
 import { api } from '../use-multi';
 import { IconButton } from './IconButton';
+import { GripIcon } from './icons';
 
 interface Props {
   state: PublicState;
@@ -52,7 +53,7 @@ export function CellHeaders({ state, isMac, providerLabel, shortcutOf, onDragSta
                 class="grip -ml-1.5 grid size-[22px] flex-none cursor-grab place-items-center rounded-[5px] border-0 bg-transparent p-0 text-muted [-webkit-app-region:no-drag] hover:bg-active hover:text-ink"
                 onPointerDown={(e) => onDragStart(acc.id, e)}
               >
-                ⠿
+                <GripIcon />
               </button>
             )}
             <span

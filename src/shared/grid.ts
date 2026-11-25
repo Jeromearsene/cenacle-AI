@@ -439,6 +439,18 @@ export function resizeSplit(
   return setSplitSize(node, path, index, clampShare(size, handle.min, handle.max));
 }
 
+/** Whether a change of layout keeps every cell at its minimum size. In a window that is already
+ * too small for the cells it holds, a change is still fine when it does not make things worse
+ * (swapping two cells, for instance), so the user is never locked out of rearranging. */
+export function layoutAllowed(before: GridNode | null, after: GridNode, area: Area): boolean {
+  return (
+    fits(after, area) ||
+    (before !== null &&
+      minExtent(after, 'row') <= minExtent(before, 'row') &&
+      minExtent(after, 'column') <= minExtent(before, 'column'))
+  );
+}
+
 /** What dropping `id` at a point would do. */
 export interface DropPlan {
   /** The cell under the pointer and the zone of it (or of the whole grid) that is aimed at. */
@@ -480,7 +492,7 @@ export function planDrop(
   return {
     target: cell.id,
     zone,
-    allowed: fits(next, area),
+    allowed: layoutAllowed(node, next, area),
     preview: { x: preview.x, y: preview.y, width: preview.width, height: preview.height },
   };
 }

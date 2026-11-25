@@ -52,3 +52,14 @@ export const EqualizeIcon = () => (
     <path d="M8 4v12M12 4v12" />
   </Icon>
 );
+
+/** Six dots: something that can be grabbed. */
+export const GripIcon = () => (
+  <Icon>
+    {[7, 13].flatMap((x) =>
+      [5, 10, 15].map((y) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r="1.2" fill="currentColor" stroke="none" />
+      ))
+    )}
+  </Icon>
+);

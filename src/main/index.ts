@@ -29,8 +29,8 @@ import {
   type DropZone,
   equalizeAll,
   equalizeSplit,
-  fits,
   isDropZone,
+  layoutAllowed,
   leaves,
   placeLeaf,
   removeLeaf,
@@ -426,10 +426,14 @@ function setLayout(mode: Layout): void {
 function placeAccount(id: string, targetId: string, zone: DropZone): boolean {
   if (state.layout !== 'grid' || !win || !findAccount(id) || !findAccount(targetId)) return false;
   const next = placeLeaf(state.grid, id, targetId, zone);
-  if (!next || next === state.grid || !fits(next, contentArea(win))) return false;
+  if (!next || next === state.grid || !layoutAllowed(state.grid, next, contentArea(win))) {
+    return false;
+  }
   state.grid = next;
   state.activeId = id;
   refresh();
+  // The dropped account is the active one: what is typed next goes to it.
+  activeContents()?.focus();
   return true;
 }
 

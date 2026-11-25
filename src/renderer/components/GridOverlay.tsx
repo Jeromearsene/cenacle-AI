@@ -11,7 +11,8 @@ const KEY_STEP = 0.05;
 interface Props {
   state: PublicState;
   drag: DragState | null;
-  resizing: boolean;
+  /** The handle being dragged. */
+  resizing: Divider | null;
   onDividerDown: (divider: Divider, event: PointerEvent) => void;
 }
 
@@ -19,7 +20,7 @@ interface Props {
  * something is dragged (the pages are hidden then), the cells and where a drop would land. */
 export function GridOverlay({ state, drag, resizing, onDividerDown }: Props) {
   const t = useT();
-  const busy = drag !== null || resizing;
+  const busy = drag !== null || resizing !== null;
   const dragged = drag ? state.accounts.find((a) => a.id === drag.id) : undefined;
   const plan = drag?.over ?? null;
   const inGrid = drag ? state.rects.some((r) => r.id === drag.id) : false;
@@ -74,37 +75,42 @@ export function GridOverlay({ state, drag, resizing, onDividerDown }: Props) {
           )}
         </div>
       )}
-      {state.dividers.map((d) => (
-        // biome-ignore lint/a11y/useSemanticElements: a focusable "window splitter" (WAI-ARIA); an <hr> cannot take the pointer or the arrow keys
-        <div
-          key={`${d.path.join('.')}/${d.index}`}
-          role="separator"
-          aria-orientation={d.axis === 'row' ? 'vertical' : 'horizontal'}
-          aria-label={t('grid.resize')}
-          aria-valuenow={Math.round(d.size * 100)}
-          aria-valuemin={Math.round(d.min * 100)}
-          aria-valuemax={Math.round(d.max * 100)}
-          tabIndex={0}
-          title={t('grid.resize')}
-          onKeyDown={(e) => {
-            const [less, more] =
-              d.axis === 'row' ? ['ArrowLeft', 'ArrowRight'] : ['ArrowUp', 'ArrowDown'];
-            const step = e.key === more ? KEY_STEP : e.key === less ? -KEY_STEP : 0;
-            if (!step) return;
-            e.preventDefault();
-            void api.resizeGrid(d.path, d.index, clampShare(d.size + step, d.min, d.max));
-          }}
-          onDblClick={() => void api.equalizeGrid(d.path)}
-          class={`divider pointer-events-auto absolute hover:bg-accent/60 focus-visible:bg-accent/60 focus-visible:outline-none ${d.axis === 'row' ? 'cursor-col-resize' : 'cursor-row-resize'} ${resizing ? 'bg-accent/60' : ''}`}
-          style={{
-            left: `${d.x}px`,
-            top: `${d.y}px`,
-            width: `${d.width}px`,
-            height: `${d.height}px`,
-          }}
-          onPointerDown={(e) => onDividerDown(d, e)}
-        />
-      ))}
+      {state.dividers.map((d) => {
+        const key = `${d.path.join('.')}/${d.index}`;
+        const grabbed = resizing !== null && key === `${resizing.path.join('.')}/${resizing.index}`;
+        return (
+          // biome-ignore lint/a11y/useSemanticElements: a focusable "window splitter" (WAI-ARIA); an <hr> cannot take the pointer or the arrow keys
+          <div
+            key={key}
+            role="separator"
+            data-grabbed={grabbed}
+            aria-orientation={d.axis === 'row' ? 'vertical' : 'horizontal'}
+            aria-label={t('grid.resize')}
+            aria-valuenow={Math.round(d.size * 100)}
+            aria-valuemin={Math.round(d.min * 100)}
+            aria-valuemax={Math.round(d.max * 100)}
+            tabIndex={0}
+            title={t('grid.resizeHint')}
+            onKeyDown={(e) => {
+              const [less, more] =
+                d.axis === 'row' ? ['ArrowLeft', 'ArrowRight'] : ['ArrowUp', 'ArrowDown'];
+              const step = e.key === more ? KEY_STEP : e.key === less ? -KEY_STEP : 0;
+              if (!step) return;
+              e.preventDefault();
+              void api.resizeGrid(d.path, d.index, clampShare(d.size + step, d.min, d.max));
+            }}
+            onDblClick={() => void api.equalizeGrid(d.path)}
+            class={`divider pointer-events-auto absolute hover:bg-accent/60 focus-visible:bg-accent/60 focus-visible:outline-none ${d.axis === 'row' ? 'cursor-col-resize' : 'cursor-row-resize'} ${grabbed ? 'bg-accent/60' : ''}`}
+            style={{
+              left: `${d.x}px`,
+              top: `${d.y}px`,
+              width: `${d.width}px`,
+              height: `${d.height}px`,
+            }}
+            onPointerDown={(e) => onDividerDown(d, e)}
+          />
+        );
+      })}
       {drag && dragged && (
         <div
           class="drag-ghost absolute flex items-center gap-2 rounded-md border border-line bg-bg px-2.5 py-1 shadow-md"

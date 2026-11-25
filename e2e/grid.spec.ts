@@ -11,6 +11,7 @@ import {
   fits,
   type GridNode,
   gridFromIds,
+  layoutAllowed,
   leaf,
   leaves,
   MIN_CELL_HEIGHT,
@@ -325,6 +326,22 @@ test.describe('grid layout: sizes, rows, the whole-grid edges (without launching
     const first = geometry.cells[0] as (typeof cells)[number];
     const refused = planDrop(three, crowded, geometry.cells, 'd', first.x + 30, 300);
     expect(refused?.allowed).toBe(false);
+  });
+
+  test('in a window already too small for its cells, a change that is no worse is allowed', () => {
+    const three = gridFromIds(['a', 'b', 'c']) as GridNode;
+    const narrow = { ...area, width: 700 }; // three columns need 970 px
+    expect(fits(three, narrow)).toBe(false);
+    // trading places keeps the same needs: allowed
+    expect(layoutAllowed(three, placeLeaf(three, 'a', 'c', 'center') as GridNode, narrow)).toBe(
+      true
+    );
+    // a change that needs more room than before is refused
+    const tall = { ...area, width: 700, height: 300 }; // one row of cells fits, two do not
+    const worse = placeLeaf(three, 'a', 'c', 'top') as GridNode; // needs 2 rows
+    expect(layoutAllowed(three, worse, tall)).toBe(false);
+    // a grid that fits stays subject to the plain rule
+    expect(layoutAllowed(gridFromIds(['a', 'b']), three, narrow)).toBe(false);
   });
 });
 
@@ -696,7 +713,7 @@ test('a drop that would make a cell too small is shown as refused and does nothi
   await expect(heads(sidebar)).toHaveCount(2);
 });
 
-test('a cell never gets narrower than the minimum, and the preview says when a drop is refused', async ({
+test('accounts that do not fit side by side are arranged in rows, none narrower than the minimum', async ({
   launch,
 }) => {
   const { app, sidebar } = await launch();
@@ -709,6 +726,51 @@ test('a cell never gets narrower than the minimum, and the preview says when a d
   // 900 - 220 = 680 px: only two 320 px columns fit, so three accounts are arranged in two rows
   await expect(heads(sidebar)).toHaveCount(3);
   for (const w of await cellWidths(sidebar)) expect(w).toBeGreaterThanOrEqual(MIN_CELL_WIDTH);
+});
+
+test('in a window too small for its cells, cells can still be swapped', async ({ launch }) => {
+  const { app, sidebar } = await launch();
+  const resize = (width: number) =>
+    app.evaluate(
+      ({ BrowserWindow }, w) => BrowserWindow.getAllWindows()[0]?.setContentSize(w, 700),
+      width
+    );
+  await resize(1400);
+  await addAccount(sidebar, 'ChatGPT');
+  await addAccount(sidebar, 'Gemini');
+  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await expect(heads(sidebar)).toHaveCount(3);
+  // the user shrinks the window: three columns are now narrower than the minimum
+  await resize(900);
+  await expect
+    .poll(async () => Math.max(...(await cellWidths(sidebar))))
+    .toBeLessThan(MIN_CELL_WIDTH);
+
+  const grip = await gripOf(sidebar, 0);
+  const target = await centerOf(heads(sidebar).nth(2));
+  const height = await windowHeight(sidebar);
+  await dragTo(sidebar, { x: grip.x, y: grip.y }, { x: target.x, y: height / 2 }, async () => {
+    await expect(sidebar.locator('.drop-preview')).toHaveAttribute('data-allowed', 'true');
+    await expect(sidebar.locator('.drop-preview .verdict')).toHaveText('Swap');
+  });
+  await expect.poll(() => headNames(sidebar)).toEqual(['Gemini 1', 'ChatGPT 1', 'Claude 1']);
+});
+
+test('while a handle is dragged, the cursor stays a resize cursor and only that handle lights up', async ({
+  launch,
+}) => {
+  const sidebar = await gridOfThree(launch);
+  const handles = sidebar.locator('.divider');
+  const first = await centerOf(handles.nth(0));
+  await sidebar.mouse.move(first.x, first.y);
+  await sidebar.mouse.down();
+  // far from the 5 px handle
+  await sidebar.mouse.move(first.x + 60, first.y + 150, { steps: 6 });
+  await expect(sidebar.locator('body')).toHaveCSS('cursor', 'col-resize');
+  await expect(sidebar.locator('.divider[data-grabbed="true"]')).toHaveCount(1);
+  await sidebar.mouse.up();
+  await expect(sidebar.locator('body')).toHaveCSS('cursor', 'auto');
+  await expect(sidebar.locator('.divider[data-grabbed="true"]')).toHaveCount(0);
 });
 
 test('the Equalize button and a double click on a handle give equal sizes', async ({ launch }) => {

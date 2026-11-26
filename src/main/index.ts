@@ -18,6 +18,7 @@ import {
   screen,
   session,
   shell,
+  systemPreferences,
   WebContentsView,
 } from 'electron';
 import { name as packageName } from '../../package.json';
@@ -330,13 +331,11 @@ function computeRects(w: BrowserWindow): { rects: Rect[]; dividers: Divider[] } 
   return { rects: [toRect({ id: state.activeId, ...area })], dividers: [] };
 }
 
-function applyLayout(): void {
+/** Puts each service page where its cell is, and hides the ones that have no cell. */
+function placeViews(list: Rect[]): void {
   if (!win || win.isDestroyed()) return;
-  ({ rects, dividers } = computeRects(win));
-  // While dragging, the pages stay hidden and are not moved: they are placed once at the end.
-  if (dragging) return;
-  const shown = new Set(rects.map((r) => r.id));
-  for (const r of rects) {
+  const shown = new Set(list.map((r) => r.id));
+  for (const r of list) {
     const acc = findAccount(r.id);
     if (!acc) continue;
     const view = views.get(r.id) ?? createView(acc, win);
@@ -350,6 +349,74 @@ function applyLayout(): void {
   }
   // Hidden views stay loaded: their conversations keep running in the background.
   for (const [id, view] of views) if (!shown.has(id)) view.setVisible(false);
+}
+
+// ------------------------------------------------------------------ transitions
+
+const ANIMATION_MS = 160;
+let tween: NodeJS.Timeout | null = null;
+
+/** Off when the system asks for reduced motion. `CENACLE_ANIMATIONS` (0 or 1) overrides the
+ * system, which the tests need: the CI machines have their animations switched off. */
+function animationsEnabled(): boolean {
+  if (process.env.CENACLE_ANIMATIONS === '0') return false;
+  if (process.env.CENACLE_ANIMATIONS === '1') return true;
+  try {
+    return !systemPreferences.getAnimationSettings().prefersReducedMotion;
+  } catch {
+    return true;
+  }
+}
+
+function stopTween(): void {
+  if (tween) clearInterval(tween);
+  tween = null;
+}
+
+const lerp = (from: number, to: number, t: number): number => Math.round(from + (to - from) * t);
+
+/** Moves the cells from where they are to where they should be, in a few frames. */
+function startTween(from: Rect[], target: { rects: Rect[]; dividers: Divider[] }): void {
+  const began = Date.now();
+  tween = setInterval(() => {
+    const progress = Math.min(1, (Date.now() - began) / ANIMATION_MS);
+    const eased = 1 - (1 - progress) ** 3;
+    if (progress >= 1) {
+      stopTween();
+      ({ rects, dividers } = target);
+    } else {
+      rects = target.rects.map((r) => {
+        const start = from.find((f) => f.id === r.id);
+        if (!start) return r;
+        return {
+          ...r,
+          x: lerp(start.x, r.x, eased),
+          y: lerp(start.y, r.y, eased),
+          width: lerp(start.width, r.width, eased),
+          height: lerp(start.height, r.height, eased),
+        };
+      });
+      // The resize handles come back when the cells have stopped moving.
+      dividers = [];
+    }
+    placeViews(rects);
+    notify();
+  }, 16);
+}
+
+/** `animate`: glide from the current layout to the new one (user actions, not window resizes). */
+function applyLayout({ animate = false } = {}): void {
+  if (!win || win.isDestroyed()) return;
+  const from = rects;
+  const target = computeRects(win);
+  stopTween();
+  if (animate && !dragging && from.length > 0 && animationsEnabled()) {
+    startTween(from, target);
+    return;
+  }
+  ({ rects, dividers } = target);
+  // While dragging, the pages stay hidden and are not moved: they are placed once at the end.
+  if (!dragging) placeViews(rects);
 }
 
 function publicState(): PublicState {
@@ -373,9 +440,9 @@ function notify(): void {
   if (win && !win.isDestroyed()) win.webContents.send('state', publicState());
 }
 
-function refresh({ relayout = true } = {}): void {
+function refresh({ relayout = true, animate = false } = {}): void {
   syncGridState();
-  if (relayout) applyLayout();
+  if (relayout) applyLayout({ animate });
   buildMenu();
   notify();
   scheduleSave();
@@ -431,7 +498,10 @@ function placeAccount(id: string, targetId: string, zone: DropZone): boolean {
   }
   state.grid = next;
   state.activeId = id;
-  refresh();
+  // The drop ends the drag (the interface says so right after): the pages come back by gliding
+  // from where they were, which they could not do while the drag was still on.
+  dragging = false;
+  refresh({ animate: true });
   // The dropped account is the active one: what is typed next goes to it.
   activeContents()?.focus();
   return true;
@@ -444,7 +514,7 @@ function removeFromGrid(id: string): boolean {
   if (inGrid.length <= 1 || !inGrid.includes(id)) return false;
   state.grid = removeLeaf(state.grid, id);
   if (state.activeId === id) state.activeId = leaves(state.grid)[0] ?? state.activeId;
-  refresh();
+  refresh({ animate: true });
   return true;
 }
 
@@ -453,14 +523,14 @@ function removeFromGrid(id: string): boolean {
 function resetGrid(): void {
   if (state.layout !== 'grid') return;
   state.grid = null;
-  refresh();
+  refresh({ animate: true });
 }
 
 /** Equal sizes for the whole grid, or for the one split found at `path`. */
 function equalizeGrid(path?: number[]): void {
   if (state.layout !== 'grid') return;
   state.grid = path ? equalizeSplit(state.grid, path) : equalizeAll(state.grid);
-  refresh();
+  refresh({ animate: true });
 }
 
 function resizeGrid(path: number[], index: number, size: number): void {
@@ -480,8 +550,12 @@ function stopDragging(): void {
 function setDragging(active: boolean): void {
   if (dragging === active) return;
   dragging = active;
-  if (active) for (const view of views.values()) view.setVisible(false);
-  else applyLayout();
+  if (active) {
+    stopTween();
+    for (const view of views.values()) view.setVisible(false);
+  } else {
+    applyLayout();
+  }
 }
 
 function renameAccount(id: string, name: unknown): boolean {
@@ -739,6 +813,7 @@ function createWindow(): void {
     w.show();
   });
   w.on('closed', () => {
+    stopTween();
     dragging = false;
     views.clear();
     win = null;

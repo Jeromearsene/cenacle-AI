@@ -18,6 +18,8 @@ export interface FakeService {
 export interface LaunchOptions {
   /** Interface language (tests default to English whatever the machine language is). */
   lang?: string;
+  /** Layout changes glide instead of jumping (off in the tests, which look at the end state). */
+  animations?: boolean;
 }
 
 export interface Launched {
@@ -69,14 +71,19 @@ export const test = base.extend<Fixtures>({
 
   launch: async ({ service, userDataDir }, use, testInfo) => {
     const launched: Launched[] = [];
-    await use(async ({ lang = 'en' }: LaunchOptions = {}) => {
+    await use(async ({ lang = 'en', animations = false }: LaunchOptions = {}) => {
       // On Linux, Chromium's sandbox is refused as root (container) and on GitHub runners
       // (Ubuntu 24.04 restricts user namespaces).
       const asRoot = typeof process.getuid === 'function' && process.getuid() === 0;
       const noSandbox = process.platform === 'linux' && (asRoot || Boolean(process.env.CI));
       const app = await electron.launch({
         args: [APP_ROOT, `--user-data-dir=${userDataDir}`, ...(noSandbox ? ['--no-sandbox'] : [])],
-        env: { ...process.env, MULTI_TEST_URL: service.url, CENACLE_LANG: lang },
+        env: {
+          ...process.env,
+          MULTI_TEST_URL: service.url,
+          CENACLE_LANG: lang,
+          CENACLE_ANIMATIONS: animations ? '1' : '0',
+        },
       });
       const sidebar = await findSidebar(app);
       launched.push({ app, sidebar });

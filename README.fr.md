@@ -124,6 +124,8 @@ En mode **Grille**, chaque compte est une case avec son en-tête. Au départ ell
 - **Réinitialiser** : Affichage → Réinitialiser la grille remet tous les comptes comme au départ.
 - Un nouveau compte est ajouté à la grille s'il y a la place.
 
+Les changements de disposition se font en douceur plutôt que d'un coup (sauf si le système demande de réduire les animations).
+
 Les pages des services sont masquées pendant le glissement, pour que l'interface suive la souris ; elles reviennent au relâchement. Échap annule un glissement.
 
 ## Langue

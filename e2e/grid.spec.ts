@@ -812,3 +812,82 @@ test('swapping two cells shows a swap pictogram; the button is hidden with a sin
   });
   await expect.poll(() => headNames(sidebar)).toEqual(['ChatGPT 1', 'Claude 1']);
 });
+
+/** The width of the first header on every frame during `ms` (to see whether it is in motion). */
+const watchFirstHeader = (sidebar: Page, ms: number) =>
+  sidebar.evaluate(
+    (duration) =>
+      new Promise<number[]>((resolve) => {
+        const widths: number[] = [];
+        const began = performance.now();
+        const sample = () => {
+          const head = document.querySelector('.cell-head');
+          widths.push(Math.round(head?.getBoundingClientRect().width ?? 0));
+          if (performance.now() - began < duration) requestAnimationFrame(sample);
+          else resolve(widths);
+        };
+        sample();
+      }),
+    ms
+  );
+
+test('a layout change glides to its end state, pages and headers together', async ({ launch }) => {
+  const { app, sidebar } = await launch({ animations: true });
+  await addAccount(sidebar, 'ChatGPT');
+  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await expect(heads(sidebar)).toHaveCount(2);
+  const handle = await centerOf(sidebar.locator('.divider'));
+  await dragTo(sidebar, { x: handle.x, y: handle.y }, { x: handle.x + 50, y: handle.y });
+  const [uneven = 0, other = 0] = await cellWidths(sidebar);
+  expect(uneven - other).toBeGreaterThan(15);
+
+  // watch the width of the first header on every frame while the sizes are equalized
+  const frames = watchFirstHeader(sidebar, 700);
+  await sidebar.getByRole('button', { name: 'Equalize sizes' }).click();
+  const widths = await frames;
+  const end = widths[widths.length - 1] as number;
+  const between = widths.filter((w) => w > end + 1 && w < uneven - 1);
+  expect(between.length).toBeGreaterThan(0); // seen in motion, not only before and after
+  const [settled = 0] = await cellWidths(sidebar);
+  expect(Math.abs(end - settled)).toBeLessThan(2);
+
+  // the pages ended up under the headers
+  await expect
+    .poll(async () => {
+      const [head] = await heads(sidebar).evaluateAll((els) =>
+        els.map((e) => ({
+          x: Math.round(e.getBoundingClientRect().x),
+          width: Math.round(e.getBoundingClientRect().width),
+        }))
+      );
+      const views = await nativeViews(app);
+      return views.some((v) => v.visible && v.x === head?.x && v.width === head?.width);
+    })
+    .toBe(true);
+});
+
+test('a drop glides too, not only the buttons', async ({ launch }) => {
+  const { sidebar } = await launch({ animations: true });
+  await addAccount(sidebar, 'ChatGPT');
+  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await expect(heads(sidebar)).toHaveCount(2);
+  const [before = 0] = await cellWidths(sidebar);
+
+  // ChatGPT goes under Claude: Claude's cell grows from half the grid to all of it
+  const grip = await gripOf(sidebar, 1);
+  const first = (await heads(sidebar).nth(0).boundingBox()) as { x: number; width: number };
+  const height = await windowHeight(sidebar);
+  let frames: Promise<number[]> | undefined;
+  await dragTo(
+    sidebar,
+    { x: grip.x, y: grip.y },
+    { x: first.x + first.width / 2, y: height - 80 },
+    async () => {
+      frames = watchFirstHeader(sidebar, 700);
+    }
+  );
+  const widths = (await frames) ?? [];
+  const end = widths[widths.length - 1] as number;
+  expect(end).toBeGreaterThan(before + 50);
+  expect(widths.filter((w) => w > before + 1 && w < end - 1).length).toBeGreaterThan(0);
+});

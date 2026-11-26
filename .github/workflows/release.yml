@@ -5,9 +5,18 @@ name: Release
 #   (it bumps the version and writes CHANGELOG.md);
 # - when that pull request is merged, the release is tagged and the installers are built
 #   and attached to the GitHub release.
+# - run by hand (Actions > Release > Run workflow) with the tag of an existing release, it
+#   builds the installers of that release again and attaches them: for a release whose
+#   installers are missing or failed to upload.
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag of the existing release to build the installers for (for example v0.2.0)
+        required: true
+        type: string
 
 concurrency:
   group: release
@@ -20,6 +29,7 @@ permissions:
 jobs:
   version:
     name: Version or tag
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       published: ${{ steps.changesets.outputs.published }}
@@ -56,7 +66,10 @@ jobs:
   build:
     name: Installers (${{ matrix.os }})
     needs: version
-    if: needs.version.outputs.published == 'true'
+    # `version` is skipped on a manual run; without `!cancelled()` that would skip this job too.
+    if: >-
+      ${{ !cancelled() && (github.event_name == 'workflow_dispatch'
+      || needs.version.outputs.published == 'true') }}
     strategy:
       fail-fast: false
       matrix:
@@ -65,7 +78,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ needs.version.outputs.tag }}
+          ref: ${{ inputs.tag || needs.version.outputs.tag }}
       - name: Enable Corepack (Yarn version comes from package.json)
         shell: bash
         run: |
@@ -78,8 +91,11 @@ jobs:
           cache: yarn
       - run: yarn install --immutable
       # The app is not code-signed yet: no certificate is looked for.
+      # `releaseType=release` is also set on the command line: the code of an old tag does not
+      # have it in electron-builder.yml, and without it the installers are not attached to a
+      # release that is already published.
       - name: Build and publish the installers
-        run: yarn dist --publish always
+        run: yarn dist --publish always -c.publish.releaseType=release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: "false"

@@ -77,6 +77,25 @@ const en = {
   'context.pasteMatchStyle': 'Paste and match style',
   'context.selectAll': 'Select all',
   'context.inspect': 'Inspect element',
+
+  // temporary notification test (see src/main/notification-test.ts)
+  'menu.testNotifications': 'Test notifications…',
+  'notifTest.title': 'Notification test',
+  'notifTest.nativeLabel': 'System notification (app):',
+  'notifTest.webLabel': 'Web notification (active account):',
+  'notifTest.native.show': 'shown ✓',
+  'notifTest.native.timeout': 'no answer after 5 s: check whether a banner appeared',
+  'notifTest.native.unsupported': 'not supported on this system',
+  'notifTest.nativeFailed': 'refused by the system ({error})',
+  'notifTest.web.show': 'shown ✓',
+  'notifTest.web.error': 'refused',
+  'notifTest.web.timeout': 'no event after 5 s: check whether a banner appeared',
+  'notifTest.web.throw': 'could not be created ({error})',
+  'notifTest.web.unavailable': 'not available in this page',
+  'notifTest.permission': 'permission: {permission}',
+  'notifTest.webNone': 'no account page to test',
+  'notifTest.hintSigning':
+    'On macOS, an unsigned app cannot display notifications. See “Testing notifications on macOS” in CONTRIBUTING.md.',
 } as const;
 
 export type MessageKey = keyof typeof en;
@@ -147,6 +166,24 @@ const fr: Record<MessageKey, string> = {
   'context.pasteMatchStyle': 'Coller sans mise en forme',
   'context.selectAll': 'Tout sélectionner',
   'context.inspect': 'Inspecter l’élément',
+
+  'menu.testNotifications': 'Tester les notifications…',
+  'notifTest.title': 'Test des notifications',
+  'notifTest.nativeLabel': 'Notification système (app) :',
+  'notifTest.webLabel': 'Notification web (compte actif) :',
+  'notifTest.native.show': 'affichée ✓',
+  'notifTest.native.timeout': 'pas de réponse après 5 s : vérifie si une bannière est apparue',
+  'notifTest.native.unsupported': 'non prise en charge sur ce système',
+  'notifTest.nativeFailed': 'refusée par le système ({error})',
+  'notifTest.web.show': 'affichée ✓',
+  'notifTest.web.error': 'refusée',
+  'notifTest.web.timeout': 'aucun événement après 5 s : vérifie si une bannière est apparue',
+  'notifTest.web.throw': 'impossible à créer ({error})',
+  'notifTest.web.unavailable': 'indisponible dans cette page',
+  'notifTest.permission': 'permission : {permission}',
+  'notifTest.webNone': 'aucune page de compte à tester',
+  'notifTest.hintSigning':
+    'Sur macOS, une app non signée ne peut pas afficher de notifications. Voir « Testing notifications on macOS » dans CONTRIBUTING.md.',
 };
 
 export const messages: Record<Locale, Record<MessageKey, string>> = { en, fr };

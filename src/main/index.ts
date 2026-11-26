@@ -46,6 +46,13 @@ import { MAX_ACCOUNT_SHORTCUTS } from '../shared/shortcuts';
 import type { Account, Layout, PersistedState, PublicState, Rect } from '../shared/types';
 import { dotDataUrl, identityArgument } from './account-notifications';
 import { attachContextMenu } from './context-menu';
+import {
+  formatReport,
+  parseWebOutcome,
+  testNative,
+  type WebOutcome,
+  webProbeScript,
+} from './notification-test';
 import { isPermissionAllowed } from './permissions';
 import {
   DEFAULT_PROVIDER,
@@ -638,6 +645,31 @@ function reloadAccount(id: string): void {
   if (view && !view.webContents.isDestroyed()) view.webContents.reload();
 }
 
+// TEMPORARY (see notification-test.ts): raises a system notification and a web notification from
+// the active account's page, then tells what happened to each.
+async function testNotifications(): Promise<void> {
+  const title = t('notifTest.title');
+  const nativeBody = t('notifTest.nativeLabel');
+  const webBody = t('notifTest.webLabel');
+  const wc = activeContents();
+  const [native, web] = await Promise.all([
+    testNative(() => new Notification({ title, body: nativeBody }), Notification.isSupported()),
+    wc
+      ? wc
+          .executeJavaScript(webProbeScript(title, webBody))
+          .then((raw): WebOutcome => parseWebOutcome(raw))
+          .catch(() => null)
+      : Promise.resolve(null),
+  ]);
+  const options = {
+    type: 'info' as const,
+    message: title,
+    detail: formatReport(native, web, t),
+  };
+  if (win && !win.isDestroyed()) await dialog.showMessageBox(win, options);
+  else await dialog.showMessageBox(options);
+}
+
 function zoomActive(delta: number): void {
   const wc = activeContents();
   if (!wc) return;
@@ -750,6 +782,8 @@ function buildMenu(): void {
           accelerator: 'CmdOrCtrl+R',
           click: () => reloadAccount(state.activeId),
         },
+        { type: 'separator' },
+        { label: t('menu.testNotifications'), click: () => void testNotifications() },
       ],
     },
     {

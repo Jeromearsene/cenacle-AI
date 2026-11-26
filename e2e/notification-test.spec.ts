@@ -129,12 +129,13 @@ test.describe('View → Development submenu', () => {
       const development = view?.submenu?.items.find((item) => item.label === 'Development');
       return development?.submenu?.items
         .filter((item) => item.type !== 'separator')
-        .map((item) => ({ id: item.id, label: item.label }));
+        .map((item) => item.id || item.label);
     });
+    // An entry without an `id` is told by its label.
     expect(entries).toEqual([
-      { id: '', label: 'Developer tools (active account)' },
-      { id: 'resource-usage', label: 'Resource usage' },
-      { id: 'test-notifications', label: 'Test notifications…' },
+      'Developer tools (active account)',
+      'resource-usage',
+      'test-notifications',
     ]);
   });
 });

@@ -68,6 +68,7 @@ const en = {
   'settings.system': 'System',
   'settings.themeLight': 'Light',
   'settings.themeDark': 'Dark',
+  'settings.close': 'Close',
 
   // delete confirmation
   'dialog.deleteTitle': 'Delete “{name}”?',
@@ -186,6 +187,7 @@ const fr: Record<MessageKey, string> = {
   'settings.system': 'Système',
   'settings.themeLight': 'Clair',
   'settings.themeDark': 'Sombre',
+  'settings.close': 'Fermer',
 
   'dialog.deleteTitle': 'Supprimer « {name} » ?',
   'dialog.deleteDetail':

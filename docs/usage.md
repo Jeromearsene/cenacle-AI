@@ -32,6 +32,7 @@ On macOS ⌘ is the Command key; on Windows and Linux use Ctrl instead.
 | ⌘+ ⌘- ⌘0 / Ctrl+ + - 0    | Zoom the active account               |
 | ⌘⌥I / Ctrl+Alt+I          | Developer tools of the active account |
 | ⌃⌘F (macOS) / F11         | Full screen                           |
+| ⌘, / Ctrl+,               | Open Settings                         |
 
 New account: Accounts → New account in the menu, or the sidebar button.
 
@@ -51,4 +52,4 @@ The banner is recognized by what it says (a short text that names a limit and gi
 
 ## Language and theme
 
-The interface is available in English and French, and in a light, dark or system theme. Both follow the system by default (English for any other system language); open **⚙ Settings** at the bottom of the sidebar to override either one. The choice is saved and applies immediately, with no restart.
+The interface is available in English and French, and in a light, dark or system theme. Both follow the system by default (English for any other system language); open **⚙ Settings** (bottom of the sidebar, **⌘,** / **Ctrl+,**, or the application menu — the app's own menu on macOS, File elsewhere) to override either one. The choice is saved and applies immediately, with no restart.

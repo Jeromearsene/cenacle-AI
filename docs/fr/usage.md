@@ -32,6 +32,7 @@ Sur macOS, ⌘ est la touche Commande ; sous Windows et Linux, utilise Ctrl à l
 | ⌘+ ⌘- ⌘0 / Ctrl+ + - 0  | Zoom du compte actif                    |
 | ⌘⌥I / Ctrl+Alt+I        | Outils de développement du compte actif |
 | ⌃⌘F (macOS) / F11       | Plein écran                             |
+| ⌘, / Ctrl+,             | Ouvrir les paramètres                   |
 
 Nouveau compte : menu Comptes → Nouveau compte, ou bouton de la barre latérale.
 
@@ -51,4 +52,4 @@ Le bandeau est reconnu à ce qu'il dit (un court texte qui nomme une limite et d
 
 ## Langue et thème
 
-L'interface existe en anglais et en français, et en thème clair, sombre ou système. Les deux suivent le système par défaut (anglais pour toute autre langue système) ; ouvre **⚙ Paramètres** en bas de la barre latérale pour les régler indépendamment. Le choix est enregistré et s'applique immédiatement, sans redémarrage.
+L'interface existe en anglais et en français, et en thème clair, sombre ou système. Les deux suivent le système par défaut (anglais pour toute autre langue système) ; ouvre **⚙ Paramètres** (en bas de la barre latérale, **⌘,** / **Ctrl+,**, ou le menu de l'application — le menu de l'app elle-même sous macOS, Fichier ailleurs) pour les régler indépendamment. Le choix est enregistré et s'applique immédiatement, sans redémarrage.

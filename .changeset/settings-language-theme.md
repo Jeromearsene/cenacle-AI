@@ -2,6 +2,6 @@
 "cenacle-ai": minor
 ---
 
-Added a Settings panel (gear icon at the bottom of the sidebar) to choose the interface language and a light / dark / system theme, independently of the operating system.
+Added a Settings dialog (gear button at the bottom of the sidebar, also reachable with ⌘, / Ctrl+, or from the application menu) to choose the interface language and a light / dark / system theme, independently of the operating system.
 
-The Layout toggle and the new Settings panel now share a fully keyboard-accessible segmented control (arrow keys to pick an option, a visible focus ring, and focus kept inside an open popover).
+The Layout toggle and the new Settings dialog share a fully keyboard-accessible segmented control (arrow keys to pick an option, a visible focus ring, and focus kept inside the open dialog).

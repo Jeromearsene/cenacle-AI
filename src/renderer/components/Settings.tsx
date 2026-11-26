@@ -3,6 +3,7 @@ import { LOCALE_LABELS, LOCALES, type MessageKey } from '../../shared/i18n';
 import type { PublicState, Theme } from '../../shared/types';
 import { useT } from '../i18n';
 import { api } from '../use-multi';
+import { IconButton } from './IconButton';
 import { SegmentedControl } from './SegmentedControl';
 
 const THEMES: { value: Theme; label: MessageKey }[] = [
@@ -35,11 +36,13 @@ export function Settings({
     // The default selection ('system' for both groups' first render) is also the only tabbable
     // radio in its group (roving tabindex, see SegmentedControl): target that one, not just "the
     // first button", which may no longer be reachable by Tab.
-    wrap.current
+    dialog.current
       ?.querySelector<HTMLElement>('[role=radiogroup] [role=radio][tabindex="0"]')
       ?.focus();
+    // "Outside" means outside the panel itself: the backdrop behind it (and, incidentally, the
+    // gear button, which already toggles via its own onClick) both count as outside.
     const onClick = (e: MouseEvent) => {
-      if (!wrap.current?.contains(e.target as Node)) setOpen(false);
+      if (!dialog.current?.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -80,34 +83,50 @@ export function Settings({
         aria-haspopup="true"
         aria-expanded={open}
         aria-label={t('settings.title')}
-        class="h-8 w-full cursor-pointer rounded-[7px] border-0 bg-transparent text-muted hover:bg-hover hover:text-ink focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent"
+        class="h-8 w-full cursor-pointer rounded-[7px] border border-line bg-transparent text-muted hover:bg-hover hover:text-ink focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent"
         onClick={() => setOpen((v) => !v)}
       >
         <span aria-hidden="true">⚙</span> {t('settings.title')}
       </button>
       {open && (
+        // Full-window backdrop: a big, centered dialog (⌘, is a "stop and configure the app"
+        // moment, not a quick tweak), closer to VS Code's or Discord's preferences than to the
+        // small anchored popover this used to be.
         <div
-          ref={dialog}
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('settings.title')}
-          class="absolute inset-x-0 bottom-[calc(100%+4px)] z-10 flex flex-col gap-2.5 rounded-lg border border-line bg-bg p-2.5 shadow-lg"
+          data-testid="settings-backdrop"
+          class="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-6"
         >
-          <SegmentedControl
-            label={t('settings.language')}
-            value={state.localeOverride ?? 'system'}
-            options={[
-              { value: 'system', label: t('settings.system') },
-              ...LOCALES.map((l) => ({ value: l, label: LOCALE_LABELS[l] })),
-            ]}
-            onChange={(pref) => void api.setLocale(pref)}
-          />
-          <SegmentedControl
-            label={t('settings.theme')}
-            value={state.theme}
-            options={THEMES.map(({ value, label }) => ({ value, label: t(label) }))}
-            onChange={(pref) => void api.setTheme(pref)}
-          />
+          <div
+            ref={dialog}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="settings-heading"
+            class="flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-xl border border-line bg-bg shadow-2xl"
+          >
+            <div class="flex items-center justify-between border-b border-line px-5 py-4">
+              <h2 id="settings-heading" class="text-[15px] font-semibold text-ink">
+                {t('settings.title')}
+              </h2>
+              <IconButton label={t('settings.close')} glyph="✕" onClick={() => setOpen(false)} />
+            </div>
+            <div class="flex flex-col gap-6 overflow-y-auto p-5">
+              <SegmentedControl
+                label={t('settings.language')}
+                value={state.localeOverride ?? 'system'}
+                options={[
+                  { value: 'system', label: t('settings.system') },
+                  ...LOCALES.map((l) => ({ value: l, label: LOCALE_LABELS[l] })),
+                ]}
+                onChange={(pref) => void api.setLocale(pref)}
+              />
+              <SegmentedControl
+                label={t('settings.theme')}
+                value={state.theme}
+                options={THEMES.map(({ value, label }) => ({ value, label: t(label) }))}
+                onChange={(pref) => void api.setTheme(pref)}
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>

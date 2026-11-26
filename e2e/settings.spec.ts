@@ -33,13 +33,17 @@ test('closes on Escape and on an outside click', async ({ launch }) => {
   await expect(panel).toBeHidden();
 
   await openSettings(sidebar);
-  await sidebar.locator('#accounts').click();
+  // The dialog is a full-window overlay now, so "outside" means the backdrop behind it, not some
+  // other part of the sidebar (which the overlay covers).
+  await sidebar.locator('[data-testid="settings-backdrop"]').click({ position: { x: 5, y: 5 } });
   await expect(panel).toBeHidden();
 });
 
 test('Tab stays inside the open panel', async ({ launch }) => {
   // Only the selected radio of each group is in the Tab order (roving tabindex), so with the
-  // defaults that's exactly two stops: Language/System then Theme/System.
+  // defaults that's three stops: Language/System, Theme/System, then the close button. Opening
+  // focuses the first setting directly, not the close button, even though it comes first in the
+  // DOM.
   const { sidebar } = await launch();
   const panel = await openSettings(sidebar);
   const languageSystem = panel.getByRole('radiogroup', { name: 'Language' }).getByRole('radio', {
@@ -48,17 +52,20 @@ test('Tab stays inside the open panel', async ({ launch }) => {
   const themeSystem = panel.getByRole('radiogroup', { name: 'Theme' }).getByRole('radio', {
     name: 'System',
   });
+  const close = panel.getByRole('button', { name: 'Close' });
   await expect(languageSystem).toBeFocused();
 
   await sidebar.keyboard.press('Tab');
   await expect(themeSystem).toBeFocused();
+  await sidebar.keyboard.press('Tab');
+  await expect(close).toBeFocused();
   // Wraps back to the first stop instead of leaving the dialog.
   await sidebar.keyboard.press('Tab');
   await expect(languageSystem).toBeFocused();
 
   // Same the other way around.
   await sidebar.keyboard.press('Shift+Tab');
-  await expect(themeSystem).toBeFocused();
+  await expect(close).toBeFocused();
 });
 
 test('arrow keys move the selection within a group', async ({ launch }) => {

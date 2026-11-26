@@ -91,11 +91,19 @@ jobs:
           cache: yarn
       - run: yarn install --immutable
       # The app is not code-signed yet: no certificate is looked for.
-      # `releaseType=release` is also set on the command line: the code of an old tag does not
-      # have it in electron-builder.yml, and without it the installers are not attached to a
-      # release that is already published.
-      - name: Build and publish the installers
-        run: yarn dist --publish always -c.publish.releaseType=release
+      - name: Build the installers
+        run: yarn dist --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      # Not `yarn dist --publish always`: electron-builder refuses to add files to a release
+      # published more than 2 hours ago, which is exactly the case of a manual run.
+      - name: Attach the installers to the release
+        shell: bash
+        run: |
+          shopt -s nullglob
+          gh release upload "$TAG" \
+            release/*.{dmg,zip,exe,AppImage,deb,blockmap} release/latest*.yml \
+            --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          TAG: ${{ inputs.tag || needs.version.outputs.tag }}

@@ -114,3 +114,37 @@ test('the French interface says "Plein"', async ({ launch, service }) => {
   );
   await expect(sidebar.locator('.account .quota-pill')).toHaveText('Plein');
 });
+
+// The real banner has no marker we can count on: it is recognized by what it says.
+const showMarkup = (html: string) =>
+  `(() => { const el = document.createElement('div'); el.innerHTML = ${JSON.stringify(html)};
+    document.body.append(el); })()`;
+
+test('a banner without any marker is recognized, even with a link inside the sentence', async ({
+  launch,
+  service,
+}) => {
+  const { app, sidebar } = await launch({ lang: 'fr' });
+  const [id] = await waitForServices(app, service.url, 1);
+  await evalIn(
+    app,
+    id as number,
+    showMarkup(
+      `<div><p>Vous n’avez plus de <u>messages</u> gratuits jusqu’à ${clockIn(1)}.</p><button>Mettre à niveau</button></div>`
+    )
+  );
+  await expect(sidebar.locator('.account .quota-pill')).toHaveText('Plein');
+});
+
+test('a time in a conversation is not mistaken for a banner', async ({ launch, service }) => {
+  const { app, sidebar } = await launch();
+  const [id] = await waitForServices(app, service.url, 1);
+  const long = `The rate limit of this API is described in the documentation. ${'Lorem ipsum dolor sit amet. '.repeat(10)} The window resets at ${clockIn(2)}.`;
+  await evalIn(
+    app,
+    id as number,
+    showMarkup(`<p>See you tomorrow, I am free until ${clockIn(2)}.</p><p>${long}</p>`)
+  );
+  await sidebar.waitForTimeout(1200);
+  await expect(sidebar.locator('.quota-pill')).toHaveCount(0);
+});

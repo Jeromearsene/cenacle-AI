@@ -38,6 +38,17 @@ const en = {
   'quota.notifyTitle': 'Usage limit is back',
   'quota.notifyBody': 'Your usage limit has been reset. You can resume your conversation.',
 
+  // resource usage panel
+  'usage.title': 'Resource usage',
+  'usage.close': 'Close',
+  'usage.account': 'Account',
+  'usage.memory': 'Memory',
+  'usage.cpu': 'CPU',
+  'usage.notLoaded': 'Not loaded yet',
+  'usage.shared': 'Shared',
+  'usage.total': 'Total',
+  'usage.note': 'Approximate. Shared: interface, graphics, network and frames from other sites.',
+
   // delete confirmation
   'dialog.deleteTitle': 'Delete “{name}”?',
   'dialog.deleteDetail':
@@ -62,6 +73,7 @@ const en = {
   'menu.actualSize': 'Actual size',
   'menu.maximizeWindow': 'Maximize window',
   'menu.devTools': 'Developer tools (active account)',
+  'menu.resourceUsage': 'Resource usage',
 
   // right-click menu
   'context.noSuggestion': 'No suggestion',
@@ -111,6 +123,17 @@ const fr: Record<MessageKey, string> = {
   'quota.notifyBody':
     'Votre limite d’utilisation a été réinitialisée. Vous pouvez reprendre la conversation.',
 
+  'usage.title': 'Utilisation des ressources',
+  'usage.close': 'Fermer',
+  'usage.account': 'Compte',
+  'usage.memory': 'Mémoire',
+  'usage.cpu': 'CPU',
+  'usage.notLoaded': 'Pas encore chargé',
+  'usage.shared': 'Commun',
+  'usage.total': 'Total',
+  'usage.note':
+    'Approximatif. Commun : interface, graphismes, réseau et cadres issus d’autres sites.',
+
   'dialog.deleteTitle': 'Supprimer « {name} » ?',
   'dialog.deleteDetail':
     'La session de ce compte (connexion, cookies, données locales) sera effacée de cet outil. Le compte lui-même, chez le service, n’est pas touché.',
@@ -133,6 +156,7 @@ const fr: Record<MessageKey, string> = {
   'menu.actualSize': 'Taille réelle',
   'menu.maximizeWindow': 'Agrandir la fenêtre',
   'menu.devTools': 'Outils de développement (compte actif)',
+  'menu.resourceUsage': 'Utilisation des ressources',
 
   'context.noSuggestion': 'Aucune suggestion',
   'context.addToDictionary': 'Ajouter au dictionnaire',

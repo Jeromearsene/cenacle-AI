@@ -32,6 +32,12 @@ const api: MultiApi = {
     ipcRenderer.on('shortcut-hint', listener);
     return () => ipcRenderer.removeListener('shortcut-hint', listener);
   },
+  getResourceUsage: () => ipcRenderer.invoke('resource-usage:get'),
+  onResourceUsageToggle: (cb) => {
+    const listener = () => cb();
+    ipcRenderer.on('resource-usage:toggle', listener);
+    return () => ipcRenderer.removeListener('resource-usage:toggle', listener);
+  },
 };
 
 contextBridge.exposeInMainWorld('multi', api);

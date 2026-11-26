@@ -63,6 +63,7 @@ src/preload/index.ts              minimal bridge to the interface (contextBridge
 src/preload/service.ts            preload of service pages: exposes nothing; dresses up notifications, reads the usage banner
 src/shared/grid.ts                grid layout tree: drops, resizing, geometry (pure, tested)
 src/shared/quota.ts               reading the usage-limit banner, hourglass maths (pure, tested)
+src/shared/metrics.ts             memory / CPU per account from the process list (pure, tested)
 src/main/quota.ts                 usage-limit state per account, reset timers
 src/shared/types.ts               types shared by the three
 src/renderer/                     Preact + Tailwind interface (sidebar, cell headers, grid overlay)

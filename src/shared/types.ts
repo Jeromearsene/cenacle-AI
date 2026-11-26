@@ -57,6 +57,8 @@ export interface PublicState {
   providers: ProviderInfo[];
   accounts: Account[];
   activeId: string;
+  /** Accounts that raised a notification nobody has looked at yet. */
+  unread: string[];
   layout: Layout;
   rects: Rect[];
   /** Resize handles between the cells (grid mode only). */

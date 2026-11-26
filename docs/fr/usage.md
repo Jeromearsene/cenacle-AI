@@ -13,7 +13,7 @@
 - Plein écran : bouton vert (macOS), ⌃⌘F / F11 ou menu Affichage. Agrandir : double-clic sur la barre du haut (macOS) ou sur la barre de titre (Windows, Linux).
 - Les comptes masqués restent chargés : leurs conversations continuent en arrière-plan.
 - **Maintiens ⌘ (macOS) ou Ctrl (Windows, Linux)** un instant : le numéro de raccourci de chaque compte (⌘1…⌘9 / Ctrl+1…9) s'affiche à côté de son nom, dans la barre latérale et au-dessus de chaque case de la grille.
-- **Notifications** : une notification web émise par un service affiche le nom du compte dans son titre et la pastille de couleur du compte en guise d'icône, pour savoir de quel compte elle vient. Un clic dessus ramène l'app au premier plan sur ce compte.
+- **Notifications** : une notification web émise par un service affiche le nom du compte dans son titre et la pastille de couleur du compte en guise d'icône, pour savoir de quel compte elle vient. Un clic dessus ramène l'app au premier plan sur ce compte. Si tu ne regardes pas ce compte quand il notifie, une pastille apparaît à côté de son nom (et au-dessus de sa colonne) jusqu'à ce que tu l'ouvres, l'icône du Dock rebondit (macOS) ou l'entrée de la barre des tâches clignote (Windows, Linux), et le badge de l'app indique combien de comptes attendent (Dock macOS, lanceur Unity sous Linux).
 - **Clic droit** dans une page de service : menu contextuel avec couper / copier / coller, suggestions d'orthographe, ouvrir ou copier un lien, copier une image, inspecter l'élément.
 
 ## Raccourcis

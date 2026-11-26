@@ -13,7 +13,7 @@
 - Full screen: green button (macOS), ⌃⌘F / F11 or the View menu. Maximize: double-click the top bar (macOS) or the title bar (Windows, Linux).
 - Hidden accounts stay loaded, so their conversations keep running in the background.
 - **Hold ⌘ (macOS) or Ctrl (Windows, Linux)** for a moment: the shortcut number of each account (⌘1…⌘9 / Ctrl+1…9) appears next to its name, in the sidebar and above each cell of the grid.
-- **Notifications**: a web notification raised by a service shows the account's name in its title and the account's color dot as its icon, so you know which account it comes from. Clicking it brings the app forward on that account.
+- **Notifications**: a web notification raised by a service shows the account's name in its title and the account's color dot as its icon, so you know which account it comes from. Clicking it brings the app forward on that account. If you are not looking at that account when it notifies, a dot appears next to its name (and above its column) until you open it, the Dock icon bounces (macOS) or the taskbar entry flashes (Windows, Linux), and the app badge shows how many accounts are waiting (macOS Dock, Linux Unity launcher).
 - **Right-click** in a service page opens a context menu: cut / copy / paste, spelling suggestions, open or copy a link, copy an image, inspect element.
 
 ## Shortcuts

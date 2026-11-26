@@ -1,5 +1,15 @@
 # cenacle-ai
 
+## 0.4.0
+
+### Minor Changes
+
+- [#36](https://github.com/Jeromearsene/cenacle-AI/pull/36) [`9a48953`](https://github.com/Jeromearsene/cenacle-AI/commit/9a4895311a12376d6d349029cabb8bd7e202a65e) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - Added View → Resource usage: a small panel that shows the memory and CPU taken by each account, what is shared (interface, graphics, network) and the total, to see which account weighs the most.
+
+### Patch Changes
+
+- [#35](https://github.com/Jeromearsene/cenacle-AI/pull/35) [`3180fd5`](https://github.com/Jeromearsene/cenacle-AI/commit/3180fd596dfd84f0409b37937a9f8ae3d6b8367d) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - macOS: the app is now signed ad hoc, so the system displays its notifications, and is built as `Cenacle.app` (without the accent), which avoids a crash at launch seen on macOS 26. The name shown in the app is still "Cénacle". macOS still warns at the first launch, and the app still does not update itself there.
+
 ## 0.3.0
 
 ### Minor Changes

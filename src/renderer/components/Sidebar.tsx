@@ -1,3 +1,5 @@
+import { useState } from 'preact/hooks';
+import { type AccountSort, providersInUse, visibleAccounts } from '../../shared/provider-view';
 import type { PublicState } from '../../shared/types';
 import { useT } from '../i18n';
 import { api } from '../use-multi';
@@ -6,6 +8,7 @@ import { AccountItem } from './AccountItem';
 import { AddAccount } from './AddAccount';
 import { EqualizeIcon } from './icons';
 import { LayoutToggle } from './LayoutToggle';
+import { ProviderFilter } from './ProviderFilter';
 import { ResourceUsagePanel } from './ResourceUsagePanel';
 
 interface Props {
@@ -31,6 +34,15 @@ export function Sidebar({
   const t = useT();
   const gridIds = new Set(state.rects.map((r) => r.id));
   const now = useNow(30_000, Object.keys(state.quotas).length > 0);
+  const [filter, setFilter] = useState<string | null>(null);
+  const [sort, setSort] = useState<AccountSort>('manual');
+  const inUse = providersInUse(state.accounts, state.providers);
+  // The filter and the grouping only matter once there are several services to tell apart.
+  const several = inUse.length > 1;
+  const listed = visibleAccounts(state.accounts, state.providers, {
+    filter: several ? filter : null,
+    sort: several ? sort : 'manual',
+  });
   return (
     <aside
       class="absolute inset-y-0 left-0 flex flex-col border-r border-line bg-panel px-2.5 pb-3"
@@ -39,12 +51,22 @@ export function Sidebar({
       {/* window drag area; on macOS, room for the window buttons */}
       <div class={`-mx-2.5 [-webkit-app-region:drag] ${isMac ? 'h-10' : 'h-3'}`} />
       <div class="brand px-2 pt-0.5 pb-2.5 font-semibold tracking-[0.01em]">{state.appName}</div>
+      {several && (
+        <ProviderFilter
+          providers={inUse}
+          total={state.accounts.length}
+          filter={filter}
+          onFilter={setFilter}
+          sort={sort}
+          onSort={setSort}
+        />
+      )}
       <nav
         id="accounts"
         aria-label={t('sidebar.accounts')}
         class="flex flex-col gap-0.5 overflow-y-auto"
       >
-        {state.accounts.map((acc) => (
+        {listed.map((acc) => (
           <AccountItem
             key={acc.id}
             account={acc}

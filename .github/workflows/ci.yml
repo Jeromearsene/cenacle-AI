@@ -107,6 +107,18 @@ jobs:
         if: runner.os == 'Linux'
         run: xvfb-run --auto-servernum yarn test:e2e
 
+      # The release workflow builds the macOS app as "Cenacle.app" (see release.yml). Checks that
+      # it packages that way and that the bundle comes out validly signed (ad hoc).
+      - name: Check the macOS packaging (name and ad-hoc signature)
+        if: runner.os == 'macOS'
+        env:
+          # electron-builder skips signing on pull requests so that a certificate is never
+          # exposed to them; here the signature is ad hoc, there is no certificate or secret.
+          CSC_FOR_PULL_REQUEST: "true"
+        run: |
+          yarn dist:dir -c.productName=Cenacle
+          codesign --verify --deep --strict --verbose=2 release/mac*/Cenacle.app
+
       - name: Upload test results on failure
         if: failure()
         uses: actions/upload-artifact@v7

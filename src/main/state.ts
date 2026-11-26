@@ -1,11 +1,12 @@
 import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { parseGrid, pruneTo } from '../shared/grid';
+import { isId } from '../shared/id';
 import type { Account, Bounds, PersistedState } from '../shared/types';
 import { DEFAULT_PROVIDER, isProviderId, providerOf } from './providers';
 
 export const MAX_NAME = 40;
-export const ID_RE = /^[\w-]{1,32}$/;
 const COLOR_RE = /^#[0-9a-f]{6}$/i;
 const PALETTE = [
   '#d97757',
@@ -17,8 +18,6 @@ const PALETTE = [
   '#cc6b8e',
   '#8d8d8d',
 ];
-
-export const isId = (v: unknown): v is string => typeof v === 'string' && ID_RE.test(v);
 
 export function makeAccount(existing: Account[], providerId: string = DEFAULT_PROVIDER): Account {
   const provider = providerOf(providerId);
@@ -34,10 +33,11 @@ export function makeAccount(existing: Account[], providerId: string = DEFAULT_PR
 export function defaultState(): PersistedState {
   const first = makeAccount([]);
   return {
-    version: 2,
+    version: 3,
     accounts: [first],
     activeId: first.id,
     layout: 'single',
+    grid: null,
     bounds: null,
     maximized: false,
     fullscreen: false,
@@ -69,17 +69,21 @@ function parseBounds(b: unknown): Bounds | null {
   return { x, y, width, height } as Bounds;
 }
 
-/** Validates the content of state.json (v1 or v2); falls back to the default state if unusable. */
+/** Validates the content of state.json (v1 to v3); falls back to the default state if unusable. */
 export function parseState(raw: unknown): PersistedState {
   if (!isRecord(raw) || !Array.isArray(raw.accounts)) return defaultState();
   const accounts = raw.accounts.map(parseAccount).filter((a): a is Account => a !== null);
   const first = accounts[0];
   if (!first) return defaultState();
+  // Accounts that no longer exist leave the grid; an empty grid (null) is rebuilt when shown.
+  const grid = pruneTo(parseGrid(raw.grid), new Set(accounts.map((a) => a.id)));
   return {
-    version: 2,
+    version: 3,
     accounts,
     activeId: accounts.some((a) => a.id === raw.activeId) ? (raw.activeId as string) : first.id,
-    layout: raw.layout === 'columns' ? 'columns' : 'single',
+    // "columns" is the former name of the grid mode
+    layout: raw.layout === 'grid' || raw.layout === 'columns' ? 'grid' : 'single',
+    grid,
     bounds: parseBounds(raw.bounds),
     maximized: raw.maximized === true,
     fullscreen: raw.fullscreen === true,

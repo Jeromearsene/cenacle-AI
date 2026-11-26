@@ -10,6 +10,9 @@ interface Props {
   /** Shortcut to show (⌘ / Ctrl held), or null. */
   shortcut: string | null;
   active: boolean;
+  /** Grid mode, and this account is not in the grid. */
+  outsideGrid: boolean;
+  onDragStart: (event: PointerEvent) => void;
   removable: boolean;
   editing: boolean;
   onStartRename: () => void;
@@ -22,6 +25,8 @@ export function AccountItem({
   providerLabel,
   shortcut,
   active,
+  outsideGrid,
+  onDragStart,
   removable,
   editing,
   onStartRename,
@@ -35,7 +40,12 @@ export function AccountItem({
       role="button"
       tabIndex={0}
       aria-current={active}
-      class={`account group flex h-8 cursor-pointer items-center gap-2 rounded-[7px] px-2 hover:bg-hover focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent ${active ? 'active bg-active' : ''}`}
+      title={outsideGrid ? t('account.notInGrid') : undefined}
+      class={`account group flex h-8 cursor-pointer items-center gap-2 rounded-[7px] px-2 hover:bg-hover focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent ${active ? 'active bg-active' : ''} ${outsideGrid ? 'outside opacity-60' : ''}`}
+      onPointerDown={(e) => {
+        // A press on the buttons or the rename field stays a plain click.
+        if (!editing && !(e.target as Element).closest('button, input')) onDragStart(e);
+      }}
       onClick={() => void api.selectAccount(account.id)}
       onKeyDown={(e) => {
         if (e.target !== e.currentTarget) return;
@@ -46,8 +56,12 @@ export function AccountItem({
       }}
     >
       <span
-        class="dot size-[9px] flex-none rounded-full"
-        style={{ backgroundColor: account.color }}
+        class={`dot size-[9px] flex-none rounded-full ${outsideGrid ? 'hollow' : ''}`}
+        style={
+          outsideGrid
+            ? { boxShadow: `inset 0 0 0 1.5px ${account.color}` }
+            : { backgroundColor: account.color }
+        }
       />
       {editing ? (
         <RenameInput initial={account.name} onCommit={onRename} onCancel={onCancelRename} />

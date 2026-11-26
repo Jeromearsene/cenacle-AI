@@ -3,7 +3,7 @@ import type { PublicState } from '../shared/types';
 
 export const api = window.multi;
 
-/** The state published by the main process (accounts, layout, columns). */
+/** The state published by the main process (accounts, layout, cells). */
 export function useMultiState(): PublicState | null {
   const [state, setState] = useState<PublicState | null>(null);
   useEffect(() => {

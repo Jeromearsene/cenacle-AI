@@ -1,8 +1,9 @@
 // Types shared between the main process, the preload and the interface.
 // Types only: this file must not import anything from Node or Electron.
+import type { Area, Divider, DropZone, GridNode } from './grid';
 import type { Locale } from './i18n';
 
-export type Layout = 'single' | 'columns';
+export type Layout = 'single' | 'grid';
 
 export interface Account {
   id: string;
@@ -21,24 +22,26 @@ export interface Bounds {
 
 /** What is written to state.json. */
 export interface PersistedState {
-  version: 2;
+  version: 3;
   accounts: Account[];
   activeId: string;
   layout: Layout;
+  /** The grid mode layout; null until it is first shown (then every account is in it). */
+  grid: GridNode | null;
   bounds: Bounds | null;
   maximized: boolean;
   fullscreen: boolean;
 }
 
-/** Position of a column (header + service view), in window pixels. */
+/** Position of a cell (header + service view below it), in window pixels. */
 export interface Rect {
   id: string;
   x: number;
   y: number;
   width: number;
+  /** Total height, header included. */
+  height: number;
   headerH: number;
-  viewY: number;
-  viewHeight: number;
 }
 
 export interface ProviderInfo {
@@ -55,6 +58,11 @@ export interface PublicState {
   activeId: string;
   layout: Layout;
   rects: Rect[];
+  /** Resize handles between the cells (grid mode only). */
+  dividers: Divider[];
+  /** The grid tree (grid mode only) and the area its cells are drawn in. */
+  grid: GridNode | null;
+  area: Area;
   sidebarW: number;
 }
 
@@ -67,6 +75,16 @@ export interface MultiApi {
   renameAccount(id: string, name: string): Promise<boolean>;
   removeAccount(id: string): Promise<boolean>;
   setLayout(mode: Layout): Promise<void>;
+  /** Drops an account on a cell of the grid: next to it (an edge) or in its place (center). */
+  placeAccount(id: string, targetId: string, zone: DropZone): Promise<void>;
+  /** Equal sizes for the whole grid, or for the split found at `path`. */
+  equalizeGrid(path?: number[]): Promise<void>;
+  /** Takes an account out of the grid (it stays in the sidebar). */
+  removeFromGrid(id: string): Promise<void>;
+  /** Sets the share of child `index` of the split found at `path`. */
+  resizeGrid(path: number[], index: number, size: number): Promise<void>;
+  /** True while the interface is dragging or resizing: the service pages are hidden meanwhile. */
+  setDragging(active: boolean): Promise<void>;
   reloadAccount(id: string): Promise<void>;
   onState(cb: (state: PublicState) => void): () => void;
   onRenameRequest(cb: (id: string) => void): () => void;

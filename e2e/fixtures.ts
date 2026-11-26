@@ -146,5 +146,12 @@ export async function evalIn<T>(app: ElectronApplication, id: number, code: stri
   ) as Promise<T>;
 }
 
+/** Adds an account of the given service (by its label) and keeps the proposed name. */
+export async function addAccount(sidebar: Page, label: string): Promise<void> {
+  await sidebar.getByRole('button', { name: '+ Add account' }).click();
+  await sidebar.getByRole('menuitem', { name: label }).click();
+  await sidebar.locator('input.rename').press('Enter');
+}
+
 export const accountNames = (sidebar: Page): Promise<string[]> =>
   sidebar.locator('#accounts .account .name').allTextContents();

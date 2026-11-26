@@ -118,9 +118,9 @@ test.describe('shortcut numbers (⌘ / Ctrl held)', () => {
       label(1) as string,
       label(2) as string,
     ]);
-    // also in columns mode, above each page
-    await sidebar.getByRole('button', { name: 'Columns' }).click();
-    await expect(sidebar.locator('.col-head .shortcut')).toHaveText([
+    // also in grid mode, above each page
+    await sidebar.getByRole('button', { name: 'Grid' }).click();
+    await expect(sidebar.locator('.cell-head .shortcut')).toHaveText([
       label(1) as string,
       label(2) as string,
     ]);

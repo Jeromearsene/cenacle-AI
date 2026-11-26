@@ -11,6 +11,11 @@ const api: MultiApi = {
   renameAccount: (id: string, name: string) => ipcRenderer.invoke('accounts:rename', id, name),
   removeAccount: (id: string) => ipcRenderer.invoke('accounts:remove', id),
   setLayout: (mode: Layout) => ipcRenderer.invoke('layout:set', mode),
+  placeAccount: (id, targetId, zone) => ipcRenderer.invoke('grid:place', id, targetId, zone),
+  equalizeGrid: (path) => ipcRenderer.invoke('grid:equalize', path),
+  removeFromGrid: (id) => ipcRenderer.invoke('grid:remove', id),
+  resizeGrid: (path, index, size) => ipcRenderer.invoke('grid:resize', path, index, size),
+  setDragging: (active) => ipcRenderer.invoke('grid:dragging', active),
   reloadAccount: (id: string) => ipcRenderer.invoke('account:reload', id),
   onState: (cb) => {
     const listener = (_event: unknown, s: PublicState) => cb(s);

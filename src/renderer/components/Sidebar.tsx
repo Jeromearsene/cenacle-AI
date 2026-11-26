@@ -3,6 +3,7 @@ import { useT } from '../i18n';
 import { api } from '../use-multi';
 import { AccountItem } from './AccountItem';
 import { AddAccount } from './AddAccount';
+import { EqualizeIcon } from './icons';
 import { LayoutToggle } from './LayoutToggle';
 
 interface Props {
@@ -12,6 +13,8 @@ interface Props {
   setRenamingId: (id: string | null) => void;
   providerLabel: (id: string) => string;
   shortcutOf: (id: string) => string | null;
+  /** A press on an account: it may turn into a drag onto the grid. */
+  onDragStart: (id: string, event: PointerEvent) => void;
 }
 
 export function Sidebar({
@@ -21,8 +24,10 @@ export function Sidebar({
   setRenamingId,
   providerLabel,
   shortcutOf,
+  onDragStart,
 }: Props) {
   const t = useT();
+  const gridIds = new Set(state.rects.map((r) => r.id));
   return (
     <aside
       class="absolute inset-y-0 left-0 flex flex-col border-r border-line bg-panel px-2.5 pb-3"
@@ -43,6 +48,8 @@ export function Sidebar({
             providerLabel={providerLabel(acc.provider)}
             shortcut={shortcutOf(acc.id)}
             active={acc.id === state.activeId}
+            outsideGrid={state.layout === 'grid' && !gridIds.has(acc.id)}
+            onDragStart={(e) => onDragStart(acc.id, e)}
             removable={state.accounts.length > 1}
             editing={renamingId === acc.id}
             onStartRename={() => setRenamingId(acc.id)}
@@ -57,6 +64,16 @@ export function Sidebar({
       </nav>
       <AddAccount providers={state.providers} />
       <div class="flex-1" />
+      {state.layout === 'grid' && state.rects.length > 1 && (
+        <button
+          type="button"
+          class="equalize mb-2 flex h-[28px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-line bg-transparent text-muted hover:bg-hover hover:text-ink focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent"
+          onClick={() => void api.equalizeGrid()}
+        >
+          <EqualizeIcon />
+          {t('grid.equalize')}
+        </button>
+      )}
       <LayoutToggle layout={state.layout} />
     </aside>
   );

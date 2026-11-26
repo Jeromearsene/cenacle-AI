@@ -43,7 +43,7 @@ jobs:
         with:
           version-script: yarn changeset version
           publish-script: yarn changeset tag
-          title: "Version packages"
+          pr-title: "Version packages"
           commit-message: "chore: version packages"
           github-token: ${{ secrets.GITHUB_TOKEN }}
         env:

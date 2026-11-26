@@ -80,11 +80,11 @@ test.describe('resource usage maths (without launching the app)', () => {
   });
 });
 
-/** Chooses View → Resource usage. */
+/** Chooses View → Development → Resource usage. */
 const chooseUsage = (app: ElectronApplication) =>
   app.evaluate(({ Menu }) => Menu.getApplicationMenu()?.getMenuItemById('resource-usage')?.click());
 
-test('View → Resource usage shows the memory and CPU of each account, and closes again', async ({
+test('View → Development → Resource usage shows the memory and CPU of each account, and closes again', async ({
   launch,
   service,
 }) => {

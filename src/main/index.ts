@@ -48,6 +48,7 @@ import { MAX_ACCOUNT_SHORTCUTS } from '../shared/shortcuts';
 import type { Account, Layout, PersistedState, PublicState, Rect } from '../shared/types';
 import { dotDataUrl, identityArgument } from './account-notifications';
 import { attachContextMenu } from './context-menu';
+import { OAUTH_PATH, restorableUrl } from './last-url';
 import {
   formatReport,
   parseWebOutcome,
@@ -199,7 +200,6 @@ function notifyQuotaBack(id: string, previous: QuotaInfo): void {
 // Sign-in popups (OAuth, GitHub connectors, etc.) must stay in the same session as their
 // originating page so the sign-in ends up on the right account. Everything else (links in
 // conversations, for example) opens in the default browser.
-const OAUTH_PATH = /\/(oauth|oauth2|authorize|login|signin|sign-in|auth)(\/|$)/i;
 
 const makeWindowOpenHandler =
   (provider: Provider) =>
@@ -311,7 +311,20 @@ function createView(acc: Account, parent: BrowserWindow): WebContentsView {
       refresh({ relayout: false });
     }
   });
-  wc.loadURL(urlOf(acc)).catch(() => {
+  // Remember the conversation each account is on (pages of an app change address without
+  // reloading: `did-navigate-in-page`).
+  const remember = (url: string) => {
+    const current = findAccount(acc.id);
+    const next = restorableUrl(url, urlOf(acc));
+    if (!current || next === null || current.lastUrl === next) return;
+    current.lastUrl = next;
+    scheduleSave();
+  };
+  wc.on('did-navigate', (_event, url) => remember(url));
+  wc.on('did-navigate-in-page', (_event, url, isMainFrame) => {
+    if (isMainFrame) remember(url);
+  });
+  wc.loadURL(restorableUrl(acc.lastUrl, urlOf(acc)) ?? urlOf(acc)).catch(() => {
     /* offline: Chromium's error page is shown, "reload" tries again */
   });
   parent.contentView.addChildView(view);

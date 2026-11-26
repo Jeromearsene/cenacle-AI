@@ -42,6 +42,6 @@ The Gemini service therefore uses Electron's native identifier (`ua: 'native'` i
 
 ## Known limitations
 
-- Sign-in popups (domains listed in `src/main/providers.ts`, paths such as `/oauth`, `/authorize`, `/login`) open inside the app, in the right account's session. Other links open in the default browser. This is a heuristic: if a link opens on the wrong side, adjust `AUTH_HOSTS` (`src/main/providers.ts`) or `OAUTH_PATH` (`src/main/index.ts`).
+- Sign-in popups (domains listed in `src/main/providers.ts`, paths such as `/oauth`, `/authorize`, `/login`) open inside the app, in the right account's session. Other links open in the default browser. This is a heuristic: if a link opens on the wrong side, adjust `AUTH_HOSTS` (`src/main/providers.ts`) or `OAUTH_PATH` (`src/main/last-url.ts`).
 - Websites change without notice: rendering may evolve, but the tool itself depends on no API.
 - Services may require an anti-bot check (Cloudflare, for example) depending on your network.

@@ -1,4 +1,5 @@
-import { providersInUse, visibleAccounts } from '../src/shared/provider-view';
+import { parseState } from '../src/main/state';
+import { activeFilter, providersInUse, visibleAccounts } from '../src/shared/provider-view';
 import type { Account, ProviderInfo } from '../src/shared/types';
 import { accountNames, addAccount, expect, test } from './fixtures';
 
@@ -59,6 +60,44 @@ test.describe('provider view', () => {
     visibleAccounts(accounts, providers, { filter: null, sort: 'provider' });
     expect(names(accounts)).toEqual(before);
   });
+
+  test('a saved filter applies only while it still tells services apart', () => {
+    expect(activeFilter(accounts, null)).toBeNull();
+    expect(activeFilter(accounts, 'chatgpt')).toBe('chatgpt');
+    // no account uses this service any more
+    expect(activeFilter(accounts, 'gemini')).toBeNull();
+    // a single service left: nothing to filter
+    expect(activeFilter([account('Claude 1', 'claude')], 'claude')).toBeNull();
+  });
+});
+
+test.describe('saved view (without launching the app)', () => {
+  const base = {
+    accounts: [
+      { id: 'aaaaaaaa', name: 'Claude 1', color: '#d97757', provider: 'claude' },
+      { id: 'bbbbbbbb', name: 'ChatGPT 1', color: '#6a9bcc', provider: 'chatgpt' },
+    ],
+  };
+
+  test('is restored from the saved state', () => {
+    const view = parseState({
+      ...base,
+      accountView: { filter: 'chatgpt', sort: 'provider' },
+    }).accountView;
+    expect(view).toEqual({ filter: 'chatgpt', sort: 'provider' });
+  });
+
+  test('a state saved before the filter existed lists everything, in order', () => {
+    expect(parseState(base).accountView).toEqual({ filter: null, sort: 'manual' });
+  });
+
+  test('a filter on a service without account, or an unusable value, is dropped', () => {
+    const view = (accountView: unknown) => parseState({ ...base, accountView }).accountView;
+    expect(view({ filter: 'gemini', sort: 'manual' }).filter).toBeNull();
+    expect(view({ filter: 'nope', sort: 'manual' }).filter).toBeNull();
+    expect(view({ filter: 42, sort: 'sideways' })).toEqual({ filter: null, sort: 'manual' });
+    expect(view('provider')).toEqual({ filter: null, sort: 'manual' });
+  });
 });
 
 test('no filter is offered while there is a single service', async ({ launch }) => {
@@ -95,6 +134,38 @@ test('filters and groups the sidebar by service', async ({ launch }) => {
   // back to the original order
   await filter.getByRole('button', { name: 'Group' }).click();
   await expect.poll(() => accountNames(sidebar)).toEqual(['Claude 1', 'ChatGPT 1', 'Claude 2']);
+});
+
+test('the filter and the grouping survive a restart', async ({ launch }) => {
+  const { app, sidebar } = await launch();
+  await addAccount(sidebar, 'ChatGPT');
+  await addAccount(sidebar, 'Claude');
+  const filter = sidebar.getByRole('group', { name: 'Filter accounts by service' });
+  await filter.getByRole('button', { name: 'Group' }).click();
+  await filter.getByRole('button', { name: 'ChatGPT 1' }).click();
+  await expect.poll(() => accountNames(sidebar)).toEqual(['ChatGPT 1']);
+  await app.close();
+
+  const again = await launch();
+  const back = again.sidebar.getByRole('group', { name: 'Filter accounts by service' });
+  await expect.poll(() => accountNames(again.sidebar)).toEqual(['ChatGPT 1']);
+  await expect(back.getByRole('button', { name: 'ChatGPT 1' })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  );
+  await expect(back.getByRole('button', { name: 'Group' })).toHaveAttribute('aria-pressed', 'true');
+
+  // "All" is saved too
+  await back.getByRole('button', { name: 'All 3' }).click();
+  await expect
+    .poll(() => accountNames(again.sidebar))
+    .toEqual(['Claude 1', 'Claude 2', 'ChatGPT 1']);
+  await again.app.close();
+
+  const last = await launch();
+  await expect
+    .poll(() => accountNames(last.sidebar))
+    .toEqual(['Claude 1', 'Claude 2', 'ChatGPT 1']);
 });
 
 test('the filter only changes the list: the grid keeps every account', async ({ launch }) => {

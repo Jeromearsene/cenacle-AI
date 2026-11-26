@@ -18,4 +18,8 @@ En mode **Grille**, chaque compte est une case avec son en-tête. Au départ ell
 
 Les changements de disposition se font en douceur plutôt que d'un coup (sauf si le système demande de réduire les animations).
 
+![Glissement d'un compte sur une case : la case est surlignée et propose l'échange](../images/fr-grid-drag.png)
+
+_Glisser « Claude 1 » sur le centre de « ChatGPT 1 » propose de les échanger. Le contenu des pages est un texte de démonstration._
+
 Les pages des services sont masquées pendant le glissement, pour que l'interface suive la souris ; elles reviennent au relâchement. Échap annule un glissement.

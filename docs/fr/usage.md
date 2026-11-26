@@ -36,6 +36,10 @@ Nouveau compte : menu Comptes → Nouveau compte, ou bouton de la barre latéral
 
 Quand la page de Claude t'indique que tu approches de ta limite d'utilisation, ou que tu l'as atteinte, Cénacle l'affiche pour ce compte, dans la barre latérale et dans l'en-tête de la case :
 
+![Un compte Claude à sa limite : pastille « Plein », heure de retour et barre sablier dans la barre latérale et l'en-tête de la case](../images/fr-quota.png)
+
+_Un compte à sa limite, dans la barre latérale et dans son en-tête. Le contenu des pages est un texte de démonstration._
+
 - une **pastille** : « 90 %+ » (plus de 90 % de la limite consommés) ou « Plein » (limite atteinte) ;
 - l'heure à laquelle la limite **revient**, le temps restant, et une barre en forme de sablier dessinée sur la fenêtre de 5 heures (elle passe au vert quand la limite est sur le point de revenir) ;
 - une **notification**, avec le nom et la couleur du compte, quand une limite atteinte est réinitialisée.

@@ -18,6 +18,13 @@
 
 Un forfait gratuit ici, un compte pro là, un compte perso à côté. Cénacle les réunit dans une seule fenêtre : passe de l'un à l'autre avec un raccourci, ou place-les côte à côte pour comparer les réponses de plusieurs assistants à la même question. Rien ne se mélange : chaque compte garde sa propre session.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/fr-grid-dark.png">
+    <img src="docs/images/fr-grid.png" alt="Cénacle avec trois comptes côte à côte en mode grille (conversations de démonstration)" width="860">
+  </picture>
+</p>
+
 ## ✨ Fonctionnalités
 
 - **Plusieurs comptes, une fenêtre** : Claude, ChatGPT et Gemini, y compris plusieurs comptes du même service.

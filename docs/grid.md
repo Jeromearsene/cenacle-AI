@@ -18,4 +18,8 @@ In **Grid** mode every account is a cell with its own header. At first they sit 
 
 Changes of layout glide instead of jumping (unless the system asks for reduced motion).
 
+![Dragging an account over a cell: the cell is highlighted and offers to swap](images/grid-drag.png)
+
+_Dragging "Claude 1" onto the center of "ChatGPT 1" offers to swap them. Page content is demo text._
+
 The service pages are hidden while you drag, so the interface can follow the mouse; they come back when you let go. Escape cancels a drag.

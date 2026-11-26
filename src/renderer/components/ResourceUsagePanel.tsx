@@ -14,7 +14,7 @@ interface Props {
 const CELL = 'py-0.5 text-right whitespace-nowrap';
 
 /**
- * Memory and CPU of each account, opened from View → Resource usage. Drawn inside the sidebar:
+ * Memory and CPU of each account, opened from View → Development → Resource usage. Drawn inside the sidebar:
  * the service pages cover everything to its right.
  */
 export function ResourceUsagePanel({ accounts, locale }: Props) {

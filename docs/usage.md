@@ -13,9 +13,9 @@
 - **Window**: on first launch it fills the usable area of the screen (below the menu bar and the Dock, or the taskbar). After that the app restores its last size, or its maximized / full-screen state. If the screen it was on has been unplugged, it comes back on the main display.
 - Full screen: green button (macOS), ⌃⌘F / F11 or the View menu. Maximize: double-click the top bar (macOS) or the title bar (Windows, Linux).
 - Hidden accounts stay loaded, so their conversations keep running in the background.
-- **View → Resource usage** shows the memory and CPU taken by each account, what is shared (interface, graphics, network) and the total, refreshed every 2 seconds. Useful to see which account weighs the most; an account whose page is not loaded yet shows a dash. Figures are approximate.
+- **View → Development → Resource usage** shows the memory and CPU taken by each account, what is shared (interface, graphics, network) and the total, refreshed every 2 seconds. Useful to see which account weighs the most; an account whose page is not loaded yet shows a dash. Figures are approximate.
 - **Hold ⌘ (macOS) or Ctrl (Windows, Linux)** for a moment: the shortcut number of each account (⌘1…⌘9 / Ctrl+1…9) appears next to its name, in the sidebar and above each cell of the grid.
-- **Notifications**: a web notification raised by a service shows the account's name in its title and the account's color dot as its icon, so you know which account it comes from. Clicking it brings the app forward on that account.
+- **Notifications**: a web notification raised by a service shows the account's name in its title and the account's color dot as its icon, so you know which account it comes from. Clicking it brings the app forward on that account. Nothing appears? **View → Development → Test notifications…** tells whether the system displays them.
 - **Right-click** in a service page opens a context menu: cut / copy / paste, spelling suggestions, open or copy a link, copy an image, inspect element.
 
 ## Shortcuts

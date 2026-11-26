@@ -130,4 +130,6 @@ export interface MultiApi {
   getResourceUsage(): Promise<ResourceUsage>;
   /** The "Resource usage" menu entry was chosen: show or hide the panel. */
   onResourceUsageToggle(cb: () => void): () => void;
+  /** The ⌘, / Ctrl, shortcut or the "Settings" menu item was used. */
+  onOpenSettings(cb: () => void): () => void;
 }

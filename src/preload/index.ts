@@ -42,6 +42,11 @@ const api: MultiApi = {
     ipcRenderer.on('resource-usage:toggle', listener);
     return () => ipcRenderer.removeListener('resource-usage:toggle', listener);
   },
+  onOpenSettings: (cb) => {
+    const listener = () => cb();
+    ipcRenderer.on('open-settings', listener);
+    return () => ipcRenderer.removeListener('open-settings', listener);
+  },
 };
 
 contextBridge.exposeInMainWorld('multi', api);

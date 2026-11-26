@@ -78,6 +78,7 @@ const en = {
 
   // application menu
   'menu.file': 'File',
+  'menu.settings': 'Settings',
   'menu.accounts': 'Accounts',
   'menu.newAccount': 'New account',
   'menu.nextAccount': 'Next account',
@@ -193,6 +194,7 @@ const fr: Record<MessageKey, string> = {
   'dialog.cancel': 'Annuler',
 
   'menu.file': 'Fichier',
+  'menu.settings': 'Paramètres',
   'menu.accounts': 'Comptes',
   'menu.newAccount': 'Nouveau compte',
   'menu.nextAccount': 'Compte suivant',

@@ -11,12 +11,24 @@ const THEMES: { value: Theme; label: MessageKey }[] = [
   { value: 'system', label: 'settings.system' },
 ];
 
-export function Settings({ state }: { state: PublicState }) {
+export function Settings({
+  state,
+  openRequest,
+}: {
+  state: PublicState;
+  openRequest: number | null;
+}) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   const dialog = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
+
+  // ⌘, / Ctrl, or the "Settings" menu item (main process): openRequest is null until the first
+  // one, so this never fires on mount, only on an actual request.
+  useEffect(() => {
+    if (openRequest != null) setOpen(true);
+  }, [openRequest]);
 
   useEffect(() => {
     if (!open) return;

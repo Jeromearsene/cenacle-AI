@@ -6,7 +6,13 @@ import { GridOverlay } from './components/GridOverlay';
 import { Sidebar } from './components/Sidebar';
 import { I18nProvider } from './i18n';
 import { useAccountDrag, useDividerDrag, useDragCursor } from './use-grid-drag';
-import { api, useMultiState, useRenameRequest, useShortcutHint } from './use-multi';
+import {
+  api,
+  useMultiState,
+  useOpenSettingsRequest,
+  useRenameRequest,
+  useShortcutHint,
+} from './use-multi';
 
 const isMac = api.platform === 'darwin';
 
@@ -20,6 +26,7 @@ export function App() {
   );
   const [renamingId, setRenamingId] = useState<string | null>(null);
   useRenameRequest(useCallback((id: string) => setRenamingId(id), []));
+  const openSettingsRequest = useOpenSettingsRequest();
 
   useEffect(() => {
     if (state) document.title = state.appName;
@@ -58,6 +65,7 @@ export function App() {
         providerLabel={providerLabel}
         shortcutOf={shortcutOf}
         onDragStart={startAccountDrag}
+        openSettingsRequest={openSettingsRequest}
       />
       <CellHeaders
         state={state}

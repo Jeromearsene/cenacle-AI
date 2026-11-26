@@ -203,3 +203,30 @@ test('language and theme survive a restart', async ({ launch }) => {
     panel.getByRole('radiogroup', { name: 'Thème' }).getByRole('radio', { name: 'Sombre' })
   ).toHaveAttribute('aria-checked', 'true');
 });
+
+test('reachable from the application menu, under ⌘, / Ctrl,', async ({ launch }) => {
+  // The OS-level key binding itself can't be exercised from here (simulating a real ⌘/Ctrl
+  // keypress doesn't reach native menu accelerators in this environment, headless or not — a
+  // limitation of the test environment, not of the menu), so this drives the menu item directly,
+  // the way Electron itself would once the accelerator fires.
+  const { app, sidebar } = await launch();
+  const found = await app.evaluate(({ Menu }) => {
+    for (const item of Menu.getApplicationMenu()?.items ?? []) {
+      const hit = item.submenu?.items.find((i) => i.accelerator === 'CmdOrCtrl+,');
+      if (hit) return { parent: item.label, label: hit.label };
+    }
+    return null;
+  });
+  // macOS: the app's own menu (labeled after the app, not "File"); elsewhere: File.
+  const expectedParent =
+    process.platform === 'darwin' ? await app.evaluate(({ app }) => app.name) : 'File';
+  expect(found).toEqual({ parent: expectedParent, label: 'Settings' });
+
+  await app.evaluate(({ Menu }) => {
+    for (const item of Menu.getApplicationMenu()?.items ?? []) {
+      const hit = item.submenu?.items.find((i) => i.accelerator === 'CmdOrCtrl+,');
+      if (hit) hit.click();
+    }
+  });
+  await expect(sidebar.locator('#settings [role="dialog"]')).toBeVisible();
+});

@@ -795,6 +795,13 @@ function resourceUsage(): ResourceUsage {
   return computeUsage(samples, pids);
 }
 
+// ⌘, / Ctrl, (see buildMenu) or the "Settings" menu item: tell the sidebar to open its own
+// Settings dialog. Settings' open/closed state is deliberately local, transient UI state, not
+// part of PersistedState/PublicState, so this is a one-shot push rather than a state field.
+function requestOpenSettings(): void {
+  if (win && !win.isDestroyed()) win.webContents.send('open-settings');
+}
+
 // ------------------------------------------------------------------ IPC (interface → processus principal)
 
 /** The account and view whose page (main frame only) sent this message. */
@@ -905,10 +912,47 @@ function buildMenu(): void {
       click: () => selectAccount(acc.id),
     }));
 
+  // ⌘, / Ctrl, (see t('menu.settings') below): the closest thing to a platform convention for
+  // opening an app's settings/preferences — Apple's Human Interface Guidelines mandate Cmd+, on
+  // macOS; Windows has no equivalent of its own, but Ctrl+, is the de facto cross-platform
+  // convention (VS Code, Slack, Discord, Spotify…), so it's used here too. CmdOrCtrl picks the
+  // right one for the current platform automatically.
+  const settingsItem: MenuItemConstructorOptions = {
+    label: t('menu.settings'),
+    accelerator: 'CmdOrCtrl+,',
+    click: () => requestOpenSettings(),
+  };
+
   const template: MenuItemConstructorOptions[] = [
     ...(isMac
-      ? [{ role: 'appMenu' } as const]
-      : [{ label: t('menu.file'), submenu: [{ role: 'quit' } as const] }]),
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              { role: 'about' },
+              { type: 'separator' },
+              settingsItem,
+              { type: 'separator' },
+              { role: 'services' },
+              { type: 'separator' },
+              { role: 'hide' },
+              { role: 'hideOthers' },
+              { role: 'unhide' },
+              { type: 'separator' },
+              { role: 'quit' },
+            ] as MenuItemConstructorOptions[],
+          },
+        ]
+      : [
+          {
+            label: t('menu.file'),
+            submenu: [
+              settingsItem,
+              { type: 'separator' },
+              { role: 'quit' },
+            ] as MenuItemConstructorOptions[],
+          },
+        ]),
     { role: 'editMenu' },
     {
       label: t('menu.accounts'),

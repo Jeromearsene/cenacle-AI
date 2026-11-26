@@ -68,7 +68,13 @@ test.describe('unread dot in the interface', () => {
     const { app, sidebar } = await launch();
     await addAccount(sidebar, 'ChatGPT'); // now active: the Claude account is hidden
     const [claudeView] = await waitForServices(app, new URL(service.url).origin, 2);
-    const claudeRow = sidebar.locator('#accounts .account').first();
+    const rows = sidebar.locator('#accounts .account');
+    const claudeRow = rows.first();
+    // The test page raises a notification as soon as it loads. Whether that already marked the
+    // account depends on the window having focus yet (it may not on a CI machine), so open the
+    // account, which clears it, and go back to the other one: Claude is hidden again, unmarked.
+    await claudeRow.click();
+    await rows.nth(1).click();
     await expect(claudeRow.locator('.unread-dot')).toHaveCount(0);
 
     await evalIn(app, claudeView as number, "new Notification('Reply ready')");

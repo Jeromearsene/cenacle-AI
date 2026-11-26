@@ -7,6 +7,7 @@ export function AddAccount({ providers }: { providers: ProviderInfo[] }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -16,9 +17,25 @@ export function AddAccount({ providers }: { providers: ProviderInfo[] }) {
       if (!wrap.current?.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      setOpen(false);
-      button.current?.focus();
+      if (e.key === 'Escape') {
+        setOpen(false);
+        button.current?.focus();
+        return;
+      }
+      // Keep Tab inside the open menu: there's no backdrop to make it obvious that the page
+      // behind it shouldn't be reachable while it's shown.
+      if (e.key !== 'Tab') return;
+      const focusable = menu.current?.querySelectorAll<HTMLElement>('button:not([tabindex="-1"])');
+      if (!focusable || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last?.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first?.focus();
+      }
     };
     document.addEventListener('click', onClick);
     document.addEventListener('keydown', onKey);
@@ -42,6 +59,7 @@ export function AddAccount({ providers }: { providers: ProviderInfo[] }) {
       </button>
       {open && (
         <div
+          ref={menu}
           role="menu"
           class="absolute inset-x-0 top-[calc(100%+4px)] z-10 flex flex-col rounded-lg border border-line bg-bg p-1 shadow-lg"
         >

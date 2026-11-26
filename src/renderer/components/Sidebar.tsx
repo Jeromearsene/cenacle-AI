@@ -6,6 +6,7 @@ import { AccountItem } from './AccountItem';
 import { AddAccount } from './AddAccount';
 import { EqualizeIcon } from './icons';
 import { LayoutToggle } from './LayoutToggle';
+import { ResourceUsagePanel } from './ResourceUsagePanel';
 
 interface Props {
   state: PublicState;
@@ -80,6 +81,7 @@ export function Sidebar({
         </button>
       )}
       <LayoutToggle layout={state.layout} />
+      <ResourceUsagePanel accounts={state.accounts} locale={state.locale} />
     </aside>
   );
 }

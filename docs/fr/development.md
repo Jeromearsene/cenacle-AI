@@ -63,6 +63,7 @@ src/preload/index.ts              pont minimal vers l'interface (contextBridge)
 src/preload/service.ts            preload des pages de service : n'expose rien ; habille les notifications, lit le bandeau de limite
 src/shared/grid.ts                arbre de la grille : dépôts, redimensionnement, géométrie (pur, testé)
 src/shared/quota.ts               lecture du bandeau de limite, calculs du sablier (pur, testé)
+src/shared/metrics.ts             mémoire / CPU par compte à partir de la liste des processus (pur, testé)
 src/main/quota.ts                 état de limite par compte, minuteurs de réinitialisation
 src/shared/types.ts               types partagés entre les trois
 src/renderer/                     interface Preact + Tailwind (barre latérale, en-têtes de cases, grille)

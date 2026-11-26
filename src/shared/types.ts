@@ -2,6 +2,7 @@
 // Types only: this file must not import anything from Node or Electron.
 import type { Area, Divider, DropZone, GridNode } from './grid';
 import type { Locale } from './i18n';
+import type { ResourceUsage } from './metrics';
 import type { QuotaInfo } from './quota';
 
 export type Layout = 'single' | 'grid';
@@ -93,4 +94,8 @@ export interface MultiApi {
   onRenameRequest(cb: (id: string) => void): () => void;
   /** True while the shortcut key (⌘ / Ctrl) is held. */
   onShortcutHint(cb: (visible: boolean) => void): () => void;
+  /** Memory and CPU of each account's page (and of everything shared), right now. */
+  getResourceUsage(): Promise<ResourceUsage>;
+  /** The "Resource usage" menu entry was chosen: show or hide the panel. */
+  onResourceUsageToggle(cb: () => void): () => void;
 }

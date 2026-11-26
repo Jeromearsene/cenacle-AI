@@ -41,6 +41,7 @@ import {
 } from '../shared/grid';
 import { resolveLocale, translator } from '../shared/i18n';
 import { isId } from '../shared/id';
+import { computeUsage, type ResourceUsage } from '../shared/metrics';
 import type { QuotaInfo } from '../shared/quota';
 import { MAX_ACCOUNT_SHORTCUTS } from '../shared/shortcuts';
 import type { Account, Layout, PersistedState, PublicState, Rect } from '../shared/types';
@@ -644,6 +645,23 @@ function zoomActive(delta: number): void {
   wc.setZoomLevel(delta === 0 ? 0 : wc.getZoomLevel() + delta);
 }
 
+/** Memory and CPU of each account's page, and of everything that belongs to none of them. */
+function resourceUsage(): ResourceUsage {
+  const samples = app.getAppMetrics().map((m) => ({
+    pid: m.pid,
+    cpu: m.cpu.percentCPUUsage,
+    memoryKb: m.memory.workingSetSize,
+  }));
+  // Each account has its own session, hence its own page process. 0 means "not started yet".
+  const pids = new Map(
+    state.accounts.map((a) => {
+      const wc = views.get(a.id)?.webContents;
+      return [a.id, wc && !wc.isDestroyed() ? wc.getOSProcessId() || null : null] as const;
+    })
+  );
+  return computeUsage(samples, pids);
+}
+
 // ------------------------------------------------------------------ IPC (interface → processus principal)
 
 // Click on a service notification: show its account and bring the app to the foreground.
@@ -706,6 +724,7 @@ handle('grid:equalize', (path) => {
 });
 handle('grid:dragging', (active) => setDragging(active === true));
 handle('account:reload', (id) => isId(id) && reloadAccount(id));
+handle('resource-usage:get', () => resourceUsage());
 
 // ------------------------------------------------------------------ menu
 
@@ -784,6 +803,13 @@ function buildMenu(): void {
           label: t('menu.devTools'),
           accelerator: 'CmdOrCtrl+Alt+I',
           click: () => activeContents()?.openDevTools({ mode: 'detach' }),
+        },
+        {
+          id: 'resource-usage',
+          label: t('menu.resourceUsage'),
+          click: () => {
+            if (win && !win.isDestroyed()) win.webContents.send('resource-usage:toggle');
+          },
         },
       ],
     },

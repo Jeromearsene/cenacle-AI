@@ -12,5 +12,5 @@
 - [ ] `yarn check` and `yarn test:e2e` pass
 - [ ] Tests added or updated
 - [ ] A changeset was added with `yarn changeset` (if users can notice the change)
-- [ ] README updated if needed
+- [ ] README / docs updated if needed
 - [ ] I agree that my contribution is released under CC BY-NC-SA 4.0 and may also be offered under a commercial license by the author (see CONTRIBUTING.md)

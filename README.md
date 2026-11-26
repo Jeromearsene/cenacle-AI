@@ -1,243 +1,82 @@
 <p align="center"><img src="resources/icon.png" alt="Cénacle icon" width="128"></p>
 
-# Cénacle
+<h1 align="center">Cénacle</h1>
 
-**English** · [Français](README.fr.md)
+<p align="center">
+  <strong>All your AI assistants, side by side, in a single window.</strong><br>
+  Several Claude, ChatGPT and Gemini accounts, each in its own isolated session.
+</p>
 
-[![CI](https://github.com/Jeromearsene/cenacle-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/Jeromearsene/cenacle-AI/actions/workflows/ci.yml)
-[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-lightgrey)](LICENSE)
-![Platforms: macOS, Linux, Windows](https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
-![Electron 45](https://img.shields.io/badge/Electron-45-47848F?logo=electron&logoColor=white)
-![TypeScript strict](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
-![Preact](https://img.shields.io/badge/Preact-673AB8?logo=preact&logoColor=white)
-![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
-![Lint: Biome](https://img.shields.io/badge/lint-Biome-60A5FA?logo=biome&logoColor=white)
+<p align="center"><strong>English</strong> · <a href="README.fr.md">Français</a></p>
 
-A cross-platform desktop app (Electron) to use several AI assistant accounts in a single window. **Claude**, **ChatGPT** and **Gemini** are supported today, and other services can be added with a single entry (see [Adding a service](#adding-a-service)). Every account gets its own isolated session (cookies, local storage), so different accounts, even on the same service, never mix.
+<p align="center">
+  <a href="https://github.com/Jeromearsene/cenacle-AI/releases/latest"><img src="https://img.shields.io/github/v/release/Jeromearsene/cenacle-AI?label=release" alt="Latest release"></a>
+  <a href="https://github.com/Jeromearsene/cenacle-AI/actions/workflows/ci.yml"><img src="https://github.com/Jeromearsene/cenacle-AI/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey" alt="Platforms: macOS, Windows, Linux">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-lightgrey" alt="License: CC BY-NC-SA 4.0"></a>
+</p>
 
-**Unofficial project.** It is not affiliated with Anthropic, OpenAI or Google. The names Claude, ChatGPT, Gemini and any other service name belong to their respective owners. The app uses no API: it displays the public websites, like a browser would. Read each service's terms of use before relying on it.
+A free plan here, a work account there, a personal one on the side. Cénacle puts them all in one window: switch with a shortcut, or lay them out side by side to compare the answers of several assistants to the same question. Nothing gets mixed up: every account keeps its own session.
 
-## Services
+## ✨ Features
 
-| Service | Status       | Notes                                                                                 |
-| ------- | ------------ | ------------------------------------------------------------------------------------- |
-| Claude  | tested       | Magic-link sign-in recommended (see below).                                           |
-| ChatGPT | to be tested | Email sign-in. The "Continue with Google / Apple / Microsoft" buttons may be refused. |
-| Gemini  | experimental | Google sign-in: see "Gemini and Google sign-in".                                      |
+- **Many accounts, one window**: Claude, ChatGPT and Gemini, including several accounts of the same service.
+- **Isolated sessions**: each account has its own cookies and storage. Sign in once, it is remembered.
+- **A grid you arrange yourself**: drag and drop accounts to build rows and columns, swap them, resize them. The layout is kept between launches.
+- **Usage limits at a glance**: when Claude says you are close to your limit, the account shows a pill, the time it comes back and an hourglass, and you get a notification when it is usable again.
+- **Notifications you can tell apart**: the account's name and color on every notification; a click brings you to the right account.
+- **Fast to drive**: ⌘1…⌘9 to jump to an account, Ctrl+Tab to cycle. Hidden accounts keep running, so a long answer is not interrupted.
+- **Private by design**: no API, no key, no server of ours. The app shows the services' own websites, with only the permissions a chat needs.
+- **Cross-platform, in English and French**: macOS, Windows and Linux.
 
-## Adding a service
+## ⬇️ Download
 
-Services are plain data in `src/main/providers.ts`. To add one (Grok, Perplexity, a self-hosted chat…), add an entry:
+Get the latest installer from the [releases page](https://github.com/Jeromearsene/cenacle-AI/releases/latest):
 
-```ts
-example: {
-  id: 'example',                    // lowercase key, same as the object key
-  label: 'Example',                 // name shown in the sidebar and menus
-  url: 'https://chat.example.com/', // https only
-  ua: 'clean',                      // browser identifier policy, see below
-  authHosts: ['login.example.com'], // optional: sign-in domains specific to this service
-},
-```
+| System  | File                             |
+| ------- | -------------------------------- |
+| macOS   | `.dmg` (Apple Silicon and Intel) |
+| Windows | `.exe` installer                 |
+| Linux   | AppImage or `.deb`               |
 
-- `ua`: start with `'clean'`. If the service refuses to sign in (Google does), try `'native'`.
-- `authHosts`: sign-in popups that open on these domains stay inside the app, in the right account's session. Google, Microsoft and Apple sign-in are already handled for every service.
-- Run `yarn test:e2e`: a test checks that every entry is well-formed. Then open a pull request.
+The app is **not code-signed yet**, so macOS and Windows warn you at the first launch: [here is how to open it](docs/install.md#platforms). It updates itself on Windows and Linux; on macOS, until it is signed, download each new version. Prefer building it yourself? See [Development](docs/development.md#run-from-source).
 
-## Platforms
+## Works with
 
-| Platform | Status                                                                               |
-| -------- | ------------------------------------------------------------------------------------ |
-| macOS    | primary platform, used and tested daily by the author                                |
-| Linux    | supported; the end-to-end tests run on Linux in CI                                   |
-| Windows  | supported; the end-to-end tests run on Windows in CI, but the author does not use it |
+**Claude**, **ChatGPT** and **Gemini** today. Another service is a single entry in the code ([how to add one](docs/services.md#adding-a-service)): Grok, Perplexity, a self-hosted chat…
 
-Installers (macOS `.dmg`, Windows `.exe`, Linux AppImage and `.deb`) are attached to each [release](https://github.com/Jeromearsene/cenacle-AI/releases); you can also run the app from source (below). The installers are **not code-signed yet**: macOS blocks the first launch (see below), Windows shows a SmartScreen warning, and macOS cannot update itself until the app is signed. Platform-specific remarks are marked "macOS", "Windows" or "Linux" in this document.
+## 📚 Documentation
 
-**First launch on macOS** (the app is not signed or notarized yet):
-
-1. Open the `.dmg`, drag Cénacle to Applications and launch it. macOS refuses to open it.
-2. Open System Settings → Privacy & Security, scroll to the message about Cénacle, click "Open Anyway" and confirm. On macOS 15 (Sequoia) and later, the right-click → Open shortcut no longer works.
-3. If macOS says the app is "damaged", remove the quarantine flag and launch it again: `xattr -dr com.apple.quarantine /Applications/Cénacle.app`.
-
-Until the app is signed, macOS cannot update it: download each new version from the releases page.
-
-**Updates**: an installed app (not one run from source) checks GitHub Releases at startup and downloads new versions in the background; the update is applied the next time the app quits. On Linux this works for the AppImage, not for the `.deb`. To turn the check off, set the environment variable `CENACLE_DISABLE_UPDATES` to any non-empty value before launching the app.
-
-## Getting started
-
-```bash
-yarn install
-yarn dev        # development, with hot reload of the interface
-yarn build      # build into out/
-yarn start      # run the built app
-```
-
-The project uses Yarn 4 (4.18.1) with `nodeLinker: node-modules` in `.yarnrc.yml`: Electron does not work with Plug'n'Play.
-
-**Pinned versions**
-
-- With [Volta](https://volta.sh): the `volta` key in `package.json` pins Node (22.23.5) and Yarn (4.18.1).
-- Without Volta: `corepack enable` is enough, the `packageManager` field names the Yarn version.
-- Volta only clearly documents Yarn 1.x and 3+. If Volta cannot fetch Yarn 4, remove the `"yarn"` line from the `volta` key and use Corepack.
-
-**Yarn quarantine**: by default Yarn 4 refuses versions published less than 24 hours ago (`npmMinimalAgeGate`). Electron is declared as `^45.3.3`; `yarn up electron` updates it once the latest release is old enough.
-
-The Electron binary (about 100 MB) is downloaded by `yarn install` (the `postinstall` script). If that download failed or did not happen, `node node_modules/electron/install.js` runs it again; without it, `yarn dev` and `yarn start` stop with "Electron uninstall".
-
-## Using the app
-
-- **+ Add account** asks which service, then creates an empty session. Sign in once; it is kept between launches.
-- **Single / Grid**: one account at a time, or several at once in a layout you arrange (handy to compare answers). See [The grid](#the-grid).
-- Double-click a name (or ✎) to rename, ✕ to delete an account's session.
-- **Window**: on first launch it fills the usable area of the screen (below the menu bar and the Dock, or the taskbar). After that the app restores its last size, or its maximized / full-screen state. If the screen it was on has been unplugged, it comes back on the main display.
-- Full screen: green button (macOS), ⌃⌘F / F11 or the View menu. Maximize: double-click the top bar (macOS) or the title bar (Windows, Linux).
-- Hidden accounts stay loaded, so their conversations keep running in the background.
-- **Hold ⌘ (macOS) or Ctrl (Windows, Linux)** for a moment: the shortcut number of each account (⌘1…⌘9 / Ctrl+1…9) appears next to its name, in the sidebar and above each cell of the grid.
-- **Notifications**: a web notification raised by a service shows the account's name in its title and the account's color dot as its icon, so you know which account it comes from. Clicking it brings the app forward on that account.
-- **Right-click** in a service page opens a context menu: cut / copy / paste, spelling suggestions, open or copy a link, copy an image, inspect element.
-
-On macOS ⌘ is the Command key; on Windows and Linux use Ctrl instead.
-
-| Shortcut                  | Action                                |
-| ------------------------- | ------------------------------------- |
-| ⌘1 … ⌘9 / Ctrl+1 … 9      | Go to account n                       |
-| Ctrl+Tab / Ctrl+Shift+Tab | Next / previous account               |
-| ⌘⇧L / Ctrl+Shift+L        | Toggle single / grid                  |
-| ⌘R / Ctrl+R               | Reload the active account             |
-| ⌘+ ⌘- ⌘0 / Ctrl+ + - 0    | Zoom the active account               |
-| ⌘⌥I / Ctrl+Alt+I          | Developer tools of the active account |
-| ⌃⌘F (macOS) / F11         | Full screen                           |
-
-New account: Accounts → New account in the menu, or the sidebar button.
-
-## The grid
-
-In **Grid** mode every account is a cell with its own header. At first they sit side by side (in rows when they do not all fit); you then arrange them:
-
-- **Move**: drag an account from the sidebar, or a cell header (the ⠿ grip on the top row on macOS, where that row moves the window), onto the grid. The highlighted area shows where it will land:
-  - on an **edge of a cell**: splits that cell (left / right: side by side, top / bottom: stacked);
-  - on the **center** of a cell: swaps the two cells (or, for an account that is not in the grid, replaces the cell);
-  - along the **outer border of the grid**: a new row or column spanning the whole grid.
-- **Readable cells**: a cell is never smaller than 320 × 240 px. A drop that would squeeze a cell is shown as refused ("Not enough room") and does nothing; the same limit stops the resize handles.
-- **Resize**: drag the handle between two cells, or focus it (Tab) and use the arrow keys. Double-click a handle, press **Equalize sizes** in the sidebar, or use View → Equalize cell sizes to share the space equally. Sizes are kept between launches, like the arrangement.
-- **Remove**: ✕ in a cell header takes the account out of the grid. It stays in the sidebar (hollow dot, dimmed, session kept) and only comes back when you drag it onto the grid: clicking it does nothing. The last cell cannot be removed.
-- **Reset**: View → Reset the grid puts every account back as at the start.
-- A new account is added to the grid when there is room for it.
-
-Changes of layout glide instead of jumping (unless the system asks for reduced motion).
-
-The service pages are hidden while you drag, so the interface can follow the mouse; they come back when you let go. Escape cancels a drag.
-
-## Language
-
-The interface is available in English and French. It follows the system language and falls back to English for any other language.
-
-To add a language, add its code to `LOCALES` and a full set of messages in `src/shared/i18n.ts` (TypeScript refuses an incomplete set), then add a test line in `e2e/i18n.spec.ts`. To try a language without changing the system one, start the app unpackaged with `CENACLE_LANG=fr yarn dev`.
-
-## Gemini and Google sign-in
-
-Google refuses sign-in from an embedded browser ("This browser or app may not be secure"). In this app, the Claude and ChatGPT services send a "cleaned" browser identifier (no `Electron/x`), which gets through anti-bot checks better. For Google it is the opposite: reports from other Electron projects say Google accepts Electron's own identifier and refuses the cleaned one ([example](https://github.com/stablyai/orca/issues/11518)).
-
-The Gemini service therefore uses Electron's native identifier (`ua: 'native'` in `src/main/providers.ts`). This is **experimental**: Google's rule is undocumented and may change. If sign-in still fails:
-
-- open an issue with the message displayed;
-- or set `ua` to `'clean'` in `src/main/providers.ts` to compare;
-- "Continue with Google" inside Claude or ChatGPT uses that service's cleaned identifier and may be refused: prefer email.
-
-## Passwords and passkeys
-
-What does **not** work today, and why:
-
-- **Password autofill from the system (macOS: Apple Passwords / iCloud Keychain)** is not offered in Electron apps. Electron has an open feature request for macOS system password providers on HTML fields ([electron/electron#54142](https://github.com/electron/electron/issues/54142)). For third-party browser engines, Apple's iCloud Passwords integration additionally requires a restricted entitlement (`com.apple.developer.browser`) that Apple grants on request, as another Chromium-based browser documented ([ego-lite#362](https://github.com/citrolabs/ego-lite/issues/362)).
-- **Touch ID and passkeys**: Electron only offers them after `app.configureWebAuthn`, and they require a code-signed app with Apple entitlements. Passkeys already stored in your iCloud Keychain would not appear. On the Google sign-in screen, choose "Try another way" and use your password with two-step verification.
-
-What you can do:
-
-- Copy the password from your password manager, then paste with ⌘V or right-click → Paste (the context menu is there for this).
-- Third-party password managers: 1Password's Universal Autofill (⌘\) is reported to work in some signed Electron apps (same issue #54142); it has **not** been tested with this app.
-
-## Permissions
-
-Service pages are websites, so the app grants them only what a chat needs: notifications, copy and paste, full screen and the **microphone** (voice mode). The camera, screen capture, location and every other permission are refused. Only the page itself, not an embedded third-party frame, can use notifications or the microphone. The policy is in `src/main/permissions.ts`.
-
-## Where the data lives
-
-- Sessions: `Partitions/` folder inside the app's data folder. One partition per account.
-  - macOS: `~/Library/Application Support/Cénacle/`
-  - Windows: `%APPDATA%\Cénacle\`
-  - Linux: `~/.config/Cénacle/`
-- Account list, layout, window size: `state.json` in the same folder.
-- Session data is never stored in the project folder.
-
-## Known limitations
-
-- Sign-in popups (domains listed in `src/main/providers.ts`, paths such as `/oauth`, `/authorize`, `/login`) open inside the app, in the right account's session. Other links open in the default browser. This is a heuristic: if a link opens on the wrong side, adjust `AUTH_HOSTS` (`src/main/providers.ts`) or `OAUTH_PATH` (`src/main/index.ts`).
-- Websites change without notice: rendering may evolve, but the tool itself depends on no API.
-- Services may require an anti-bot check (Cloudflare, for example) depending on your network.
-
-## Automation (Playwright / Puppeteer), off by default
-
-```bash
-CENACLE_DEBUG_PORT=9222 yarn dev
-```
-
-This opens the Chrome debugging protocol on `127.0.0.1:9222` only. Example:
-
-```js
-const { chromium } = require('playwright-core');
-
-const browser = await chromium.connectOverCDP('http://127.0.0.1:9222');
-for (const context of browser.contexts()) {
-  for (const page of context.pages()) console.log(page.url());
-}
-```
-
-Careful: any local process that can reach this port controls every signed-in session. Do not leave the variable set permanently. Also check the services' terms of use before automating anything.
-
-## Development
-
-Stack: Electron, TypeScript (strict), [electron-vite](https://electron-vite.org), Preact, Tailwind CSS 4, [Biome](https://biomejs.dev) (lint and format), Playwright. The interface (sidebar) is about 30 KB of JavaScript; the service pages are real web pages, with no code of ours.
-
-```bash
-yarn dist        # build the installers for the current system into release/
-yarn dist:dir    # same, unpacked (quick check of the packaging)
-yarn changeset   # describe a change for the changelog (see below)
-yarn lint        # Biome: lint + format check (yarn lint:fix to fix, yarn format to format)
-yarn typecheck   # TypeScript, main process + interface
-yarn check       # lint + typecheck
-yarn test:e2e    # builds the app, then runs the end-to-end tests
-```
-
-The tests drive the Electron app with Playwright against a fake local service (the `MULTI_TEST_URL` variable, ignored in a packaged app): no network access, no real account. They cover adding and renaming an account, the grid layout (dragging, removing, resizing), cookie and storage isolation between accounts, the browser identifier of each service, persistence after a restart, and the right-click context menu. On Linux without a display: `xvfb-run -a yarn test:e2e` (the tests add `--no-sandbox` by themselves when running as root or in CI). On Linux, if Electron stops at startup with a "SUID sandbox helper" error (common on recent Ubuntu), run `yarn dev --no-sandbox`.
-
-**Continuous integration** (`.github/workflows/ci.yml`) runs on every push to `main` and on every pull request: lint and format, type check and build on Linux, then the end-to-end tests on macOS, Linux and Windows. Dependabot proposes weekly dependency updates.
-
-**Releases and changelog** use [Changesets](https://github.com/changesets/changesets). A change that users can notice comes with a changeset (`yarn changeset`, one line describing it). Once merged on `main`, a bot keeps a "Version packages" pull request up to date; merging it bumps the version, updates `CHANGELOG.md`, tags the release and builds the installers for the three systems (`.github/workflows/release.yml`). The app checks for updates on startup when packaged (`src/main/updater.ts`).
-
-```
-src/main/index.ts                 main process: window, one view per account, layout, menu
-src/main/providers.ts             supported services (URL, browser identifier, sign-in domains)
-src/main/permissions.ts            permissions granted to service pages
-src/main/state.ts                 reading / validating / writing state.json
-src/main/context-menu*.ts         right-click menu (pure template + wiring)
-src/main/account-notifications.ts notification title and color dot of an account
-src/preload/index.ts              minimal bridge to the interface (contextBridge)
-src/preload/service.ts            preload of service pages: exposes nothing, dresses up notifications
-src/shared/grid.ts                grid layout tree: drops, resizing, geometry (pure, tested)
-src/shared/types.ts               types shared by the three
-src/renderer/                     Preact + Tailwind interface (sidebar, cell headers, grid overlay)
-resources/                        app icon (SVG source, PNG, ICO, ICNS)
-e2e/                              Playwright tests
-.github/                          CI workflow and Dependabot
-```
+- [Installation](docs/install.md): platforms, first launch on macOS, updates.
+- [Using Cénacle](docs/usage.md): accounts, shortcuts, notifications, usage limits, language.
+- [The grid](docs/grid.md): arrange, resize and remove cells.
+- [Services](docs/services.md): what is supported, adding a service, Gemini and Google sign-in, known limits.
+- [Privacy, permissions and sign-in](docs/privacy.md): isolation, permissions, passwords and passkeys, where your data lives.
+- [Development](docs/development.md): build from source, tests, releases, project layout.
+- [Contributing](CONTRIBUTING.md) · [Security policy](SECURITY.md) · [Changelog](CHANGELOG.md)
 
 ## Roadmap
 
-- Shared memory between accounts through a common MCP server (depending on each service's and plan's connector support).
-- Per-account quota tracking, time left before next use, notification when an account becomes usable again.
-- Menu bar icon, manual light / dark switch, customizable shortcuts.
+- Shared memory between accounts through a common MCP server.
+- Usage limits for ChatGPT and Gemini (Claude only for now).
+- Menu bar icon, customizable shortcuts.
 - Code signing and notarization (needed for macOS updates, Touch ID and passkeys).
 - More services.
+
+## ☕ Sponsors
+
+If you find Cénacle useful, consider supporting its development:
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/jeromearsene)
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-ea4aaa?style=for-the-badge&logo=github-sponsors&logoColor=white)](https://github.com/sponsors/jeromearsene)
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=jeromearsene/cenacle-AI&type=Date)](https://star-history.com/#jeromearsene/cenacle-AI&Date)
+
+## Unofficial project
+
+Cénacle is not affiliated with Anthropic, OpenAI or Google. The names Claude, ChatGPT, Gemini and any other service name belong to their respective owners. The app uses no API: it displays the public websites, like a browser would. Read each service's terms of use before relying on it.
 
 ## License
 

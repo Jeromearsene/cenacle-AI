@@ -18,7 +18,7 @@ Installers (macOS `.dmg`, Windows `.exe`, Linux AppImage and `.deb`) are attache
 
 1. Open the `.dmg`, drag Cénacle to Applications and launch it. macOS refuses to open it.
 2. Open System Settings → Privacy & Security, scroll to the message about Cénacle, click "Open Anyway" and confirm. On macOS 15 (Sequoia) and later, the right-click → Open shortcut no longer works.
-3. If macOS says the app is "damaged", remove the quarantine flag and launch it again: `xattr -dr com.apple.quarantine /Applications/Cénacle.app`.
+3. If macOS says the app is "damaged", remove the quarantine flag and launch it again: `xattr -dr com.apple.quarantine /Applications/Cenacle.app`.
 
 Until the app is signed, macOS cannot update it: download each new version from the releases page.
 

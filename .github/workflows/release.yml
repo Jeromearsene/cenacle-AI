@@ -90,11 +90,15 @@ jobs:
           node-version: 22
           cache: yarn
       - run: yarn install --immutable
-      # The app is not code-signed yet: no certificate is looked for.
+      # No certificate is looked for on Windows and Linux (the app is not code-signed there). On
+      # macOS the app is signed ad hoc (electron-builder.yml) and built as "Cenacle.app": with the
+      # accent of "Cénacle.app" the packaged app crashes at launch on macOS 26 (SIGTRAP in the
+      # browser process). The name the app shows at run time (productName in package.json) and
+      # the installers' file names are not affected.
       - name: Build the installers
-        run: yarn dist --publish never
+        run: yarn dist --publish never ${{ matrix.os == 'macos-latest' && '-c.productName=Cenacle' || '' }}
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ matrix.os == 'macos-latest' && 'true' || 'false' }}
       # Not `yarn dist --publish always`: electron-builder refuses to add files to a release
       # published more than 2 hours ago, which is exactly the case of a manual run.
       - name: Attach the installers to the release

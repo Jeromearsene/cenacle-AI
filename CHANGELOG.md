@@ -1,5 +1,11 @@
 # cenacle-ai
 
+## 0.3.0
+
+### Minor Changes
+
+- [#24](https://github.com/Jeromearsene/cenacle-AI/pull/24) [`6c537ff`](https://github.com/Jeromearsene/cenacle-AI/commit/6c537ff42a82cc5975494a55f47c7ce125b15a9b) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - Claude accounts now show when their usage limit is close or reached: a pill in the sidebar and in the column header ("90%+" or "Full"), the reset time, an hourglass bar that drains until the reset, and a notification when the limit is back.
+
 ## 0.2.0
 
 ### Minor Changes

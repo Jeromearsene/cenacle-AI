@@ -36,6 +36,10 @@ New account: Accounts → New account in the menu, or the sidebar button.
 
 When Claude's page tells you that you are close to, or at, your usage limit, Cénacle shows it for that account, in the sidebar and in the cell header:
 
+![A Claude account at its limit: "Full" pill, return time and hourglass bar in the sidebar and in the cell header](images/quota.png)
+
+_An account at its limit, in the sidebar and in its cell header. Page content is demo text._
+
 - a **pill**: "90%+" (more than 90 % of the limit used) or "Full" (limit reached);
 - the time the limit **comes back**, the time left, and an hourglass bar drawn against the 5-hour window (it turns green when the limit is about to come back);
 - a **notification**, with the account's name and color, when a limit that was reached is reset.

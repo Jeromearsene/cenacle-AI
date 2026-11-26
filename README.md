@@ -18,6 +18,13 @@
 
 A free plan here, a work account there, a personal one on the side. Cénacle puts them all in one window: switch with a shortcut, or lay them out side by side to compare the answers of several assistants to the same question. Nothing gets mixed up: every account keeps its own session.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/grid-dark.png">
+    <img src="docs/images/grid.png" alt="Cénacle with three accounts side by side in grid mode (demo conversations)" width="860">
+  </picture>
+</p>
+
 ## ✨ Features
 
 - **Many accounts, one window**: Claude, ChatGPT and Gemini, including several accounts of the same service.

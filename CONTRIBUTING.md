@@ -21,7 +21,7 @@ yarn check        # lint + type check
 yarn test:e2e     # end-to-end tests (on Linux without a display: xvfb-run -a yarn test:e2e)
 ```
 
-The README explains the project layout, the supported platforms and how to add a service.
+The [development guide](docs/development.md) explains the project layout, the tests and the releases.
 
 ## Rules for a pull request
 
@@ -50,5 +50,5 @@ For a security problem, do **not** open a public issue: see [SECURITY.md](SECURI
 
 ## Adding a service
 
-Services are plain data in `src/main/providers.ts`; see "Adding a service" in the README.
+Services are plain data in `src/main/providers.ts`; see [Adding a service](docs/services.md#adding-a-service).
 Please include in the pull request what you tested (sign-in, a conversation, notifications).

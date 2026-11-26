@@ -1,5 +1,5 @@
 // Supported services. To add one, a single entry in PROVIDERS is enough
-// (see "Adding a service" in the README).
+// (see "Adding a service" in docs/services.md).
 //
 // ua: browser identifier sent to websites
 //   'clean'  : without "Electron/x" or the app name, like a standard Chrome

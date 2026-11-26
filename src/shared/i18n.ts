@@ -28,6 +28,15 @@ const en = {
   'grid.swap': 'Swap',
   'grid.replace': 'Replace',
   'grid.noRoom': 'Not enough room',
+  'quota.pillFull': 'Full',
+  'quota.pillWarning': '90%+',
+  'quota.back': 'back {time}',
+  'quota.backIn': 'back at {time} · in {left}',
+  'quota.tooltipFull': '{name} · usage limit reached',
+  'quota.tooltipWarning': '{name} · over 90% of the usage limit used',
+  'quota.tooltipDetail': '{left} left out of 5 h · resets at {time}',
+  'quota.notifyTitle': 'Usage limit is back',
+  'quota.notifyBody': 'Your usage limit has been reset. You can resume your conversation.',
 
   // delete confirmation
   'dialog.deleteTitle': 'Delete “{name}”?',
@@ -91,6 +100,16 @@ const fr: Record<MessageKey, string> = {
   'grid.swap': 'Échanger',
   'grid.replace': 'Remplacer',
   'grid.noRoom': 'Pas assez de place',
+  'quota.pillFull': 'Plein',
+  'quota.pillWarning': '90 %+',
+  'quota.back': 'retour {time}',
+  'quota.backIn': 'retour à {time} · dans {left}',
+  'quota.tooltipFull': '{name} · limite d’utilisation atteinte',
+  'quota.tooltipWarning': '{name} · plus de 90 % de la limite d’utilisation consommés',
+  'quota.tooltipDetail': '{left} restantes sur 5 h · réinitialisation à {time}',
+  'quota.notifyTitle': 'Quota de retour',
+  'quota.notifyBody':
+    'Votre limite d’utilisation a été réinitialisée. Vous pouvez reprendre la conversation.',
 
   'dialog.deleteTitle': 'Supprimer « {name} » ?',
   'dialog.deleteDetail':

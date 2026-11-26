@@ -1,7 +1,9 @@
+import { formatRemaining, formatTime, type QuotaInfo } from '../../shared/quota';
 import type { Account } from '../../shared/types';
 import { useT } from '../i18n';
 import { api } from '../use-multi';
 import { IconButton } from './IconButton';
+import { QuotaBar, QuotaPill, quotaTooltip, toneClasses } from './Quota';
 import { RenameInput } from './RenameInput';
 
 interface Props {
@@ -15,6 +17,10 @@ interface Props {
   onDragStart: (event: PointerEvent) => void;
   removable: boolean;
   editing: boolean;
+  /** Usage limit state of the account, if it is close or reached. */
+  quota?: QuotaInfo;
+  now: number;
+  locale: string;
   onStartRename: () => void;
   onRename: (name: string) => void;
   onCancelRename: () => void;
@@ -29,19 +35,31 @@ export function AccountItem({
   onDragStart,
   removable,
   editing,
+  quota,
+  now,
+  locale,
   onStartRename,
   onRename,
   onCancelRename,
 }: Props) {
   const t = useT();
+  const tone = quota ? toneClasses(quota, now) : null;
+  // What the hover says: that the account is out of the grid and, if close, its usage limit.
+  const accountTitle =
+    [
+      outsideGrid ? t('account.notInGrid') : null,
+      quota ? quotaTooltip(t, locale, account.name, quota, now) : null,
+    ]
+      .filter(Boolean)
+      .join('\n') || undefined;
   return (
     // biome-ignore lint/a11y/useSemanticElements: the row contains other buttons (rename, delete); a nested <button> would be invalid
     <div
       role="button"
       tabIndex={0}
       aria-current={active}
-      title={outsideGrid ? t('account.notInGrid') : undefined}
-      class={`account group flex h-8 cursor-pointer items-center gap-2 rounded-[7px] px-2 hover:bg-hover focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent ${active ? 'active bg-active' : ''} ${outsideGrid ? 'outside opacity-60' : ''}`}
+      title={accountTitle}
+      class={`account group flex cursor-pointer flex-col justify-center rounded-[7px] px-2 hover:bg-hover focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent ${active ? 'active bg-active' : ''} ${outsideGrid ? 'outside opacity-60' : ''}`}
       onPointerDown={(e) => {
         // A press on the buttons or the rename field stays a plain click.
         if (!editing && !(e.target as Element).closest('button, input')) onDragStart(e);
@@ -55,48 +73,65 @@ export function AccountItem({
         }
       }}
     >
-      <span
-        class={`dot size-[9px] flex-none rounded-full ${outsideGrid ? 'hollow' : ''}`}
-        style={
-          outsideGrid
-            ? { boxShadow: `inset 0 0 0 1.5px ${account.color}` }
-            : { backgroundColor: account.color }
-        }
-      />
-      {editing ? (
-        <RenameInput initial={account.name} onCommit={onRename} onCancel={onCancelRename} />
-      ) : (
-        <>
-          {/* biome-ignore lint/a11y/noStaticElementInteractions: mouse shortcut; the keyboard equivalent is the "Rename" button */}
-          <span
-            class="name min-w-0 flex-1 truncate"
-            title={account.name}
-            onDblClick={onStartRename}
-          >
-            {account.name}
-          </span>
-          {shortcut ? (
-            <kbd class="shortcut flex-none rounded border border-line bg-bg px-1.5 font-sans text-[11px] text-muted">
-              {shortcut}
-            </kbd>
-          ) : (
-            <span class="tag flex-none text-[11px] text-muted group-focus-within:hidden group-hover:hidden">
-              {providerLabel}
+      <div class="flex h-8 items-center gap-2">
+        <span
+          class={`dot size-[9px] flex-none rounded-full ${outsideGrid ? 'hollow' : ''}`}
+          style={
+            outsideGrid
+              ? { boxShadow: `inset 0 0 0 1.5px ${account.color}` }
+              : { backgroundColor: account.color }
+          }
+        />
+        {editing ? (
+          <RenameInput initial={account.name} onCommit={onRename} onCancel={onCancelRename} />
+        ) : (
+          <>
+            {/* biome-ignore lint/a11y/noStaticElementInteractions: mouse shortcut; the keyboard equivalent is the "Rename" button */}
+            <span
+              class={`name min-w-0 flex-1 truncate ${quota?.level === 'reached' ? 'opacity-70' : ''}`}
+              title={account.name}
+              onDblClick={onStartRename}
+            >
+              {account.name}
             </span>
-          )}
-          <span
-            class={`actions gap-0.5 ${shortcut ? 'hidden' : 'hidden group-focus-within:flex group-hover:flex'}`}
-          >
-            <IconButton label={t('account.rename')} glyph="✎" onClick={onStartRename} />
-            {removable && (
-              <IconButton
-                label={t('account.delete')}
-                glyph="✕"
-                onClick={() => void api.removeAccount(account.id)}
-              />
+            {shortcut ? (
+              <kbd class="shortcut flex-none rounded border border-line bg-bg px-1.5 font-sans text-[11px] text-muted">
+                {shortcut}
+              </kbd>
+            ) : quota ? (
+              <span class="flex-none group-focus-within:hidden group-hover:hidden">
+                <QuotaPill info={quota} now={now} t={t} locale={locale} />
+              </span>
+            ) : (
+              <span class="tag flex-none text-[11px] text-muted group-focus-within:hidden group-hover:hidden">
+                {providerLabel}
+              </span>
             )}
+            <span
+              class={`actions gap-0.5 ${shortcut ? 'hidden' : 'hidden group-focus-within:flex group-hover:flex'}`}
+            >
+              <IconButton label={t('account.rename')} glyph="✎" onClick={onStartRename} />
+              {removable && (
+                <IconButton
+                  label={t('account.delete')}
+                  glyph="✕"
+                  onClick={() => void api.removeAccount(account.id)}
+                />
+              )}
+            </span>
+          </>
+        )}
+      </div>
+      {quota && !editing && tone && (
+        <div class="quota-detail flex flex-col gap-1 pr-0.5 pb-1.5 pl-[17px]">
+          <span class={`text-[11px] leading-none ${tone.text}`}>
+            {t('quota.backIn', {
+              time: formatTime(quota.resetsAt, locale),
+              left: formatRemaining(quota.resetsAt - now),
+            })}
           </span>
-        </>
+          <QuotaBar info={quota} now={now} class="h-1" />
+        </div>
       )}
     </div>
   );

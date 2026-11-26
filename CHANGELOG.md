@@ -1,5 +1,33 @@
 # cenacle-ai
 
+## 0.5.0
+
+### Minor Changes
+
+- [#39](https://github.com/Jeromearsene/cenacle-AI/pull/39) [`957e171`](https://github.com/Jeromearsene/cenacle-AI/commit/957e1713f8b85eba317dbea477eeb04f1df6fb6f) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - Filter the sidebar by service and group accounts by service
+
+- [#38](https://github.com/Jeromearsene/cenacle-AI/pull/38) [`4a93684`](https://github.com/Jeromearsene/cenacle-AI/commit/4a93684048ae509d013d890b07d278ef3c29472d) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - The developer tools and the resource usage panel now live in a new View → Development submenu, which also has a "Test notifications…" entry: it raises a system and a web notification and tells whether the system displays them (on macOS, only a signed app gets its notifications shown).
+
+### Patch Changes
+
+- [#40](https://github.com/Jeromearsene/cenacle-AI/pull/40) [`2e65ccd`](https://github.com/Jeromearsene/cenacle-AI/commit/2e65ccd823c99787cbe176f86ec65a6465f09093) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - Keep the sidebar service filter and grouping between launches
+
+## 0.4.0
+
+### Minor Changes
+
+- [#36](https://github.com/Jeromearsene/cenacle-AI/pull/36) [`9a48953`](https://github.com/Jeromearsene/cenacle-AI/commit/9a4895311a12376d6d349029cabb8bd7e202a65e) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - Added View → Resource usage: a small panel that shows the memory and CPU taken by each account, what is shared (interface, graphics, network) and the total, to see which account weighs the most.
+
+### Patch Changes
+
+- [#35](https://github.com/Jeromearsene/cenacle-AI/pull/35) [`3180fd5`](https://github.com/Jeromearsene/cenacle-AI/commit/3180fd596dfd84f0409b37937a9f8ae3d6b8367d) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - macOS: the app is now signed ad hoc, so the system displays its notifications, and is built as `Cenacle.app` (without the accent), which avoids a crash at launch seen on macOS 26. The name shown in the app is still "Cénacle". macOS still warns at the first launch, and the app still does not update itself there.
+
+## 0.3.0
+
+### Minor Changes
+
+- [#24](https://github.com/Jeromearsene/cenacle-AI/pull/24) [`6c537ff`](https://github.com/Jeromearsene/cenacle-AI/commit/6c537ff42a82cc5975494a55f47c7ce125b15a9b) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - Claude accounts now show when their usage limit is close or reached: a pill in the sidebar and in the column header ("90%+" or "Full"), the reset time, an hourglass bar that drains until the reset, and a notification when the limit is back.
+
 ## 0.2.0
 
 ### Minor Changes

@@ -2,6 +2,7 @@
 // Types only: this file must not import anything from Node or Electron.
 import type { Area, Divider, DropZone, GridNode } from './grid';
 import type { Locale } from './i18n';
+import type { ResourceUsage } from './metrics';
 import type { QuotaInfo } from './quota';
 
 export type Layout = 'single' | 'grid';
@@ -12,6 +13,16 @@ export interface Account {
   color: string;
   /** Service identifier (see providers.ts). */
   provider: string;
+}
+
+/** `manual`: the order of the accounts as they are (shortcuts follow it). `provider`: grouped by service. */
+export type AccountSort = 'manual' | 'provider';
+
+/** How the sidebar lists accounts: kept between launches. */
+export interface AccountView {
+  /** A service id to list alone, or null for every service. */
+  filter: string | null;
+  sort: AccountSort;
 }
 
 export interface Bounds {
@@ -27,6 +38,7 @@ export interface PersistedState {
   accounts: Account[];
   activeId: string;
   layout: Layout;
+  accountView: AccountView;
   /** The grid mode layout; null until it is first shown (then every account is in it). */
   grid: GridNode | null;
   bounds: Bounds | null;
@@ -60,6 +72,7 @@ export interface PublicState {
   /** Accounts that raised a notification nobody has looked at yet. */
   unread: string[];
   layout: Layout;
+  accountView: AccountView;
   rects: Rect[];
   /** Resize handles between the cells (grid mode only). */
   dividers: Divider[];
@@ -80,6 +93,8 @@ export interface MultiApi {
   renameAccount(id: string, name: string): Promise<boolean>;
   removeAccount(id: string): Promise<boolean>;
   setLayout(mode: Layout): Promise<void>;
+  /** Filters and groups the accounts of the sidebar (kept between launches). */
+  setAccountView(view: AccountView): Promise<void>;
   /** Drops an account on a cell of the grid: next to it (an edge) or in its place (center). */
   placeAccount(id: string, targetId: string, zone: DropZone): Promise<void>;
   /** Equal sizes for the whole grid, or for the split found at `path`. */
@@ -95,4 +110,8 @@ export interface MultiApi {
   onRenameRequest(cb: (id: string) => void): () => void;
   /** True while the shortcut key (⌘ / Ctrl) is held. */
   onShortcutHint(cb: (visible: boolean) => void): () => void;
+  /** Memory and CPU of each account's page (and of everything shared), right now. */
+  getResourceUsage(): Promise<ResourceUsage>;
+  /** The "Resource usage" menu entry was chosen: show or hide the panel. */
+  onResourceUsageToggle(cb: () => void): () => void;
 }

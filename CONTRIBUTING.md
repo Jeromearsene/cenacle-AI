@@ -40,6 +40,34 @@ The [development guide](docs/development.md) explains the project layout, the te
   `refactor:`.
 - **No secrets, no personal data** in code, tests or screenshots.
 
+## Testing notifications on macOS
+
+On macOS the system only displays an app's notifications when the app is **code-signed**; an
+ad-hoc signature (free, no Apple account) is enough. Packaged builds are signed that way by
+electron-builder (`mac.identity` in `electron-builder.yml`). `yarn dev` runs the `Electron.app`
+of `node_modules`, which is not signed, so no notification appears there until you sign it once:
+
+```bash
+codesign --force --deep --sign - node_modules/electron/dist/Electron.app
+```
+
+Quit the app and run `yarn dev` again. Do it again after reinstalling Electron
+(`rm -rf node_modules/electron && yarn install` also puts back the unsigned one).
+
+**View → Development → Test notifications…** raises one system notification and one web
+notification (from the active account's page) and tells what happened to each: shown,
+refused (with the system's error), or no answer after 5 s. Wait for the result; do not click
+away.
+
+To try a packaged build: `yarn dist:dir -c.productName=Cenacle`, then open
+`release/mac-arm64/Cenacle.app` (`release/mac/` on Intel). The release workflow builds the macOS
+app under that name: with the accent of "Cénacle.app", the packaged app crashed at launch on
+macOS 26. An app you built yourself is not quarantined by macOS, unlike one downloaded from the
+releases (first launch: right-click → Open).
+
+If no banner appears even though the dialog says `shown ✓`, check **System Settings →
+Notifications** (the app must be listed, with banners allowed) and that no Focus mode is on.
+
 ## Reporting a bug
 
 Use the "Bug report" form. Say which system you use (macOS, Windows or Linux and its version),

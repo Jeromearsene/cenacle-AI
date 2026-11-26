@@ -11,6 +11,7 @@ const api: MultiApi = {
   renameAccount: (id: string, name: string) => ipcRenderer.invoke('accounts:rename', id, name),
   removeAccount: (id: string) => ipcRenderer.invoke('accounts:remove', id),
   setLayout: (mode: Layout) => ipcRenderer.invoke('layout:set', mode),
+  setAccountView: (view) => ipcRenderer.invoke('view:set', view),
   placeAccount: (id, targetId, zone) => ipcRenderer.invoke('grid:place', id, targetId, zone),
   equalizeGrid: (path) => ipcRenderer.invoke('grid:equalize', path),
   removeFromGrid: (id) => ipcRenderer.invoke('grid:remove', id),
@@ -31,6 +32,12 @@ const api: MultiApi = {
     const listener = (_event: unknown, visible: boolean) => cb(visible);
     ipcRenderer.on('shortcut-hint', listener);
     return () => ipcRenderer.removeListener('shortcut-hint', listener);
+  },
+  getResourceUsage: () => ipcRenderer.invoke('resource-usage:get'),
+  onResourceUsageToggle: (cb) => {
+    const listener = () => cb();
+    ipcRenderer.on('resource-usage:toggle', listener);
+    return () => ipcRenderer.removeListener('resource-usage:toggle', listener);
   },
 };
 

@@ -42,11 +42,20 @@ import {
 } from '../shared/grid';
 import { resolveLocale, translator } from '../shared/i18n';
 import { isId } from '../shared/id';
+import { computeUsage, type ResourceUsage } from '../shared/metrics';
+import { activeFilter } from '../shared/provider-view';
 import type { QuotaInfo } from '../shared/quota';
 import { MAX_ACCOUNT_SHORTCUTS } from '../shared/shortcuts';
 import type { Account, Layout, PersistedState, PublicState, Rect } from '../shared/types';
 import { dotDataUrl, identityArgument } from './account-notifications';
 import { attachContextMenu } from './context-menu';
+import {
+  formatReport,
+  parseWebOutcome,
+  testNative,
+  type WebOutcome,
+  webProbeScript,
+} from './notification-test';
 import { isPermissionAllowed } from './permissions';
 import {
   DEFAULT_PROVIDER,
@@ -470,6 +479,7 @@ function publicState(): PublicState {
     activeId: state.activeId,
     unread: unread.ids(),
     layout: state.layout,
+    accountView: state.accountView,
     rects,
     dividers,
     grid: state.layout === 'grid' ? state.grid : null,
@@ -486,6 +496,8 @@ function notify(): void {
 
 function refresh({ relayout = true, animate = false } = {}): void {
   syncGridState();
+  // The saved filter must not outlive the accounts it was set for (one was removed).
+  state.accountView.filter = activeFilter(state.accounts, state.accountView.filter);
   if (relayout) applyLayout({ animate });
   buildMenu();
   notify();
@@ -532,6 +544,14 @@ function setLayout(mode: Layout): void {
   if (mode !== 'single' && mode !== 'grid') return;
   state.layout = mode;
   refresh();
+}
+
+/** Only the sidebar list changes: the pages, the grid and the shortcuts stay as they are. */
+function setAccountView(filter: unknown, sort: unknown): void {
+  if (filter !== null && !isProviderId(filter)) return;
+  if (sort !== 'manual' && sort !== 'provider') return;
+  state.accountView = { filter, sort };
+  refresh({ relayout: false });
 }
 
 /** Drops an account on a cell of the grid, unless a cell would get too small. */
@@ -650,10 +670,53 @@ function reloadAccount(id: string): void {
   if (view && !view.webContents.isDestroyed()) view.webContents.reload();
 }
 
+// View → Development → Test notifications (see notification-test.ts): raises a system
+// notification and a web notification from the active account's page, then tells what happened to
+// each.
+async function testNotifications(): Promise<void> {
+  const title = t('notifTest.title');
+  const nativeBody = t('notifTest.nativeLabel');
+  const webBody = t('notifTest.webLabel');
+  const wc = activeContents();
+  const [native, web] = await Promise.all([
+    testNative(() => new Notification({ title, body: nativeBody }), Notification.isSupported()),
+    wc
+      ? wc
+          .executeJavaScript(webProbeScript(title, webBody))
+          .then((raw): WebOutcome => parseWebOutcome(raw))
+          .catch(() => null)
+      : Promise.resolve(null),
+  ]);
+  const options = {
+    type: 'info' as const,
+    message: title,
+    detail: formatReport(native, web, t, isMac),
+  };
+  if (win && !win.isDestroyed()) await dialog.showMessageBox(win, options);
+  else await dialog.showMessageBox(options);
+}
+
 function zoomActive(delta: number): void {
   const wc = activeContents();
   if (!wc) return;
   wc.setZoomLevel(delta === 0 ? 0 : wc.getZoomLevel() + delta);
+}
+
+/** Memory and CPU of each account's page, and of everything that belongs to none of them. */
+function resourceUsage(): ResourceUsage {
+  const samples = app.getAppMetrics().map((m) => ({
+    pid: m.pid,
+    cpu: m.cpu.percentCPUUsage,
+    memoryKb: m.memory.workingSetSize,
+  }));
+  // Each account has its own session, hence its own page process. 0 means "not started yet".
+  const pids = new Map(
+    state.accounts.map((a) => {
+      const wc = views.get(a.id)?.webContents;
+      return [a.id, wc && !wc.isDestroyed() ? wc.getOSProcessId() || null : null] as const;
+    })
+  );
+  return computeUsage(samples, pids);
 }
 
 // ------------------------------------------------------------------ IPC (interface → processus principal)
@@ -724,6 +787,12 @@ handle('accounts:select', (id) => isId(id) && selectAccount(id));
 handle('accounts:rename', (id, name) => isId(id) && renameAccount(id, name));
 handle('accounts:remove', (id) => (isId(id) ? removeAccount(id) : false));
 handle('layout:set', (mode) => setLayout(mode as Layout));
+handle('view:set', (view) => {
+  if (typeof view === 'object' && view !== null) {
+    const { filter, sort } = view as Record<string, unknown>;
+    setAccountView(filter, sort);
+  }
+});
 handle(
   'grid:place',
   (id, targetId, zone) =>
@@ -743,6 +812,7 @@ handle('grid:equalize', (path) => {
 });
 handle('grid:dragging', (active) => setDragging(active === true));
 handle('account:reload', (id) => isId(id) && reloadAccount(id));
+handle('resource-usage:get', () => resourceUsage());
 
 // ------------------------------------------------------------------ menu
 
@@ -817,10 +887,29 @@ function buildMenu(): void {
                 click: () => win && (win.isMaximized() ? win.unmaximize() : win.maximize()),
               },
             ]),
+        { type: 'separator' },
         {
-          label: t('menu.devTools'),
-          accelerator: 'CmdOrCtrl+Alt+I',
-          click: () => activeContents()?.openDevTools({ mode: 'detach' }),
+          label: t('menu.development'),
+          submenu: [
+            {
+              label: t('menu.devTools'),
+              accelerator: 'CmdOrCtrl+Alt+I',
+              click: () => activeContents()?.openDevTools({ mode: 'detach' }),
+            },
+            {
+              id: 'resource-usage',
+              label: t('menu.resourceUsage'),
+              click: () => {
+                if (win && !win.isDestroyed()) win.webContents.send('resource-usage:toggle');
+              },
+            },
+            { type: 'separator' },
+            {
+              id: 'test-notifications',
+              label: t('menu.testNotifications'),
+              click: () => void testNotifications(),
+            },
+          ],
         },
       ],
     },

@@ -17,14 +17,19 @@ publish:
   provider: github
   owner: Jeromearsene
   repo: cenacle-AI
-  # The release already exists, published with its changelog, when the installers are built
-  # (changesets/action creates it): upload into it instead of skipping the files, which is what
-  # the default "draft" type does.
-  releaseType: release
+  # Only describes where updates come from (and writes latest*.yml): the installers are uploaded
+  # by the release workflow, which runs `yarn dist --publish never`.
 
 mac:
   category: public.app-category.productivity
   icon: resources/icon.icns
+  # Ad-hoc signature: no certificate, no Apple account. Electron's documentation says macOS only
+  # displays an app's notifications when the app is signed; with an ad-hoc signature they appear
+  # (tested). Hardened runtime is off because, with an ad-hoc signature, it makes macOS reject
+  # Electron's own pre-signed frameworks (electron-builder's documentation). This is not a
+  # Developer ID signature: macOS still warns at the first launch and cannot auto-update the app.
+  identity: "-"
+  hardenedRuntime: false
   target:
     - { target: dmg, arch: [arm64, x64] }
     - { target: zip, arch: [arm64, x64] }

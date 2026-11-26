@@ -17,6 +17,10 @@ const en = {
   'account.delete': 'Delete',
   'account.unread': 'New notification',
   'account.nameLabel': 'Account name',
+  'filter.label': 'Filter accounts by service',
+  'filter.all': 'All',
+  'filter.group': 'Group',
+  'filter.groupHint': 'Group accounts by service',
   'layout.label': 'Layout',
   'layout.single': 'Single',
   'layout.grid': 'Grid',
@@ -38,6 +42,17 @@ const en = {
   'quota.tooltipDetail': '{left} left out of 5 h · resets at {time}',
   'quota.notifyTitle': 'Usage limit is back',
   'quota.notifyBody': 'Your usage limit has been reset. You can resume your conversation.',
+
+  // resource usage panel
+  'usage.title': 'Resource usage',
+  'usage.close': 'Close',
+  'usage.account': 'Account',
+  'usage.memory': 'Memory',
+  'usage.cpu': 'CPU',
+  'usage.notLoaded': 'Not loaded yet',
+  'usage.shared': 'Shared',
+  'usage.total': 'Total',
+  'usage.note': 'Approximate. Shared: interface, graphics, network and frames from other sites.',
 
   // delete confirmation
   'dialog.deleteTitle': 'Delete “{name}”?',
@@ -62,7 +77,9 @@ const en = {
   'menu.zoomOut': 'Zoom out',
   'menu.actualSize': 'Actual size',
   'menu.maximizeWindow': 'Maximize window',
+  'menu.development': 'Development',
   'menu.devTools': 'Developer tools (active account)',
+  'menu.resourceUsage': 'Resource usage',
 
   // right-click menu
   'context.noSuggestion': 'No suggestion',
@@ -78,6 +95,25 @@ const en = {
   'context.pasteMatchStyle': 'Paste and match style',
   'context.selectAll': 'Select all',
   'context.inspect': 'Inspect element',
+
+  // notification test (see src/main/notification-test.ts)
+  'menu.testNotifications': 'Test notifications…',
+  'notifTest.title': 'Notification test',
+  'notifTest.nativeLabel': 'System notification (app):',
+  'notifTest.webLabel': 'Web notification (active account):',
+  'notifTest.native.show': 'shown ✓',
+  'notifTest.native.timeout': 'no answer after 5 s: check whether a banner appeared',
+  'notifTest.native.unsupported': 'not supported on this system',
+  'notifTest.nativeFailed': 'refused by the system ({error})',
+  'notifTest.web.show': 'shown ✓',
+  'notifTest.web.error': 'refused',
+  'notifTest.web.timeout': 'no event after 5 s: check whether a banner appeared',
+  'notifTest.web.throw': 'could not be created ({error})',
+  'notifTest.web.unavailable': 'not available in this page',
+  'notifTest.permission': 'permission: {permission}',
+  'notifTest.webNone': 'no account page to test',
+  'notifTest.hintSigning':
+    'On macOS, the system only displays notifications of a signed app (an ad-hoc signature is enough). See “Testing notifications on macOS” in CONTRIBUTING.md.',
 } as const;
 
 export type MessageKey = keyof typeof en;
@@ -90,6 +126,10 @@ const fr: Record<MessageKey, string> = {
   'account.delete': 'Supprimer',
   'account.unread': 'Nouvelle notification',
   'account.nameLabel': 'Nom du compte',
+  'filter.label': 'Filtrer les comptes par service',
+  'filter.all': 'Tous',
+  'filter.group': 'Grouper',
+  'filter.groupHint': 'Grouper les comptes par service',
   'layout.label': 'Mise en page',
   'layout.single': 'Un seul',
   'layout.grid': 'Grille',
@@ -113,6 +153,17 @@ const fr: Record<MessageKey, string> = {
   'quota.notifyBody':
     'Votre limite d’utilisation a été réinitialisée. Vous pouvez reprendre la conversation.',
 
+  'usage.title': 'Utilisation des ressources',
+  'usage.close': 'Fermer',
+  'usage.account': 'Compte',
+  'usage.memory': 'Mémoire',
+  'usage.cpu': 'CPU',
+  'usage.notLoaded': 'Pas encore chargé',
+  'usage.shared': 'Commun',
+  'usage.total': 'Total',
+  'usage.note':
+    'Approximatif. Commun : interface, graphismes, réseau et cadres issus d’autres sites.',
+
   'dialog.deleteTitle': 'Supprimer « {name} » ?',
   'dialog.deleteDetail':
     'La session de ce compte (connexion, cookies, données locales) sera effacée de cet outil. Le compte lui-même, chez le service, n’est pas touché.',
@@ -134,7 +185,9 @@ const fr: Record<MessageKey, string> = {
   'menu.zoomOut': 'Zoom arrière',
   'menu.actualSize': 'Taille réelle',
   'menu.maximizeWindow': 'Agrandir la fenêtre',
+  'menu.development': 'Développement',
   'menu.devTools': 'Outils de développement (compte actif)',
+  'menu.resourceUsage': 'Utilisation des ressources',
 
   'context.noSuggestion': 'Aucune suggestion',
   'context.addToDictionary': 'Ajouter au dictionnaire',
@@ -149,6 +202,24 @@ const fr: Record<MessageKey, string> = {
   'context.pasteMatchStyle': 'Coller sans mise en forme',
   'context.selectAll': 'Tout sélectionner',
   'context.inspect': 'Inspecter l’élément',
+
+  'menu.testNotifications': 'Tester les notifications…',
+  'notifTest.title': 'Test des notifications',
+  'notifTest.nativeLabel': 'Notification système (app) :',
+  'notifTest.webLabel': 'Notification web (compte actif) :',
+  'notifTest.native.show': 'affichée ✓',
+  'notifTest.native.timeout': 'pas de réponse après 5 s : vérifie si une bannière est apparue',
+  'notifTest.native.unsupported': 'non prise en charge sur ce système',
+  'notifTest.nativeFailed': 'refusée par le système ({error})',
+  'notifTest.web.show': 'affichée ✓',
+  'notifTest.web.error': 'refusée',
+  'notifTest.web.timeout': 'aucun événement après 5 s : vérifie si une bannière est apparue',
+  'notifTest.web.throw': 'impossible à créer ({error})',
+  'notifTest.web.unavailable': 'indisponible dans cette page',
+  'notifTest.permission': 'permission : {permission}',
+  'notifTest.webNone': 'aucune page de compte à tester',
+  'notifTest.hintSigning':
+    'Sur macOS, le système n’affiche que les notifications d’une app signée (une signature ad hoc suffit). Voir « Testing notifications on macOS » dans CONTRIBUTING.md.',
 };
 
 export const messages: Record<Locale, Record<MessageKey, string>> = { en, fr };

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
+import type { ResourceUsage } from '../shared/metrics';
 import type { PublicState } from '../shared/types';
 
 export const api = window.multi;
@@ -24,4 +25,32 @@ export function useShortcutHint(): boolean {
 /** The main process asks to rename an account (for example right after creating it). */
 export function useRenameRequest(onRequest: (id: string) => void): void {
   useEffect(() => api.onRenameRequest(onRequest), [onRequest]);
+}
+
+/** The "Resource usage" menu entry was chosen. */
+export function useResourceUsageToggle(onToggle: () => void): void {
+  useEffect(() => api.onResourceUsageToggle(onToggle), [onToggle]);
+}
+
+/** Memory and CPU of each account, refreshed while `active` (CPU is measured between two samples). */
+export function useResourceUsage(active: boolean, intervalMs = 2000): ResourceUsage | null {
+  const [usage, setUsage] = useState<ResourceUsage | null>(null);
+  useEffect(() => {
+    if (!active) return;
+    let cancelled = false;
+    const poll = () =>
+      api
+        .getResourceUsage()
+        .then((u) => !cancelled && setUsage(u))
+        .catch(() => {
+          /* the next sample tries again */
+        });
+    void poll();
+    const timer = setInterval(poll, intervalMs);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [active, intervalMs]);
+  return usage;
 }

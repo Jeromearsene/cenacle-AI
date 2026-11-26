@@ -1,5 +1,17 @@
 # cenacle-ai
 
+## 0.5.0
+
+### Minor Changes
+
+- [#39](https://github.com/Jeromearsene/cenacle-AI/pull/39) [`957e171`](https://github.com/Jeromearsene/cenacle-AI/commit/957e1713f8b85eba317dbea477eeb04f1df6fb6f) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - Filter the sidebar by service and group accounts by service
+
+- [#38](https://github.com/Jeromearsene/cenacle-AI/pull/38) [`4a93684`](https://github.com/Jeromearsene/cenacle-AI/commit/4a93684048ae509d013d890b07d278ef3c29472d) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - The developer tools and the resource usage panel now live in a new View → Development submenu, which also has a "Test notifications…" entry: it raises a system and a web notification and tells whether the system displays them (on macOS, only a signed app gets its notifications shown).
+
+### Patch Changes
+
+- [#40](https://github.com/Jeromearsene/cenacle-AI/pull/40) [`2e65ccd`](https://github.com/Jeromearsene/cenacle-AI/commit/2e65ccd823c99787cbe176f86ec65a6465f09093) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - Keep the sidebar service filter and grouping between launches
+
 ## 0.4.0
 
 ### Minor Changes

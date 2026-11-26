@@ -1,6 +1,7 @@
 import path from 'node:path';
 import type {
   HandlerDetails,
+  IpcMainEvent,
   MenuItemConstructorOptions,
   Rectangle,
   WebContents,
@@ -68,6 +69,7 @@ import {
 import { createQuotaTracker } from './quota';
 import { createShortcutHint, type KeyInput, shortcutModifierFor } from './shortcut-hint';
 import { MAX_NAME, makeAccount, readState, writeStateFile } from './state';
+import { createUnread } from './unread';
 import { checkForUpdates } from './updater';
 
 // ------------------------------------------------------------------ constants
@@ -79,6 +81,10 @@ const resource = (file: string) => path.join(RESOURCES, file);
 const SIDEBAR_W = 220; // sidebar width (px)
 const HEADER_H = 32; // height of each cell header (px)
 const isMac = process.platform === 'darwin';
+
+// Windows groups and names notifications by this identifier. The installer already uses the same
+// value (`appId` in electron-builder.yml); setting it here also names them when run from source.
+if (process.platform === 'win32') app.setAppUserModelId('io.github.jeromearsene.cenacle');
 
 // Interface language: the system language (English or French, English by default). Tests can
 // force it with CENACLE_LANG; ignored in a packaged app.
@@ -126,6 +132,8 @@ let dividers: Divider[] = [];
 // the interface receives every mouse event, and they are placed again when it ends.
 let dragging = false;
 let saveTimer: NodeJS.Timeout | null = null;
+// Accounts that raised a notification nobody has looked at yet (see unread.ts).
+const unread = createUnread(onUnreadChange);
 
 // The "claude-" prefix is historical (the tool only handled Claude): it names the session
 // folder of every account, whatever the service. Changing it would lose the sign-ins.
@@ -306,6 +314,7 @@ function createView(acc: Account, parent: BrowserWindow): WebContentsView {
     // A hidden view (another account, "single" mode) does not choose the active account: when the
     // app closes, Chromium may give it the focus back and skew the account kept at next launch.
     if (!view.getVisible()) return;
+    unread.clear(acc.id);
     if (state.activeId !== acc.id && findAccount(acc.id)) {
       state.activeId = acc.id;
       refresh({ relayout: false });
@@ -481,6 +490,7 @@ function publicState(): PublicState {
     providers: Object.values(PROVIDERS).map(({ id, label }) => ({ id, label })),
     accounts: state.accounts,
     activeId: state.activeId,
+    unread: unread.ids(),
     layout: state.layout,
     accountView: state.accountView,
     rects,
@@ -530,6 +540,7 @@ function selectableIds(): string[] {
 function selectAccount(id: string): boolean {
   if (!findAccount(id) || !selectableIds().includes(id)) return false;
   state.activeId = id;
+  unread.clear(id);
   refresh();
   activeContents()?.focus();
   return true;
@@ -655,6 +666,7 @@ async function removeAccount(id: string): Promise<boolean> {
 
   destroyView(id);
   quota.forget(id);
+  unread.forget(id);
   const ses = session.fromPartition(partitionOf(id));
   await ses.clearStorageData().catch(() => {});
   await ses.clearCache().catch(() => {});
@@ -722,16 +734,41 @@ function resourceUsage(): ResourceUsage {
 
 // ------------------------------------------------------------------ IPC (interface → processus principal)
 
+/** The account and view whose page (main frame only) sent this message. */
+function senderAccount(event: IpcMainEvent): { id: string; view: WebContentsView } | null {
+  const entry = [...views].find(([, view]) => view.webContents === event.sender);
+  if (!entry || event.senderFrame !== event.sender.mainFrame) return null;
+  return { id: entry[0], view: entry[1] };
+}
+
+// The unread list changed: the interface shows it, and the app icon carries the number of
+// accounts concerned (Dock badge on macOS, Unity launcher on Linux; Windows has no equivalent).
+function onUnreadChange(ids: string[]): void {
+  app.setBadgeCount(ids.length);
+  notify();
+}
+
+// A service raised a notification. If the user is not looking at that page, mark the account and
+// call them back: the Dock icon bounces (macOS) or the taskbar entry flashes (Windows, Linux).
+ipcMain.on('account:notification-shown', (event) => {
+  const sender = senderAccount(event);
+  if (!sender || !win || win.isDestroyed()) return;
+  const seen = win.isFocused() && sender.view.getVisible();
+  if (!unread.notify(sender.id, seen) || win.isFocused()) return;
+  if (isMac) app.dock?.bounce('informational');
+  else win.flashFrame(true);
+});
+
 // Click on a service notification: show its account and bring the app to the foreground.
 ipcMain.on('account:notification-click', (event) => {
-  const entry = [...views].find(([, view]) => view.webContents === event.sender);
-  if (!entry || event.senderFrame !== event.sender.mainFrame) return;
+  const sender = senderAccount(event);
+  if (!sender) return;
   if (win && !win.isDestroyed()) {
     if (win.isMinimized()) win.restore();
     win.show();
     win.focus();
   }
-  selectAccount(entry[0]);
+  selectAccount(sender.id);
 });
 
 // The usage banner read in a service page. Only the main frame of a service that has such a
@@ -936,6 +973,10 @@ function createWindow(): void {
   w.on('page-title-updated', (e) => e.preventDefault());
   trackShortcutHint(w.webContents);
   w.on('blur', () => shortcutHint.reset());
+  // Coming back to the app: the account on screen counts as seen.
+  w.on('focus', () => {
+    if (views.get(state.activeId)?.getVisible()) unread.clear(state.activeId);
+  });
 
   const relayout = () => {
     applyLayout();

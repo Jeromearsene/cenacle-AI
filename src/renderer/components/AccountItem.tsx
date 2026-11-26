@@ -12,6 +12,8 @@ interface Props {
   /** Shortcut to show (⌘ / Ctrl held), or null. */
   shortcut: string | null;
   active: boolean;
+  /** A notification from this account has not been seen yet. */
+  unread: boolean;
   /** Grid mode, and this account is not in the grid. */
   outsideGrid: boolean;
   onDragStart: (event: PointerEvent) => void;
@@ -31,6 +33,7 @@ export function AccountItem({
   providerLabel,
   shortcut,
   active,
+  unread,
   outsideGrid,
   onDragStart,
   removable,
@@ -88,12 +91,20 @@ export function AccountItem({
           <>
             {/* biome-ignore lint/a11y/noStaticElementInteractions: mouse shortcut; the keyboard equivalent is the "Rename" button */}
             <span
-              class={`name min-w-0 flex-1 truncate ${quota?.level === 'reached' ? 'opacity-70' : ''}`}
+              class={`name min-w-0 flex-1 truncate ${quota?.level === 'reached' ? 'opacity-70' : ''} ${unread ? 'font-semibold' : ''}`}
               title={account.name}
               onDblClick={onStartRename}
             >
               {account.name}
             </span>
+            {unread && (
+              <span
+                role="img"
+                aria-label={t('account.unread')}
+                title={t('account.unread')}
+                class="unread-dot size-[7px] flex-none rounded-full bg-accent"
+              />
+            )}
             {shortcut ? (
               <kbd class="shortcut flex-none rounded border border-line bg-bg px-1.5 font-sans text-[11px] text-muted">
                 {shortcut}

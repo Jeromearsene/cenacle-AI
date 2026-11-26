@@ -71,6 +71,14 @@ export function CellHeaders({ state, isMac, providerLabel, shortcutOf, onDragSta
               style={{ backgroundColor: acc.color }}
             />
             <span class="name min-w-0 flex-1 truncate font-medium">{acc.name}</span>
+            {state.unread.includes(acc.id) && (
+              <span
+                role="img"
+                aria-label={t('account.unread')}
+                title={t('account.unread')}
+                class="unread-dot size-[7px] flex-none rounded-full bg-accent"
+              />
+            )}
             {quota && !shortcutOf(acc.id) ? (
               <QuotaPill info={quota} now={now} t={t} locale={state.locale} withTime />
             ) : shortcutOf(acc.id) ? (

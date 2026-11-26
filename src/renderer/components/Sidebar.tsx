@@ -32,6 +32,7 @@ export function Sidebar({
 }: Props) {
   const t = useT();
   const gridIds = new Set(state.rects.map((r) => r.id));
+  const unreadIds = new Set(state.unread);
   const now = useNow(30_000, Object.keys(state.quotas).length > 0);
   const { filter, sort } = state.accountView;
   const inUse = providersInUse(state.accounts, state.providers);
@@ -68,6 +69,7 @@ export function Sidebar({
             providerLabel={providerLabel(acc.provider)}
             shortcut={shortcutOf(acc.id)}
             active={acc.id === state.activeId}
+            unread={unreadIds.has(acc.id)}
             outsideGrid={state.layout === 'grid' && !gridIds.has(acc.id)}
             onDragStart={(e) => onDragStart(acc.id, e)}
             removable={state.accounts.length > 1}

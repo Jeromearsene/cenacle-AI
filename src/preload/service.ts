@@ -9,6 +9,7 @@ import { ipcRenderer, webFrame } from 'electron';
 
 const ARG_PREFIX = '--cenacle-notifications=';
 const CLICK_EVENT = 'cenacle:notification-click';
+const SHOWN_EVENT = 'cenacle:notification-shown';
 
 interface Identity {
   name: string;
@@ -28,7 +29,7 @@ function readIdentity(): Identity {
 
 // Runs in the page's main world, before its own scripts. Idempotent: a second call (account
 // renamed) only updates the name.
-const script = (identity: Identity, clickEvent: string) => `(() => {
+const script = (identity: Identity, clickEvent: string, shownEvent: string) => `(() => {
   const KEY = Symbol.for('cenacle.notifications');
   const w = window;
   if (!Object.hasOwn(w, KEY)) Object.defineProperty(w, KEY, { value: {}, enumerable: false });
@@ -46,6 +47,7 @@ const script = (identity: Identity, clickEvent: string) => `(() => {
     class Notification extends Native {
       constructor(title, options) {
         super(...decorate(title, options));
+        w.dispatchEvent(new CustomEvent(${JSON.stringify(shownEvent)}));
         this.addEventListener('click', () => w.dispatchEvent(new CustomEvent(${JSON.stringify(clickEvent)})));
       }
     }
@@ -55,13 +57,14 @@ const script = (identity: Identity, clickEvent: string) => `(() => {
   const show = proto?.showNotification;
   if (show) {
     proto.showNotification = function (title, options) {
+      w.dispatchEvent(new CustomEvent(${JSON.stringify(shownEvent)}));
       return show.call(this, ...decorate(title, options));
     };
   }
 })();`;
 
 const install = (identity: Identity) => {
-  void webFrame.executeJavaScript(script(identity, CLICK_EVENT));
+  void webFrame.executeJavaScript(script(identity, CLICK_EVENT, SHOWN_EVENT));
 };
 
 install(readIdentity());
@@ -70,6 +73,10 @@ install(readIdentity());
 ipcRenderer.on('account:renamed', (_event, name: unknown) => {
   if (typeof name === 'string') install({ ...readIdentity(), name });
 });
+
+// A notification was raised (at load, from the page or from its service worker): the app marks
+// the account as having something unseen.
+window.addEventListener(SHOWN_EVENT, () => ipcRenderer.send('account:notification-shown'));
 
 // A click on the notification (triggered by the page): ask the app to show the account.
 window.addEventListener(CLICK_EVENT, () => ipcRenderer.send('account:notification-click'));

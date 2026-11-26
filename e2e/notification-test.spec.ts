@@ -9,7 +9,6 @@ import {
 import { translator } from '../src/shared/i18n';
 import { evalIn, expect, test, waitForServices } from './fixtures';
 
-
 const t = translator('en');
 
 /** A fake Electron notification: the test decides which event it emits. */

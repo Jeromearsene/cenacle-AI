@@ -31,6 +31,13 @@ export function Settings({
     if (openRequest != null) setOpen(true);
   }, [openRequest]);
 
+  // The service pages are WebContentsViews, native layers the main process stacks above this
+  // window's own page (see main/index.ts), so this dialog can only ever appear to cover them if
+  // main hides those views while it's open, and shows them again once it's closed.
+  useEffect(() => {
+    void api.setSettingsOpen(open);
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     // The default selection ('system' for both groups' first render) is also the only tabbable

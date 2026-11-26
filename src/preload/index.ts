@@ -20,6 +20,7 @@ const api: MultiApi = {
   setDragging: (active) => ipcRenderer.invoke('grid:dragging', active),
   setLocale: (pref: Locale | 'system') => ipcRenderer.invoke('settings:setLocale', pref),
   setTheme: (pref: Theme) => ipcRenderer.invoke('settings:setTheme', pref),
+  setSettingsOpen: (open: boolean) => ipcRenderer.invoke('settings:setOpen', open),
   reloadAccount: (id: string) => ipcRenderer.invoke('account:reload', id),
   onState: (cb) => {
     const listener = (_event: unknown, s: PublicState) => cb(s);

@@ -121,6 +121,9 @@ export interface MultiApi {
   setDragging(active: boolean): Promise<void>;
   setLocale(pref: Locale | 'system'): Promise<void>;
   setTheme(pref: Theme): Promise<void>;
+  /** True while the Settings dialog is open: the service pages are hidden meanwhile (see
+   * `setDragging` above — same reason: they are native views stacked above this page). */
+  setSettingsOpen(open: boolean): Promise<void>;
   reloadAccount(id: string): Promise<void>;
   onState(cb: (state: PublicState) => void): () => void;
   onRenameRequest(cb: (id: string) => void): () => void;

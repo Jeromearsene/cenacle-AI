@@ -1,5 +1,5 @@
-import type { Page } from '@playwright/test';
-import { expect, test } from './fixtures';
+import type { ElectronApplication, Page } from '@playwright/test';
+import { addAccount, expect, test } from './fixtures';
 
 // The toggle button and the panel are found through the stable `#settings` id, never through
 // their accessible name: these tests switch the interface language mid-run, and that name is
@@ -236,4 +236,32 @@ test('reachable from the application menu, under ⌘, / Ctrl,', async ({ launch 
     }
   });
   await expect(sidebar.locator('#settings [role="dialog"]')).toBeVisible();
+});
+
+// Native side: the service pages are separate views placed by the main process (see grid.spec.ts),
+// stacked above the window's own page — so the dialog, drawn in that page, can only cover them if
+// main hides those views while it's open.
+const nativeViewsVisible = (app: ElectronApplication) =>
+  app.evaluate(({ BrowserWindow }) =>
+    (BrowserWindow.getAllWindows()[0]?.contentView.children ?? []).map((v) =>
+      (v as unknown as { getVisible(): boolean }).getVisible()
+    )
+  );
+
+test('opening Settings hides the service pages, so the dialog covers them too', async ({
+  launch,
+}) => {
+  const { app, sidebar } = await launch();
+  await addAccount(sidebar, 'Gemini');
+  // Grid layout, so both pages are visible at once (Single only shows the active one).
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
+  await expect.poll(() => nativeViewsVisible(app)).toEqual([true, true]);
+
+  const panel = await openSettings(sidebar);
+  await expect(panel).toBeVisible();
+  await expect.poll(() => nativeViewsVisible(app)).toEqual([false, false]);
+
+  await sidebar.keyboard.press('Escape');
+  await expect(panel).toBeHidden();
+  await expect.poll(() => nativeViewsVisible(app)).toEqual([true, true]);
 });

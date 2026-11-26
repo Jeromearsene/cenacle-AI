@@ -150,6 +150,11 @@ let dividers: Divider[] = [];
 // True while the interface drags an account or a resize handle: the service pages are hidden so
 // the interface receives every mouse event, and they are placed again when it ends.
 let dragging = false;
+// True while the Settings dialog is open: the service pages are WebContentsViews, native layers
+// stacked above the window's own page, so a dialog drawn in that page (however "big" or
+// "centered") can never paint over them on its own. Hiding them is the only way a dialog in the
+// window's own page can appear to cover the whole window.
+let settingsOpen = false;
 let saveTimer: NodeJS.Timeout | null = null;
 // Accounts that raised a notification nobody has looked at yet (see unread.ts).
 const unread = createUnread(onUnreadChange);
@@ -459,6 +464,12 @@ function computeRects(w: BrowserWindow): { rects: Rect[]; dividers: Divider[] } 
 /** Puts each service page where its cell is, and hides the ones that have no cell. */
 function placeViews(list: Rect[]): void {
   if (!win || win.isDestroyed()) return;
+  // Keep every service page hidden while the Settings dialog covers the window (see
+  // `settingsOpen`), whatever triggered this call (a resize, a layout change…).
+  if (settingsOpen) {
+    for (const view of views.values()) view.setVisible(false);
+    return;
+  }
   const shown = new Set(list.map((r) => r.id));
   for (const r of list) {
     const acc = findAccount(r.id);
@@ -699,6 +710,18 @@ function setDragging(active: boolean): void {
   }
 }
 
+/** The Settings dialog just opened or closed (see `settingsOpen`). */
+function setSettingsOpen(open: boolean): void {
+  if (settingsOpen === open) return;
+  settingsOpen = open;
+  if (open) {
+    stopTween();
+    for (const view of views.values()) view.setVisible(false);
+  } else {
+    applyLayout();
+  }
+}
+
 function renameAccount(id: string, name: unknown): boolean {
   const acc = findAccount(id);
   const clean = typeof name === 'string' ? name.trim().slice(0, MAX_NAME) : '';
@@ -896,6 +919,7 @@ handle('grid:equalize', (path) => {
 handle('grid:dragging', (active) => setDragging(active === true));
 handle('settings:setLocale', (pref) => setLocaleOverride(pref));
 handle('settings:setTheme', (pref) => setTheme(pref));
+handle('settings:setOpen', (open) => setSettingsOpen(open === true));
 handle('account:reload', (id) => isId(id) && reloadAccount(id));
 handle('resource-usage:get', () => resourceUsage());
 

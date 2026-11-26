@@ -2,6 +2,7 @@
 // Types only: this file must not import anything from Node or Electron.
 import type { Area, Divider, DropZone, GridNode } from './grid';
 import type { Locale } from './i18n';
+import type { QuotaInfo } from './quota';
 
 export type Layout = 'single' | 'grid';
 
@@ -64,6 +65,8 @@ export interface PublicState {
   grid: GridNode | null;
   area: Area;
   sidebarW: number;
+  /** Accounts whose usage limit is close or reached, by account id. */
+  quotas: Record<string, QuotaInfo>;
 }
 
 /** API exposed by the preload as `window.multi`. */

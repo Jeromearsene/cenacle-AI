@@ -1,9 +1,10 @@
 /// <reference lib="dom" />
 import { ipcRenderer, webFrame } from 'electron';
 
-// Preload for service pages (Claude, ChatGPT, Gemini…). It exposes NOTHING to the page: it only
+// Preload for service pages (Claude, ChatGPT, Gemini…). It exposes NOTHING to the page: it
 // dresses up web notifications with the account's name and color dot, so you can tell which
-// account they come from. This file is self-contained (no local imports): a sandboxed preload
+// account they come from, and it reports the text of the service's usage-limit banner to the
+// app (nothing else is read, nothing leaves the machine). This file is self-contained (no local imports): a sandboxed preload
 // cannot load other modules.
 
 const ARG_PREFIX = '--cenacle-notifications=';
@@ -72,3 +73,32 @@ ipcRenderer.on('account:renamed', (_event, name: unknown) => {
 
 // A click on the notification (triggered by the page): ask the app to show the account.
 window.addEventListener(CLICK_EVENT, () => ipcRenderer.send('account:notification-click'));
+
+// Usage-limit banner (Claude shows one near and at the limit). The page is only observed, never
+// modified; the main process parses the text and decides what to show.
+const BANNER_SELECTOR = '[data-testid="message-warning"]';
+let lastBanner: string | null = null;
+let bannerTimer: ReturnType<typeof setTimeout> | undefined;
+
+function reportBanner(): void {
+  bannerTimer = undefined;
+  const raw = document.querySelector(BANNER_SELECTOR)?.textContent ?? '';
+  const text = raw.replace(/\s+/g, ' ').trim().slice(0, 400) || null;
+  if (text === lastBanner) return;
+  lastBanner = text;
+  // A vanished banner says nothing: the limit stays until its reset time.
+  if (text) ipcRenderer.send('account:quota-banner', text);
+}
+
+function scheduleBannerReport(): void {
+  if (bannerTimer === undefined) bannerTimer = setTimeout(reportBanner, 400);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  new MutationObserver(scheduleBannerReport).observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+  });
+  reportBanner();
+});

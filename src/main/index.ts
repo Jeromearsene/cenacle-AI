@@ -12,6 +12,7 @@ import {
   dialog,
   ipcMain,
   Menu,
+  Notification,
   nativeImage,
   nativeTheme,
   type Session,
@@ -40,6 +41,7 @@ import {
 } from '../shared/grid';
 import { resolveLocale, translator } from '../shared/i18n';
 import { isId } from '../shared/id';
+import type { QuotaInfo } from '../shared/quota';
 import { MAX_ACCOUNT_SHORTCUTS } from '../shared/shortcuts';
 import type { Account, Layout, PersistedState, PublicState, Rect } from '../shared/types';
 import { dotDataUrl, identityArgument } from './account-notifications';
@@ -53,6 +55,7 @@ import {
   type Provider,
   providerOf,
 } from './providers';
+import { createQuotaTracker } from './quota';
 import { createShortcutHint, type KeyInput, shortcutModifierFor } from './shortcut-hint';
 import { MAX_NAME, makeAccount, readState, writeStateFile } from './state';
 import { checkForUpdates } from './updater';
@@ -150,6 +153,36 @@ function writeState(): void {
 function scheduleSave(): void {
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(writeState, 300);
+}
+
+// ------------------------------------------------------------------ usage limits
+
+// The service pages report the usage banner they show (see preload/service.ts); the tracker
+// turns it into a state per account and wakes up when the limit is reset.
+const quota = createQuotaTracker({
+  onChange: () => notify(),
+  onReset: (id, previous) => notifyQuotaBack(id, previous),
+});
+
+// A limit that was reached is back: tell the user, as the service's own notifications do (the
+// account name, its color dot). Nothing for the simple "more than 90 %" warning.
+function notifyQuotaBack(id: string, previous: QuotaInfo): void {
+  const acc = findAccount(id);
+  if (!acc || previous.level !== 'reached' || !Notification.isSupported()) return;
+  const n = new Notification({
+    title: `${acc.name} · ${t('quota.notifyTitle')}`,
+    body: t('quota.notifyBody'),
+    icon: nativeImage.createFromDataURL(dotDataUrl(acc.color)),
+  });
+  n.on('click', () => {
+    if (win && !win.isDestroyed()) {
+      if (win.isMinimized()) win.restore();
+      win.show();
+      win.focus();
+    }
+    selectAccount(id);
+  });
+  n.show();
 }
 
 // ------------------------------------------------------------------ links and popups
@@ -433,6 +466,7 @@ function publicState(): PublicState {
     area:
       win && !win.isDestroyed() ? contentArea(win) : { x: SIDEBAR_W, y: 0, width: 0, height: 0 },
     sidebarW: SIDEBAR_W,
+    quotas: quota.snapshot(),
   };
 }
 
@@ -587,6 +621,7 @@ async function removeAccount(id: string): Promise<boolean> {
   if (response !== 0) return false;
 
   destroyView(id);
+  quota.forget(id);
   const ses = session.fromPartition(partitionOf(id));
   await ses.clearStorageData().catch(() => {});
   await ses.clearCache().catch(() => {});
@@ -621,6 +656,17 @@ ipcMain.on('account:notification-click', (event) => {
     win.focus();
   }
   selectAccount(entry[0]);
+});
+
+// The usage banner read in a service page. Only the main frame of a service that has such a
+// banner is listened to, and the text is bounded: it is parsed, never displayed or stored.
+ipcMain.on('account:quota-banner', (event, text: unknown) => {
+  const entry = [...views].find(([, view]) => view.webContents === event.sender);
+  if (!entry || event.senderFrame !== event.sender.mainFrame) return;
+  const acc = findAccount(entry[0]);
+  if (!acc || !providerOf(acc.provider).usageBanner) return;
+  if (typeof text !== 'string' || text.length === 0 || text.length > 500) return;
+  quota.report(acc.id, text);
 });
 
 function handle(channel: string, fn: (...args: unknown[]) => unknown): void {
@@ -845,6 +891,7 @@ if (!app.requestSingleInstanceLock()) {
 
   app.on('before-quit', () => {
     if (state) writeState();
+    quota.dispose();
   });
   app.on('window-all-closed', () => app.quit());
 }

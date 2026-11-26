@@ -1,6 +1,7 @@
 import type { PublicState } from '../../shared/types';
 import { useT } from '../i18n';
 import { api } from '../use-multi';
+import { useNow } from '../use-now';
 import { AccountItem } from './AccountItem';
 import { AddAccount } from './AddAccount';
 import { EqualizeIcon } from './icons';
@@ -28,6 +29,7 @@ export function Sidebar({
 }: Props) {
   const t = useT();
   const gridIds = new Set(state.rects.map((r) => r.id));
+  const now = useNow(30_000, Object.keys(state.quotas).length > 0);
   return (
     <aside
       class="absolute inset-y-0 left-0 flex flex-col border-r border-line bg-panel px-2.5 pb-3"
@@ -52,6 +54,9 @@ export function Sidebar({
             onDragStart={(e) => onDragStart(acc.id, e)}
             removable={state.accounts.length > 1}
             editing={renamingId === acc.id}
+            quota={state.quotas[acc.id]}
+            now={now}
+            locale={state.locale}
             onStartRename={() => setRenamingId(acc.id)}
             onCancelRename={() => setRenamingId(null)}
             onRename={(name) => {

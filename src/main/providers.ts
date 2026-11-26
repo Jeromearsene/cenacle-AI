@@ -7,6 +7,9 @@
 //   'native' : Electron's identifier left as is
 //              (Google refuses sign-in with the "cleaned" identifier)
 //
+// usageBanner (optional): the service shows a usage-limit banner in its page that Cénacle can
+// read (see quota.ts). Only Claude for now.
+//
 // authHosts (optional): sign-in domains specific to the service, in addition to the common
 // identity providers (Google, Microsoft, Apple) already known to every service.
 
@@ -16,10 +19,17 @@ export interface Provider {
   url: string;
   ua: 'clean' | 'native';
   authHosts?: string[];
+  usageBanner?: boolean;
 }
 
 export const PROVIDERS: Record<string, Provider> = {
-  claude: { id: 'claude', label: 'Claude', url: 'https://claude.ai/', ua: 'clean' },
+  claude: {
+    id: 'claude',
+    label: 'Claude',
+    url: 'https://claude.ai/',
+    ua: 'clean',
+    usageBanner: true,
+  },
   chatgpt: {
     id: 'chatgpt',
     label: 'ChatGPT',

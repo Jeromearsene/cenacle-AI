@@ -42,6 +42,7 @@ import {
 import { resolveLocale, translator } from '../shared/i18n';
 import { isId } from '../shared/id';
 import { computeUsage, type ResourceUsage } from '../shared/metrics';
+import { activeFilter } from '../shared/provider-view';
 import type { QuotaInfo } from '../shared/quota';
 import { MAX_ACCOUNT_SHORTCUTS } from '../shared/shortcuts';
 import type { Account, Layout, PersistedState, PublicState, Rect } from '../shared/types';
@@ -461,6 +462,7 @@ function publicState(): PublicState {
     accounts: state.accounts,
     activeId: state.activeId,
     layout: state.layout,
+    accountView: state.accountView,
     rects,
     dividers,
     grid: state.layout === 'grid' ? state.grid : null,
@@ -477,6 +479,8 @@ function notify(): void {
 
 function refresh({ relayout = true, animate = false } = {}): void {
   syncGridState();
+  // The saved filter must not outlive the accounts it was set for (one was removed).
+  state.accountView.filter = activeFilter(state.accounts, state.accountView.filter);
   if (relayout) applyLayout({ animate });
   buildMenu();
   notify();
@@ -522,6 +526,14 @@ function setLayout(mode: Layout): void {
   if (mode !== 'single' && mode !== 'grid') return;
   state.layout = mode;
   refresh();
+}
+
+/** Only the sidebar list changes: the pages, the grid and the shortcuts stay as they are. */
+function setAccountView(filter: unknown, sort: unknown): void {
+  if (filter !== null && !isProviderId(filter)) return;
+  if (sort !== 'manual' && sort !== 'provider') return;
+  state.accountView = { filter, sort };
+  refresh({ relayout: false });
 }
 
 /** Drops an account on a cell of the grid, unless a cell would get too small. */
@@ -705,6 +717,12 @@ handle('accounts:select', (id) => isId(id) && selectAccount(id));
 handle('accounts:rename', (id, name) => isId(id) && renameAccount(id, name));
 handle('accounts:remove', (id) => (isId(id) ? removeAccount(id) : false));
 handle('layout:set', (mode) => setLayout(mode as Layout));
+handle('view:set', (view) => {
+  if (typeof view === 'object' && view !== null) {
+    const { filter, sort } = view as Record<string, unknown>;
+    setAccountView(filter, sort);
+  }
+});
 handle(
   'grid:place',
   (id, targetId, zone) =>

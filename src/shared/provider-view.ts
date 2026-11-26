@@ -1,10 +1,7 @@
 // How the sidebar lists accounts: filtered by service and/or grouped by service.
 // Pure functions, so they can be tested without launching the app.
 // Shared file: it must not import anything from Node or Electron.
-import type { Account, ProviderInfo } from './types';
-
-/** `manual`: the order of the accounts as they are (shortcuts follow it). `provider`: grouped by service. */
-export type AccountSort = 'manual' | 'provider';
+import type { Account, AccountView, ProviderInfo } from './types';
 
 /** A service that has at least one account, with how many. */
 export interface ProviderCount extends ProviderInfo {
@@ -19,20 +16,28 @@ export function providersInUse(accounts: Account[], providers: ProviderInfo[]): 
 }
 
 /**
- * The accounts to list in the sidebar. `filter` is a service id (null for all services); one that
- * no account uses any more is ignored. Grouping keeps the order of the accounts inside a group,
+ * The filter that really applies: one that no account uses any more, or that is set while only one
+ * service is left, applies to nothing (null). The filter is kept between launches, so it can
+ * outlive the accounts it was set for.
+ */
+export function activeFilter(accounts: Account[], filter: string | null): string | null {
+  if (filter === null) return null;
+  const services = new Set(accounts.map((a) => a.provider));
+  return services.size > 1 && services.has(filter) ? filter : null;
+}
+
+/**
+ * The accounts to list in the sidebar. Grouping keeps the order of the accounts inside a group,
  * and puts accounts of an unknown service last.
  */
 export function visibleAccounts(
   accounts: Account[],
   providers: ProviderInfo[],
-  { filter, sort }: { filter: string | null; sort: AccountSort }
+  view: AccountView
 ): Account[] {
-  const filtered =
-    filter !== null && accounts.some((a) => a.provider === filter)
-      ? accounts.filter((a) => a.provider === filter)
-      : accounts;
-  if (sort === 'manual') return filtered;
+  const filter = activeFilter(accounts, view.filter);
+  const filtered = filter === null ? accounts : accounts.filter((a) => a.provider === filter);
+  if (view.sort === 'manual') return filtered;
   const rank = (a: Account): number => {
     const i = providers.findIndex((p) => p.id === a.provider);
     return i === -1 ? providers.length : i;

@@ -1,5 +1,4 @@
-import { useState } from 'preact/hooks';
-import { type AccountSort, providersInUse, visibleAccounts } from '../../shared/provider-view';
+import { providersInUse, visibleAccounts } from '../../shared/provider-view';
 import type { PublicState } from '../../shared/types';
 import { useT } from '../i18n';
 import { api } from '../use-multi';
@@ -34,15 +33,11 @@ export function Sidebar({
   const t = useT();
   const gridIds = new Set(state.rects.map((r) => r.id));
   const now = useNow(30_000, Object.keys(state.quotas).length > 0);
-  const [filter, setFilter] = useState<string | null>(null);
-  const [sort, setSort] = useState<AccountSort>('manual');
+  const { filter, sort } = state.accountView;
   const inUse = providersInUse(state.accounts, state.providers);
   // The filter and the grouping only matter once there are several services to tell apart.
   const several = inUse.length > 1;
-  const listed = visibleAccounts(state.accounts, state.providers, {
-    filter: several ? filter : null,
-    sort: several ? sort : 'manual',
-  });
+  const listed = visibleAccounts(state.accounts, state.providers, state.accountView);
   return (
     <aside
       class="absolute inset-y-0 left-0 flex flex-col border-r border-line bg-panel px-2.5 pb-3"
@@ -56,9 +51,9 @@ export function Sidebar({
           providers={inUse}
           total={state.accounts.length}
           filter={filter}
-          onFilter={setFilter}
+          onFilter={(next) => void api.setAccountView({ filter: next, sort })}
           sort={sort}
-          onSort={setSort}
+          onSort={(next) => void api.setAccountView({ filter, sort: next })}
         />
       )}
       <nav

@@ -3,7 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { parseGrid, pruneTo } from '../shared/grid';
 import { isId } from '../shared/id';
-import type { Account, Bounds, PersistedState } from '../shared/types';
+import { activeFilter } from '../shared/provider-view';
+import type { Account, AccountView, Bounds, PersistedState } from '../shared/types';
 import { DEFAULT_PROVIDER, isProviderId, providerOf } from './providers';
 
 export const MAX_NAME = 40;
@@ -37,6 +38,7 @@ export function defaultState(): PersistedState {
     accounts: [first],
     activeId: first.id,
     layout: 'single',
+    accountView: { filter: null, sort: 'manual' },
     grid: null,
     bounds: null,
     maximized: false,
@@ -58,6 +60,15 @@ function parseAccount(a: unknown): Account | null {
     color,
     // state v1 (Claude only): no "provider" field
     provider: isProviderId(provider) ? provider : DEFAULT_PROVIDER,
+  };
+}
+
+/** A state saved before the sidebar could be filtered has no view: every account, in order. */
+export function parseAccountView(v: unknown, accounts: Account[]): AccountView {
+  const raw = isRecord(v) ? v : {};
+  return {
+    filter: activeFilter(accounts, isProviderId(raw.filter) ? raw.filter : null),
+    sort: raw.sort === 'provider' ? 'provider' : 'manual',
   };
 }
 
@@ -83,6 +94,7 @@ export function parseState(raw: unknown): PersistedState {
     activeId: accounts.some((a) => a.id === raw.activeId) ? (raw.activeId as string) : first.id,
     // "columns" is the former name of the grid mode
     layout: raw.layout === 'grid' || raw.layout === 'columns' ? 'grid' : 'single',
+    accountView: parseAccountView(raw.accountView, accounts),
     grid,
     bounds: parseBounds(raw.bounds),
     maximized: raw.maximized === true,

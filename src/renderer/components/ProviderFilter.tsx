@@ -1,4 +1,5 @@
-import type { AccountSort, ProviderCount } from '../../shared/provider-view';
+import type { ProviderCount } from '../../shared/provider-view';
+import type { AccountSort } from '../../shared/types';
 import { useT } from '../i18n';
 
 interface Props {

@@ -15,6 +15,16 @@ export interface Account {
   provider: string;
 }
 
+/** `manual`: the order of the accounts as they are (shortcuts follow it). `provider`: grouped by service. */
+export type AccountSort = 'manual' | 'provider';
+
+/** How the sidebar lists accounts: kept between launches. */
+export interface AccountView {
+  /** A service id to list alone, or null for every service. */
+  filter: string | null;
+  sort: AccountSort;
+}
+
 export interface Bounds {
   x: number;
   y: number;
@@ -28,6 +38,7 @@ export interface PersistedState {
   accounts: Account[];
   activeId: string;
   layout: Layout;
+  accountView: AccountView;
   /** The grid mode layout; null until it is first shown (then every account is in it). */
   grid: GridNode | null;
   bounds: Bounds | null;
@@ -59,6 +70,7 @@ export interface PublicState {
   accounts: Account[];
   activeId: string;
   layout: Layout;
+  accountView: AccountView;
   rects: Rect[];
   /** Resize handles between the cells (grid mode only). */
   dividers: Divider[];
@@ -79,6 +91,8 @@ export interface MultiApi {
   renameAccount(id: string, name: string): Promise<boolean>;
   removeAccount(id: string): Promise<boolean>;
   setLayout(mode: Layout): Promise<void>;
+  /** Filters and groups the accounts of the sidebar (kept between launches). */
+  setAccountView(view: AccountView): Promise<void>;
   /** Drops an account on a cell of the grid: next to it (an edge) or in its place (center). */
   placeAccount(id: string, targetId: string, zone: DropZone): Promise<void>;
   /** Equal sizes for the whole grid, or for the split found at `path`. */

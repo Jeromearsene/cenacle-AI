@@ -13,6 +13,8 @@ export interface Account {
   color: string;
   /** Service identifier (see providers.ts). */
   provider: string;
+  /** Address of the conversation the account was on, reopened at the next launch. */
+  lastUrl?: string;
 }
 
 /** `manual`: the order of the accounts as they are (shortcuts follow it). `provider`: grouped by service. */

@@ -42,6 +42,6 @@ Le service Gemini utilise donc l'identifiant natif d'Electron (`ua: 'native'` da
 
 ## Limites connues
 
-- Les popups de connexion (domaines listés dans `src/main/providers.ts`, chemins du type `/oauth`, `/authorize`, `/login`) s'ouvrent dans l'app, dans la session du bon compte. Les autres liens s'ouvrent dans le navigateur par défaut. C'est une heuristique : si un lien s'ouvre du mauvais côté, ajuste `AUTH_HOSTS` (`src/main/providers.ts`) ou `OAUTH_PATH` (`src/main/index.ts`).
+- Les popups de connexion (domaines listés dans `src/main/providers.ts`, chemins du type `/oauth`, `/authorize`, `/login`) s'ouvrent dans l'app, dans la session du bon compte. Les autres liens s'ouvrent dans le navigateur par défaut. C'est une heuristique : si un lien s'ouvre du mauvais côté, ajuste `AUTH_HOSTS` (`src/main/providers.ts`) ou `OAUTH_PATH` (`src/main/last-url.ts`).
 - Les sites changent sans prévenir : le rendu peut évoluer, mais l'outil lui-même ne dépend d'aucune API.
 - Les services peuvent exiger une vérification anti-robot (Cloudflare, par exemple) selon ton réseau.

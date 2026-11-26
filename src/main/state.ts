@@ -5,6 +5,7 @@ import { parseGrid, pruneTo } from '../shared/grid';
 import { isId } from '../shared/id';
 import { activeFilter } from '../shared/provider-view';
 import type { Account, AccountView, Bounds, PersistedState } from '../shared/types';
+import { MAX_URL_LENGTH } from './last-url';
 import { DEFAULT_PROVIDER, isProviderId, providerOf } from './providers';
 
 export const MAX_NAME = 40;
@@ -50,7 +51,7 @@ const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'obj
 
 function parseAccount(a: unknown): Account | null {
   if (!isRecord(a)) return null;
-  const { id, name, color, provider } = a;
+  const { id, name, color, provider, lastUrl } = a;
   if (!isId(id) || typeof name !== 'string' || typeof color !== 'string' || !COLOR_RE.test(color)) {
     return null;
   }
@@ -60,6 +61,8 @@ function parseAccount(a: unknown): Account | null {
     color,
     // state v1 (Claude only): no "provider" field
     provider: isProviderId(provider) ? provider : DEFAULT_PROVIDER,
+    // Only the shape is checked here: the site it must belong to is checked when it is reopened.
+    ...(typeof lastUrl === 'string' && lastUrl.length <= MAX_URL_LENGTH ? { lastUrl } : {}),
   };
 }
 

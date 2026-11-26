@@ -30,5 +30,5 @@ Ce que tu peux faire :
   - macOS : `~/Library/Application Support/Cénacle/`
   - Windows : `%APPDATA%\Cénacle\`
   - Linux : `~/.config/Cénacle/`
-- Liste des comptes, mise en page, taille de fenêtre : `state.json` dans le même dossier.
+- Liste des comptes, mise en page, taille de fenêtre et adresse de la dernière conversation de chaque compte : `state.json` dans le même dossier.
 - Les données de session ne sont jamais dans le dossier du projet.

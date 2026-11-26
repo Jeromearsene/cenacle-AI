@@ -9,6 +9,7 @@
 - **+ Ajouter un compte** (« + Add account » en anglais) demande le service, puis crée une session vide. Connecte-toi une fois, elle est conservée entre deux lancements.
 - **Single / Grid** (« Un seul / Grille ») : un compte à la fois, ou plusieurs en même temps selon une disposition que tu définis (pratique pour comparer des réponses). Voir [La grille](grid.md).
 - Double-clic sur un nom (ou ✎) pour renommer, ✕ pour supprimer la session d'un compte.
+- **Filtrer et grouper par service** : dès que tu as des comptes d'au moins deux services, des pastilles au-dessus de la liste affichent chaque service avec son nombre de comptes. Clique sur l'une pour ne lister que les comptes de ce service (clique à nouveau dessus, ou sur **Tous**, pour tout revoir), et utilise **Grouper** pour rapprocher les comptes d'un même service. Cela ne change que la liste de la barre latérale : la grille, les numéros de raccourci et l'ordre de tes comptes restent inchangés. Le choix n'est pas conservé d'un lancement à l'autre.
 - **Fenêtre** : au premier lancement elle occupe toute la zone utile de l'écran (sous la barre de menus et le Dock, ou la barre des tâches). Ensuite, l'app retrouve sa dernière taille, ou son état agrandi / plein écran. Si l'écran utilisé a été débranché, elle revient sur l'écran principal.
 - Plein écran : bouton vert (macOS), ⌃⌘F / F11 ou menu Affichage. Agrandir : double-clic sur la barre du haut (macOS) ou sur la barre de titre (Windows, Linux).
 - Les comptes masqués restent chargés : leurs conversations continuent en arrière-plan.

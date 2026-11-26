@@ -17,6 +17,10 @@ publish:
   provider: github
   owner: Jeromearsene
   repo: cenacle-AI
+  # The release already exists, published with its changelog, when the installers are built
+  # (changesets/action creates it): upload into it instead of skipping the files, which is what
+  # the default "draft" type does.
+  releaseType: release
 
 mac:
   category: public.app-category.productivity

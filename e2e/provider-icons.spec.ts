@@ -1,12 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
+  iconCandidates,
   iconSource,
   MAX_ICON_LENGTH,
   parseProviderIcons,
+  sniffImageType,
   toIconUrl,
 } from '../src/main/provider-icons';
-import { expect, test } from './fixtures';
+import { addAccount, expect, test } from './fixtures';
 
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
@@ -24,12 +26,43 @@ test.describe('service icons', () => {
     );
   });
 
+  test('the bytes decide when a server labels an image badly', () => {
+    // an .ico or a .png is often sent as application/octet-stream, or with no type at all
+    expect(toIconUrl('application/octet-stream', PNG)).toBe(PNG_URL);
+    expect(toIconUrl(null, PNG)).toBe(PNG_URL);
+    expect(sniffImageType(new Uint8Array([0, 0, 1, 0, 1, 0, 16, 16]))).toBe('image/x-icon');
+    expect(sniffImageType(Buffer.from('RIFF\0\0\0\0WEBPVP8 '))).toBe('image/webp');
+    expect(sniffImageType(Buffer.from('<?xml version="1.0"?>\n<svg xmlns="x"/>'))).toBe(
+      'image/svg+xml'
+    );
+    expect(sniffImageType(Buffer.from('<html><svg></svg></html>'))).toBeNull();
+    expect(sniffImageType(new Uint8Array())).toBeNull();
+  });
+
   test('anything that is not a reasonable image is refused', () => {
     expect(toIconUrl('text/html', Buffer.from('<script>'))).toBeNull();
-    expect(toIconUrl('application/octet-stream', PNG)).toBeNull();
-    expect(toIconUrl(null, PNG)).toBeNull();
+    expect(toIconUrl('application/octet-stream', Buffer.from('not an image'))).toBeNull();
     expect(toIconUrl('image/png', new Uint8Array())).toBeNull();
     expect(toIconUrl('image/png', new Uint8Array(MAX_ICON_LENGTH))).toBeNull();
+  });
+
+  test('the icons a start page names are found, best first, then /favicon.ico', () => {
+    const html = `<head>
+      <link rel="apple-touch-icon" href="/touch.png">
+      <link rel="stylesheet" href="/app.css">
+      <link href='//cdn.example.com/icon.svg?a=1&amp;b=2' rel='shortcut icon'>
+      <link rel="mask-icon" href="/mask.svg">
+      <link rel=icon href=/plain.png>
+    </head>`;
+    expect(iconCandidates(html, 'https://chat.example.com/app')).toEqual([
+      'https://cdn.example.com/icon.svg?a=1&b=2',
+      'https://chat.example.com/plain.png',
+      'https://chat.example.com/touch.png',
+      'https://chat.example.com/favicon.ico',
+    ]);
+    expect(iconCandidates('', 'https://chat.example.com/app')).toEqual([
+      'https://chat.example.com/favicon.ico',
+    ]);
   });
 
   test('an icon is fetched from the service itself or from a secure address only', () => {
@@ -77,4 +110,30 @@ test('the icon a service announces is shown next to its accounts and kept for th
 
   const saved = JSON.parse(fs.readFileSync(path.join(userDataDir, 'state.json'), 'utf8'));
   expect(saved.providerIcons.claude).toMatch(/^data:image\/png;base64,/);
+});
+
+test('the icon of a service whose accounts are not shown is found all the same', async ({
+  launch,
+  userDataDir,
+}) => {
+  // First launch: a ChatGPT account, then back on the Claude one (only that page stays shown).
+  const first = await launch();
+  await addAccount(first.sidebar, 'ChatGPT');
+  await first.sidebar.locator('.account', { hasText: 'Claude' }).first().click();
+  await first.app.close();
+
+  // The saved icons are forgotten: the next launch has to find them again.
+  const file = path.join(userDataDir, 'state.json');
+  const saved = JSON.parse(fs.readFileSync(file, 'utf8'));
+  saved.providerIcons = {};
+  fs.writeFileSync(file, JSON.stringify(saved));
+
+  const { sidebar } = await launch();
+  const chip = sidebar.locator('.provider-filter .chip', { hasText: 'ChatGPT' });
+  await expect(chip.locator('.provider-logo img')).toHaveAttribute(
+    'src',
+    /^data:image\/png;base64,/
+  );
+  // …without ever opening a ChatGPT page
+  await expect(sidebar.locator('.account', { hasText: 'ChatGPT' })).toBeVisible();
 });

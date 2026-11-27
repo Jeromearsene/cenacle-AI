@@ -3,8 +3,8 @@
 // request, and in state.json so that it is there from the first frame of the next launch.
 // Pure functions (no dependency on Electron): testable without launching the app.
 
-/** A longer data URL is not a favicon: it is never kept. */
-export const MAX_ICON_LENGTH = 60_000;
+/** A longer data URL is not a favicon: it is never kept (a multi-size .ico can be 50 KB or so). */
+export const MAX_ICON_LENGTH = 100_000;
 
 const IMAGE_TYPES = new Set([
   'image/png',
@@ -23,12 +23,64 @@ const ICON_URL =
 export const isIconUrl = (value: unknown): value is string =>
   typeof value === 'string' && value.length <= MAX_ICON_LENGTH && ICON_URL.test(value);
 
-/** The data URL of an image the service sent, or null if it is not an image we accept. */
+/** The image type given away by the first bytes of a file, or null if it is not an image we accept. */
+export function sniffImageType(bytes: Uint8Array): string | null {
+  const starts = (...signature: number[]) => signature.every((byte, i) => bytes[i] === byte);
+  if (starts(0x89, 0x50, 0x4e, 0x47)) return 'image/png';
+  if (starts(0xff, 0xd8, 0xff)) return 'image/jpeg';
+  if (starts(0x47, 0x49, 0x46, 0x38)) return 'image/gif';
+  if (starts(0x00, 0x00, 0x01, 0x00)) return 'image/x-icon';
+  // WebP: "RIFF", four bytes of size, then "WEBP"
+  const word = (from: number) => String.fromCharCode(...Array.from(bytes.subarray(from, from + 4)));
+  if (word(0) === 'RIFF' && word(8) === 'WEBP') return 'image/webp';
+  const head = new TextDecoder().decode(bytes.subarray(0, 512)).trimStart();
+  if (/^(?:<\?xml[^>]*>\s*)?(?:<!--[\s\S]*?-->\s*)*(?:<!doctype[^>]*>\s*)?<svg[\s>]/i.test(head))
+    return 'image/svg+xml';
+  return null;
+}
+
+/**
+ * The data URL of an image a service sent, or null if it is not an image we accept. The bytes
+ * decide, as a browser would: servers often label an .ico as `application/octet-stream`.
+ */
 export function toIconUrl(contentType: string | null, bytes: Uint8Array): string | null {
-  const type = contentType?.split(';')[0]?.trim().toLowerCase() ?? '';
-  if (!IMAGE_TYPES.has(type) || bytes.byteLength === 0) return null;
+  if (bytes.byteLength === 0) return null;
+  const declared = contentType?.split(';')[0]?.trim().toLowerCase() ?? '';
+  const type = sniffImageType(bytes) ?? (IMAGE_TYPES.has(declared) ? declared : null);
+  if (!type) return null;
   const url = `data:${type};base64,${Buffer.from(bytes).toString('base64')}`;
   return isIconUrl(url) ? url : null;
+}
+
+const ATTRIBUTE = (name: string) =>
+  new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i');
+
+/**
+ * Where a service's page says its icon is (`<link rel="icon">`, then `apple-touch-icon`), as
+ * absolute addresses, followed by the conventional `/favicon.ico`.
+ */
+export function iconCandidates(html: string, pageUrl: string): string[] {
+  const found: { url: string; rank: number }[] = [];
+  for (const tag of html.slice(0, 300_000).match(/<link\b[^>]*>/gi) ?? []) {
+    const rel = ATTRIBUTE('rel').exec(tag);
+    const href = ATTRIBUTE('href').exec(tag);
+    const kinds = (rel?.[1] ?? rel?.[2] ?? rel?.[3] ?? '').toLowerCase().split(/\s+/);
+    const target = href?.[1] ?? href?.[2] ?? href?.[3];
+    const rank = kinds.includes('icon') ? 0 : kinds.includes('apple-touch-icon') ? 1 : -1;
+    if (!target || rank < 0) continue;
+    try {
+      found.push({ url: new URL(target.replaceAll('&amp;', '&'), pageUrl).toString(), rank });
+    } catch {
+      // not an address
+    }
+  }
+  const urls = found.sort((a, b) => a.rank - b.rank).map((f) => f.url);
+  try {
+    urls.push(new URL('/favicon.ico', pageUrl).toString());
+  } catch {
+    // not an address
+  }
+  return [...new Set(urls)].slice(0, 5);
 }
 
 /**

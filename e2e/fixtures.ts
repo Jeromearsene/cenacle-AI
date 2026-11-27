@@ -48,7 +48,10 @@ async function startService(): Promise<{ service: FakeService; close: () => Prom
       res.end(FAVICON);
       return;
     }
-    if (req.url === '/') pageUserAgents.push(String(req.headers['user-agent'] ?? ''));
+    // Only the pages shown to the user: the app also fetches the start page to find the icon.
+    if (req.url === '/' && req.headers['sec-fetch-dest'] !== 'empty') {
+      pageUserAgents.push(String(req.headers['user-agent'] ?? ''));
+    }
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.end(
       '<!doctype html><link rel="icon" href="/favicon.png"><title>faux service</title><h1>faux service</h1>' +

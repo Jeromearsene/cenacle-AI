@@ -21,6 +21,28 @@ function Icon({ children }: { children: ComponentChildren }) {
   );
 }
 
+/** The app mark: a ring of six rounded arcs, one color each (the same as the app icon). */
+export const CenacleMark = ({ size = 22 }: { size?: number }) => (
+  <svg
+    class="brand-logo flex-none"
+    width={size}
+    height={size}
+    viewBox="170 170 684 684"
+    fill="none"
+    stroke-width="112"
+    stroke-linecap="round"
+    aria-hidden="true"
+    role="presentation"
+  >
+    <path stroke="#d97757" d="M702.9 321.1A270 270 0 0 0 530.8 242.7" />
+    <path stroke="#d4a72c" d="M512 242A270 270 0 0 0 334.9 308.2" />
+    <path stroke="#788c5d" d="M321.1 321.1A270 270 0 0 0 242.7 493.2" />
+    <path stroke="#4aa3a2" d="M242 512A270 270 0 0 0 308.2 689.1" />
+    <path stroke="#6a9bcc" d="M321.1 702.9A270 270 0 0 0 493.2 781.3" />
+    <path stroke="#b58bd1" d="M512 782A270 270 0 0 0 702.9 702.9" />
+  </svg>
+);
+
 /** Two opposite arrows: the two cells trade places. */
 export const SwapIcon = () => (
   <Icon>

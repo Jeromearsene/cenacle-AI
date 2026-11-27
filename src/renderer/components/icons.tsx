@@ -2,11 +2,11 @@
 // decorative: the text next to them says the same thing.
 import type { ComponentChildren } from 'preact';
 
-function Icon({ children }: { children: ComponentChildren }) {
+function Icon({ children, size = 20 }: { children: ComponentChildren; size?: number }) {
   return (
     <svg
-      width="20"
-      height="20"
+      width={size}
+      height={size}
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
@@ -41,6 +41,20 @@ export const CenacleMark = ({ size = 22 }: { size?: number }) => (
     <path stroke="#6a9bcc" d="M321.1 702.9A270 270 0 0 0 493.2 781.3" />
     <path stroke="#b58bd1" d="M512 782A270 270 0 0 0 702.9 702.9" />
   </svg>
+);
+
+/** Three full lines: the accounts in their own order. */
+export const ListIcon = () => (
+  <Icon size={14}>
+    <path d="M3 5h14M3 10h14M3 15h14" />
+  </Icon>
+);
+
+/** Lines in two blocks: the accounts gathered by service. */
+export const GroupedIcon = () => (
+  <Icon size={14}>
+    <path d="M3 4h14M3 8h8M3 13h14M3 17h8" />
+  </Icon>
 );
 
 /** Two opposite arrows: the two cells trade places. */

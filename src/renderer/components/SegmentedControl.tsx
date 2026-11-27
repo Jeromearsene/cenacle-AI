@@ -1,12 +1,17 @@
+import type { ComponentChildren } from 'preact';
 import { useRef } from 'preact/hooks';
 
 interface Option<T extends string> {
   value: T;
   label: string;
+  /** A decorative icon shown before the label. */
+  icon?: ComponentChildren;
 }
 
 interface Props<T extends string> {
   label: string;
+  /** Keep the label for screen readers only (the options say enough on screen). */
+  hideLabel?: boolean;
   value: T;
   options: Option<T>[];
   onChange: (value: T) => void;
@@ -15,7 +20,13 @@ interface Props<T extends string> {
 // A single-choice button group: the WAI-ARIA "radiogroup" pattern (selection follows focus, only
 // the selected option sits in the Tab order, arrow keys move the selection). Shared by
 // LayoutToggle and Settings so both behave and look the same.
-export function SegmentedControl<T extends string>({ label, value, options, onChange }: Props<T>) {
+export function SegmentedControl<T extends string>({
+  label,
+  hideLabel = false,
+  value,
+  options,
+  onChange,
+}: Props<T>) {
   const wrap = useRef<HTMLDivElement>(null);
 
   const onKeyDown = (e: KeyboardEvent) => {
@@ -33,7 +44,7 @@ export function SegmentedControl<T extends string>({ label, value, options, onCh
 
   return (
     <div>
-      <div class="mb-1 px-0.5 text-[11px] text-muted">{label}</div>
+      <div class={hideLabel ? 'sr-only' : 'mb-1 px-0.5 text-[11px] text-muted'}>{label}</div>
       <div
         ref={wrap}
         role="radiogroup"
@@ -49,9 +60,10 @@ export function SegmentedControl<T extends string>({ label, value, options, onCh
             role="radio"
             aria-checked={value === o.value}
             tabIndex={value === o.value ? 0 : -1}
-            class="h-[26px] flex-1 cursor-pointer whitespace-nowrap rounded-md border-0 bg-transparent px-2 text-muted aria-checked:bg-bg aria-checked:text-ink aria-checked:shadow-sm focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent"
+            class="flex h-[26px] flex-1 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-md border-0 bg-transparent px-2 text-muted aria-checked:bg-bg aria-checked:text-ink aria-checked:shadow-sm focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent"
             onClick={() => onChange(o.value)}
           >
+            {o.icon}
             {o.label}
           </button>
         ))}

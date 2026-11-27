@@ -1,3 +1,4 @@
+import { Fragment } from 'preact';
 import { providersInUse, visibleAccounts } from '../../shared/provider-view';
 import type { PublicState } from '../../shared/types';
 import { useT } from '../i18n';
@@ -8,6 +9,7 @@ import { AddAccount } from './AddAccount';
 import { CenacleMark, EqualizeIcon } from './icons';
 import { LayoutToggle } from './LayoutToggle';
 import { ProviderFilter } from './ProviderFilter';
+import { ProviderGroupHead } from './ProviderGroupHead';
 import { ResourceUsagePanel } from './ResourceUsagePanel';
 import { Settings } from './Settings';
 
@@ -73,30 +75,38 @@ export function Sidebar({
         aria-label={t('sidebar.accounts')}
         class="flex flex-col gap-0.5 overflow-y-auto"
       >
-        {listed.map((acc) => (
-          <AccountItem
-            key={acc.id}
-            account={acc}
-            providerLabel={providerLabel(acc.provider)}
-            providerIcon={state.providers.find((p) => p.id === acc.provider)?.icon}
-            shortcut={shortcutOf(acc.id)}
-            active={acc.id === state.activeId}
-            unread={unreadIds.has(acc.id)}
-            outsideGrid={state.layout === 'grid' && !gridIds.has(acc.id)}
-            onDragStart={(e) => onDragStart(acc.id, e)}
-            removable={state.accounts.length > 1}
-            editing={renamingId === acc.id}
-            quota={state.quotas[acc.id]}
-            now={now}
-            locale={state.locale}
-            onStartRename={() => setRenamingId(acc.id)}
-            onCancelRename={() => setRenamingId(null)}
-            onRename={(name) => {
-              setRenamingId(null);
-              const clean = name.trim();
-              if (clean && clean !== acc.name) void api.renameAccount(acc.id, clean);
-            }}
-          />
+        {listed.map((acc, i) => (
+          <Fragment key={acc.id}>
+            {several && sort === 'provider' && acc.provider !== listed[i - 1]?.provider && (
+              <ProviderGroupHead
+                label={providerLabel(acc.provider)}
+                icon={state.providers.find((p) => p.id === acc.provider)?.icon}
+                count={listed.filter((a) => a.provider === acc.provider).length}
+              />
+            )}
+            <AccountItem
+              account={acc}
+              providerLabel={providerLabel(acc.provider)}
+              providerIcon={state.providers.find((p) => p.id === acc.provider)?.icon}
+              shortcut={shortcutOf(acc.id)}
+              active={acc.id === state.activeId}
+              unread={unreadIds.has(acc.id)}
+              outsideGrid={state.layout === 'grid' && !gridIds.has(acc.id)}
+              onDragStart={(e) => onDragStart(acc.id, e)}
+              removable={state.accounts.length > 1}
+              editing={renamingId === acc.id}
+              quota={state.quotas[acc.id]}
+              now={now}
+              locale={state.locale}
+              onStartRename={() => setRenamingId(acc.id)}
+              onCancelRename={() => setRenamingId(null)}
+              onRename={(name) => {
+                setRenamingId(null);
+                const clean = name.trim();
+                if (clean && clean !== acc.name) void api.renameAccount(acc.id, clean);
+              }}
+            />
+          </Fragment>
         ))}
       </nav>
       <AddAccount providers={state.providers} />

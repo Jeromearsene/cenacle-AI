@@ -10,6 +10,7 @@ import {
   sniffImageType,
   toIconUrl,
 } from '../src/main/provider-icons';
+import { PROVIDERS } from '../src/main/providers';
 import { addAccount, expect, test, waitForServices } from './fixtures';
 
 const PNG = Buffer.from(
@@ -107,6 +108,12 @@ test.describe('service icons', () => {
     }
     // no such folder: no icon, no error
     expect(readBundledIcons(path.join(dir, 'missing'), known)).toEqual({});
+  });
+
+  test('the app ships an icon for each of its services', () => {
+    const dir = path.join(__dirname, '../resources/provider-icons');
+    const shipped = readBundledIcons(dir, (id) => Object.hasOwn(PROVIDERS, id));
+    expect(Object.keys(shipped).sort()).toEqual(Object.keys(PROVIDERS).sort());
   });
 
   test('a saved state keeps the valid icons of the known services only', () => {

@@ -99,6 +99,9 @@ export const test = base.extend<Fixtures>({
           MULTI_TEST_URL: service.url,
           CENACLE_LANG: lang,
           CENACLE_ANIMATIONS: animations ? '1' : '0',
+          // Without the icons shipped with the app, so that the tests see the ones the fake
+          // service announces (a test can point to a folder of its own).
+          CENACLE_ICONS_DIR: path.join(userDataDir, 'no-icons'),
           ...env,
         },
       });

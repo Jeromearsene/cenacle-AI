@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cénacle: all your AI assistants in a single window</title>
+    <meta
+      name="description"
+      content="Use several Claude, ChatGPT, Gemini and Perplexity accounts in a single window, each with its own isolated session. Free, unofficial, for macOS, Windows and Linux."
+    />
+    <link rel="canonical" href="https://jeromearsene.github.io/cenacle-AI/" />
+    <link rel="icon" type="image/png" href="assets/icon.png" />
+    <link rel="apple-touch-icon" href="assets/icon.png" />
+    <meta name="color-scheme" content="light dark" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Cénacle" />
+    <meta
+      property="og:description"
+      content="All your AI assistants, side by side, in a single window."
+    />
+    <meta property="og:url" content="https://jeromearsene.github.io/cenacle-AI/" />
+    <meta property="og:image" content="https://jeromearsene.github.io/cenacle-AI/assets/grid.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      // Sets the theme before the first paint, to avoid a flash. main.js takes over afterwards.
+      (() => {
+        let mode = 'auto';
+        try {
+          const saved = localStorage.getItem('cenacle-theme');
+          if (saved === 'light' || saved === 'dark') mode = saved;
+        } catch {
+          // Storage can be blocked: fall back to the system theme.
+        }
+        const dark =
+          mode === 'dark' || (mode === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        document.documentElement.classList.add('js');
+      })();
+    </script>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="main.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
+    <div class="page">
+      <header class="header">
+        <a class="logo" href="#top">
+          <span class="logo-dots" aria-hidden="true"
+            ><i class="dot c1"></i><i class="dot c2"></i><i class="dot c3"></i
+          ></span>
+          Cénacle
+        </a>
+        <div class="header-tools">
+          <nav class="nav" aria-label="Main navigation" data-i18n-label="navLabel">
+            <a href="#fonctionnalites" data-i18n="navFeatures">Features</a>
+            <a href="#telecharger" data-i18n="navDownload">Download</a>
+            <a href="#soutenir" data-i18n="navSupport">Support</a>
+            <a href="https://github.com/Jeromearsene/cenacle-AI">GitHub</a>
+          </nav>
+          <div class="toggles">
+            <fieldset class="segmented">
+              <legend class="sr-only" data-i18n="langLabel">Language</legend>
+              <button type="button" data-lang-set="fr" aria-pressed="false">FR</button>
+              <button type="button" data-lang-set="en" aria-pressed="false">EN</button>
+            </fieldset>
+            <fieldset class="segmented">
+              <legend class="sr-only" data-i18n="themeLabel">Theme</legend>
+              <button type="button" data-theme-set="auto" aria-pressed="true">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="2" y="4" width="20" height="13" rx="2" />
+                  <path d="M8 21h8M12 17v4" />
+                </svg>
+                <span data-i18n="themeAuto">Auto</span>
+              </button>
+              <button type="button" data-theme-set="light" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="4" />
+                  <path
+                    d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+                  />
+                </svg>
+                <span data-i18n="themeLight">Light</span>
+              </button>
+              <button type="button" data-theme-set="dark" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+                </svg>
+                <span data-i18n="themeDark">Dark</span>
+              </button>
+            </fieldset>
+          </div>
+        </div>
+      </header>
+
+      <main id="main">
+        <section class="hero" id="top">
+          <p class="eyebrow" data-i18n="eyebrow">
+            macOS · Windows · Linux · Unofficial project
+          </p>
+          <h1>
+            <span data-i18n="h1a">Several AI accounts.</span>
+            <span data-i18n="h1b">One single window.</span>
+          </h1>
+          <p class="lead" data-i18n="lead">
+            Claude, ChatGPT, Gemini, Perplexity: every account keeps its own isolated session.
+            Switch between them with a shortcut, or show them all in a grid.
+          </p>
+          <div class="hero-actions">
+            <a
+              class="btn btn-primary"
+              id="hero-download"
+              href="https://github.com/Jeromearsene/cenacle-AI/releases/latest"
+            >
+              <span id="hero-label" data-i18n="dlGeneric">Download Cénacle</span>
+              <small id="hero-hint" data-i18n="hintGeneric"
+                >Desktop app for macOS, Windows and Linux</small
+              >
+            </a>
+            <a class="btn btn-outline" href="#telecharger" data-i18n="otherSystems"
+              >Other systems</a
+            >
+          </div>
+          <p class="note">
+            <span data-i18n="heroNote">Free · No API, only the public websites</span>
+            <span id="version" hidden></span>
+          </p>
+          <p class="note" id="mac-intel" hidden>
+            <a id="mac-intel-link" href="https://github.com/Jeromearsene/cenacle-AI/releases/latest"
+              ><span data-i18n="macIntel">On an Intel Mac?</span></a
+            >
+          </p>
+        </section>
+
+        <section class="preview" aria-label="Preview">
+          <figure class="window">
+            <img
+              data-shot="grid"
+              src="assets/grid.png"
+              width="1279"
+              height="799"
+              alt="Cénacle with three accounts side by side in grid mode (demo conversations)"
+              data-i18n-alt="previewAlt"
+            />
+          </figure>
+        </section>
+
+        <section class="providers" aria-label="Supported services" data-i18n-label="providersLabel">
+          <p class="providers-count">
+            <strong>4</strong>
+            <span data-i18n="providersCount">supported services</span>
+          </p>
+          <ul class="providers-list">
+            <li>Claude</li>
+            <li>ChatGPT</li>
+            <li>Gemini</li>
+            <li>Perplexity</li>
+            <li class="more" data-i18n="providersMore">+ yours, with a single entry</li>
+          </ul>
+        </section>
+
+        <section class="block" id="captures">
+          <h2 data-i18n="imagesTitle">Screenshots</h2>
+          <div class="shots">
+            <figure>
+              <img
+                data-shot="grid-drag"
+                src="assets/grid-drag.png"
+                width="1279"
+                height="799"
+                loading="lazy"
+                alt="Dragging an account over a cell: the cell is highlighted and offers to swap"
+                data-i18n-alt="shot1Alt"
+              />
+              <figcaption data-i18n="cap1">Arrange your accounts: drag, swap, resize.</figcaption>
+            </figure>
+            <figure>
+              <img
+                data-shot="quota"
+                src="assets/quota.png"
+                width="1279"
+                height="799"
+                loading="lazy"
+                alt="A Claude account at its limit: &quot;Full&quot; pill, return time and hourglass bar in the sidebar and in the cell header"
+                data-i18n-alt="shot2Alt"
+              />
+              <figcaption data-i18n="cap2">Know when an account is usable again.</figcaption>
+            </figure>
+            <figure>
+              <img
+                data-shot="grid-other-theme"
+                src="assets/grid-dark.png"
+                width="1279"
+                height="799"
+                loading="lazy"
+                alt="Cénacle in its other theme, with three accounts side by side"
+                data-i18n-alt="shot3Alt"
+              />
+              <figcaption data-i18n="cap3">Light, dark or system theme.</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section class="block" id="fonctionnalites">
+          <div class="section-head">
+            <h2 data-i18n="featuresTitle">Built to juggle several accounts</h2>
+            <p data-i18n="featuresIntro">
+              Everything you need to work with several assistants, with no tabs or browser
+              profiles to manage. Illustrations are simplified.
+            </p>
+          </div>
+          <div class="features">
+            <article class="card">
+              <span class="icon"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3z" /></svg
+              ></span>
+              <h3 data-i18n="f1t">Isolated sessions</h3>
+              <p data-i18n="f1">
+                Each account has its own cookies and local storage. Two accounts on the same
+                service never see each other, and sessions are kept between launches.
+              </p>
+              <div class="ill ill-sessions" aria-hidden="true">
+                <div class="mini">
+                  <b><i class="dot c1"></i>Perso</b>
+                  <i class="line w90"></i>
+                  <i class="line w65"></i>
+                  <small data-i18n="ill1">Cookies · storage</small>
+                </div>
+                <svg class="lock" viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="5" y="11" width="14" height="10" rx="2" />
+                  <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+                </svg>
+                <div class="mini">
+                  <b><i class="dot c2"></i>Work</b>
+                  <i class="line w75"></i>
+                  <i class="line w55"></i>
+                  <small data-i18n="ill1">Cookies · storage</small>
+                </div>
+              </div>
+            </article>
+
+            <article class="card">
+              <span class="icon"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 2l9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 17l9 5 9-5" /></svg
+              ></span>
+              <h3 data-i18n="f2t" data-n="4">4 supported services</h3>
+              <p data-i18n="f2">
+                Claude, ChatGPT, Gemini and Perplexity today. Another service is a single entry in
+                the code.
+              </p>
+              <div class="ill ill-services" aria-hidden="true">
+                <span class="pill"><i class="dot c1"></i>Claude</span>
+                <span class="pill"><i class="dot c3"></i>ChatGPT</span>
+                <span class="pill"><i class="dot c2"></i>Gemini</span>
+                <span class="pill"><i class="dot c4"></i>Perplexity</span>
+                <span class="pill pill-add">+ <span data-i18n="ill2">your service</span></span>
+              </div>
+            </article>
+
+            <article class="card">
+              <span class="icon"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="3" y="3" width="8" height="18" rx="1.5" />
+                  <rect x="14" y="3" width="7" height="8" rx="1.5" />
+                  <rect x="14" y="14" width="7" height="7" rx="1.5" /></svg
+              ></span>
+              <h3 data-i18n="f3t">A grid you arrange yourself</h3>
+              <p data-i18n="f3">
+                Drag and drop accounts to build rows and columns, swap them, resize them. The
+                layout is kept between launches, and hidden accounts keep running.
+              </p>
+              <div class="ill ill-grid" aria-hidden="true">
+                <div class="cell tall t1">
+                  <b><i class="dot c1"></i>Perso</b>
+                  <i class="line w85"></i>
+                  <i class="line w60"></i>
+                </div>
+                <div class="cell t2">
+                  <b><i class="dot c2"></i>Work</b>
+                  <i class="line w70"></i>
+                </div>
+                <div class="cell t3">
+                  <b><i class="dot c3"></i>ChatGPT 1</b>
+                  <i class="line w60"></i>
+                </div>
+              </div>
+            </article>
+
+            <article class="card">
+              <span class="icon"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="13" r="8" />
+                  <path d="M12 9v4l2.5 2M9 2h6" /></svg
+              ></span>
+              <h3 data-i18n="f4t">Limits detected, reset time shown</h3>
+              <p data-i18n="f4">
+                When Claude says you are close to your limit, the account shows a pill, the time it
+                comes back and an hourglass bar. A notification tells you when it is usable again.
+              </p>
+              <div class="ill ill-limit" aria-hidden="true">
+                <div class="row">
+                  <i class="dot c1"></i><span>Perso</span>
+                  <em class="badge"
+                    ><svg viewBox="0 0 24 24" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9" />
+                      <path d="M12 7v5l3 2" /></svg
+                    ><span data-i18n="ill4pill">6:00 AM</span></em
+                  >
+                </div>
+                <div class="panel">
+                  <b data-i18n="ill4a">Limit reached</b>
+                  <i class="bar"></i>
+                  <small data-i18n="ill4b">Back at 6:00 AM</small>
+                </div>
+              </div>
+            </article>
+
+            <article class="card">
+              <span class="icon"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 5h18l-7 8v6l-4 2v-8L3 5z" /></svg
+              ></span>
+              <h3 data-i18n="f5t">Groups and filters by service</h3>
+              <p data-i18n="f5">
+                Group your accounts under their service and filter the sidebar to see one service
+                at a time.
+              </p>
+              <div class="ill ill-groups" aria-hidden="true">
+                <div class="chips">
+                  <span class="chip on" data-i18n="ill5all">All</span>
+                  <span class="chip">Claude</span>
+                  <span class="chip">ChatGPT</span>
+                </div>
+                <small class="group-title">CLAUDE · 2</small>
+                <span class="entry"><i class="dot c1"></i>Perso</span>
+                <span class="entry"><i class="dot c2"></i>Work</span>
+                <small class="group-title">CHATGPT · 1</small>
+              </div>
+            </article>
+
+            <article class="card">
+              <span class="icon"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg
+              ></span>
+              <h3 data-i18n="f6t">Resource usage per account</h3>
+              <p data-i18n="f6">
+                The Development menu shows the memory and CPU taken by each account, refreshed
+                every 2 seconds.
+              </p>
+              <div class="ill ill-usage" aria-hidden="true">
+                <div class="usage-row">
+                  <span>Perso</span><span class="track"><i class="bar c1 w78"></i></span
+                  ><small>412 <span data-i18n="ill6mem">MB</span> · 3 %</small>
+                </div>
+                <div class="usage-row">
+                  <span>Work</span><span class="track"><i class="bar c2 w52"></i></span
+                  ><small>278 <span data-i18n="ill6mem">MB</span> · 1 %</small>
+                </div>
+                <div class="usage-row">
+                  <span>ChatGPT 1</span><span class="track"><i class="bar c3 w30"></i></span
+                  ><small>164 <span data-i18n="ill6mem">MB</span> · 0 %</small>
+                </div>
+              </div>
+            </article>
+
+            <article class="card">
+              <span class="icon"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"
+                  /></svg
+              ></span>
+              <h3 data-i18n="f7t">Keyboard shortcuts</h3>
+              <p data-i18n="f7">
+                ⌘1 to ⌘9 (Ctrl+1 to 9 elsewhere) to switch accounts, Ctrl+Tab to cycle. Hold the
+                key and the numbers appear.
+              </p>
+              <div class="ill ill-keys" aria-hidden="true">
+                <span class="entry on"><i class="dot c1"></i>Perso<kbd>⌘1</kbd></span>
+                <span class="entry"><i class="dot c2"></i>Work<kbd>⌘2</kbd></span>
+                <span class="entry"><i class="dot c3"></i>ChatGPT 1<kbd>⌘3</kbd></span>
+              </div>
+            </article>
+
+            <article class="card">
+              <span class="icon"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg
+              ></span>
+              <h3 data-i18n="f8t">Recognizable notifications</h3>
+              <p data-i18n="f8">
+                The title carries the account name and the icon its color. A click brings the app
+                forward on the right account.
+              </p>
+              <div class="ill ill-notifs" aria-hidden="true">
+                <div class="toast">
+                  <i class="avatar c1"></i>
+                  <span><b data-i18n="ill8a">Perso · Reply ready</b><small>Claude</small></span>
+                </div>
+                <div class="toast">
+                  <i class="avatar c2"></i>
+                  <span><b data-i18n="ill8b">Work · Reply ready</b><small>Claude</small></span>
+                </div>
+              </div>
+            </article>
+
+            <article class="card">
+              <span class="icon"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 7h9M17 7h3M4 17h3M11 17h9" />
+                  <circle cx="15" cy="7" r="2" />
+                  <circle cx="9" cy="17" r="2" /></svg
+              ></span>
+              <h3 data-i18n="f9t">Limited permissions</h3>
+              <p data-i18n="f9">
+                Notifications, copy and paste, full screen and the microphone for voice mode.
+                Camera, screen capture and location are refused.
+              </p>
+              <div class="ill ill-perms" aria-hidden="true">
+                <span class="perm"
+                  ><span data-i18n="ill9a">Microphone</span
+                  ><em class="ok">✓ <span data-i18n="allowed">Allowed</span></em></span
+                >
+                <span class="perm"
+                  ><span data-i18n="ill9b">Notifications</span
+                  ><em class="ok">✓ <span data-i18n="allowed">Allowed</span></em></span
+                >
+                <span class="perm"
+                  ><span data-i18n="ill9c">Camera</span
+                  ><em class="no">✕ <span data-i18n="denied">Denied</span></em></span
+                >
+                <span class="perm"
+                  ><span data-i18n="ill9d">Location</span
+                  ><em class="no">✕ <span data-i18n="denied">Denied</span></em></span
+                >
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="download" id="telecharger">
+          <div class="section-head">
+            <h2 data-i18n="dlTitle">Download Cénacle</h2>
+            <p data-i18n="dlSub">
+              Your system is detected automatically. Installers come from the latest GitHub
+              release.
+            </p>
+          </div>
+          <div class="os-cards">
+            <div class="os-card" data-os="mac">
+              <span class="badge-reco" data-i18n="recommended" hidden>Recommended for your system</span>
+              <h3>macOS</h3>
+              <ul>
+                <li>
+                  <a
+                    data-asset="macArm"
+                    href="https://github.com/Jeromearsene/cenacle-AI/releases/latest"
+                    data-i18n="dlMacArm"
+                    >Apple Silicon (.dmg)</a
+                  >
+                </li>
+                <li>
+                  <a
+                    data-asset="macIntel"
+                    href="https://github.com/Jeromearsene/cenacle-AI/releases/latest"
+                    data-i18n="dlMacIntel"
+                    >Intel (.dmg)</a
+                  >
+                </li>
+              </ul>
+            </div>
+            <div class="os-card" data-os="win">
+              <span class="badge-reco" data-i18n="recommended" hidden>Recommended for your system</span>
+              <h3>Windows</h3>
+              <ul>
+                <li>
+                  <a
+                    data-asset="win"
+                    href="https://github.com/Jeromearsene/cenacle-AI/releases/latest"
+                    data-i18n="dlWin"
+                    >Installer (.exe)</a
+                  >
+                </li>
+              </ul>
+            </div>
+            <div class="os-card" data-os="linux">
+              <span class="badge-reco" data-i18n="recommended" hidden>Recommended for your system</span>
+              <h3>Linux</h3>
+              <ul>
+                <li>
+                  <a
+                    data-asset="appImage"
+                    href="https://github.com/Jeromearsene/cenacle-AI/releases/latest"
+                    data-i18n="dlAppImage"
+                    >AppImage</a
+                  >
+                </li>
+                <li>
+                  <a
+                    data-asset="deb"
+                    href="https://github.com/Jeromearsene/cenacle-AI/releases/latest"
+                    data-i18n="dlDeb"
+                    >.deb</a
+                  >
+                </li>
+              </ul>
+            </div>
+          </div>
+          <p class="dl-notice">
+            <span data-i18n="dlNotice"
+              >The installers are not code-signed yet: macOS asks for a manual approval on first
+              launch and Windows shows a SmartScreen warning. Windows and Linux (AppImage) builds
+              update themselves; on macOS, download each new version.</span
+            >
+            <a
+              href="https://github.com/Jeromearsene/cenacle-AI/blob/main/docs/install.md#platforms"
+              data-href-en="https://github.com/Jeromearsene/cenacle-AI/blob/main/docs/install.md#platforms"
+              data-href-fr="https://github.com/Jeromearsene/cenacle-AI/blob/main/docs/fr/install.md"
+              data-i18n="dlNoticeLink"
+              >See how to open it</a
+            >.
+          </p>
+        </section>
+
+        <section class="support" id="soutenir">
+          <div class="support-text">
+            <h2 data-i18n="supTitle">Support the project</h2>
+            <p data-i18n="supText">
+              Cénacle is free and built in spare time. A donation helps pay for code signing and
+              the development of new features and services.
+            </p>
+          </div>
+          <div class="support-box">
+            <span data-i18n="supLabel">Pick your platform</span>
+            <a class="btn btn-accent" href="https://buymeacoffee.com/jeromearsene">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M17 8h1a4 4 0 0 1 0 8h-1M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8zM6 2v3M10 2v3M14 2v3"
+                />
+              </svg>
+              Buy Me a Coffee
+            </a>
+            <a class="btn btn-outline" href="https://github.com/sponsors/jeromearsene">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"
+                />
+              </svg>
+              GitHub Sponsors
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <ul>
+          <li>
+            <a href="https://github.com/Jeromearsene/cenacle-AI" data-i18n="fSource"
+              >Source code</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://github.com/Jeromearsene/cenacle-AI#-documentation"
+              data-i18n="fDocs"
+              >Documentation</a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/Jeromearsene/cenacle-AI/releases" data-i18n="fReleases"
+              >Releases</a
+            >
+          </li>
+          <li>
+            <a href="https://github.com/Jeromearsene/cenacle-AI/issues" data-i18n="fIssues"
+              >Report an issue</a
+            >
+          </li>
+          <li>
+            <a
+              href="https://github.com/Jeromearsene/cenacle-AI/blob/main/LICENSE"
+              data-i18n="fLicense"
+              >CC BY-NC-SA 4.0 license</a
+            >
+          </li>
+        </ul>
+        <p data-i18n="fDisclaimer">
+          Unofficial project, not affiliated with Anthropic, OpenAI, Google or Perplexity. Claude,
+          ChatGPT, Gemini, Perplexity and any other service name belong to their respective
+          owners. Read each service’s terms of use.
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

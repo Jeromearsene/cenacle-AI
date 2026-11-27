@@ -106,7 +106,7 @@ export function AccountItem({
               />
             )}
             {shortcut ? (
-              <kbd class="shortcut flex-none rounded border border-line bg-bg px-1.5 font-sans text-[11px] text-muted">
+              <kbd class="shortcut flex-none rounded-full border border-line bg-bg px-2 font-sans text-[11px] font-medium text-muted">
                 {shortcut}
               </kbd>
             ) : quota ? (
@@ -134,12 +134,16 @@ export function AccountItem({
         )}
       </div>
       {quota && !editing && tone && (
-        <div class="quota-detail flex flex-col gap-1 pr-0.5 pb-1.5 pl-[17px]">
-          <span class={`text-[11px] leading-none ${tone.text}`}>
-            {t('quota.backIn', {
-              time: formatTime(quota.resetsAt, locale),
-              left: formatRemaining(quota.resetsAt - now),
-            })}
+        <div class="quota-detail flex flex-col gap-1.5 pr-0.5 pb-1.5 pl-[17px]">
+          <span class={`flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] ${tone.text}`}>
+            <span class="quota-at">
+              {t('quota.backAt', { time: formatTime(quota.resetsAt, locale) })}
+            </span>
+            <span
+              class={`quota-left whitespace-nowrap rounded-full px-1.5 py-px font-medium tabular-nums ${tone.pill}`}
+            >
+              {t('quota.left', { left: formatRemaining(quota.resetsAt - now) })}
+            </span>
           </span>
           <QuotaBar info={quota} now={now} class="h-1" />
         </div>

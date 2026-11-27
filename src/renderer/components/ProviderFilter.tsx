@@ -1,6 +1,7 @@
 import type { ProviderCount } from '../../shared/provider-view';
 import type { AccountSort } from '../../shared/types';
 import { useT } from '../i18n';
+import { CountPill } from './CountPill';
 
 interface Props {
   /** Services that have accounts. */
@@ -14,7 +15,7 @@ interface Props {
 }
 
 const CHIP =
-  'h-[22px] cursor-pointer rounded-md border border-line bg-transparent px-2 text-[11px] text-muted hover:bg-hover hover:text-ink focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent aria-pressed:border-transparent aria-pressed:bg-active aria-pressed:text-ink';
+  'group flex h-6 cursor-pointer items-center gap-1.5 rounded-md border border-line bg-transparent pr-1 pl-2 text-[11px] text-muted hover:bg-hover hover:text-ink focus-visible:-outline-offset-2 focus-visible:outline-2 focus-visible:outline-accent aria-pressed:border-transparent aria-pressed:bg-active aria-pressed:text-ink';
 
 /** Filter chips (one per service) and a "group by service" toggle, above the account list. */
 export function ProviderFilter({ providers, total, filter, onFilter, sort, onSort }: Props) {
@@ -30,9 +31,11 @@ export function ProviderFilter({ providers, total, filter, onFilter, sort, onSor
         type="button"
         class={`${CHIP} chip-all`}
         aria-pressed={filter === null}
+        aria-label={`${t('filter.all')} ${total}`}
         onClick={() => onFilter(null)}
       >
-        {t('filter.all')} {total}
+        {t('filter.all')}
+        <CountPill>{total}</CountPill>
       </button>
       {providers.map((p) => (
         <button
@@ -40,14 +43,16 @@ export function ProviderFilter({ providers, total, filter, onFilter, sort, onSor
           type="button"
           class={`${CHIP} chip`}
           aria-pressed={filter === p.id}
+          aria-label={`${p.label} ${p.count}`}
           onClick={() => onFilter(filter === p.id ? null : p.id)}
         >
-          {p.label} {p.count}
+          {p.label}
+          <CountPill>{p.count}</CountPill>
         </button>
       ))}
       <button
         type="button"
-        class={`${CHIP} group-toggle ml-auto`}
+        class={`${CHIP} group-toggle ml-auto pr-2`}
         aria-pressed={sort === 'provider'}
         title={t('filter.groupHint')}
         onClick={() => onSort(sort === 'provider' ? 'manual' : 'provider')}

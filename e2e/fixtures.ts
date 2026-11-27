@@ -20,6 +20,8 @@ export interface LaunchOptions {
   lang?: string;
   /** Layout changes glide instead of jumping (off in the tests, which look at the end state). */
   animations?: boolean;
+  /** More environment variables for the app. */
+  env?: Record<string, string>;
 }
 
 export interface Launched {
@@ -85,7 +87,7 @@ export const test = base.extend<Fixtures>({
 
   launch: async ({ service, userDataDir }, use, testInfo) => {
     const launched: Launched[] = [];
-    await use(async ({ lang = 'en', animations = false }: LaunchOptions = {}) => {
+    await use(async ({ lang = 'en', animations = false, env = {} }: LaunchOptions = {}) => {
       // On Linux, Chromium's sandbox is refused as root (container) and on GitHub runners
       // (Ubuntu 24.04 restricts user namespaces).
       const asRoot = typeof process.getuid === 'function' && process.getuid() === 0;
@@ -97,6 +99,7 @@ export const test = base.extend<Fixtures>({
           MULTI_TEST_URL: service.url,
           CENACLE_LANG: lang,
           CENACLE_ANIMATIONS: animations ? '1' : '0',
+          ...env,
         },
       });
       const sidebar = await findSidebar(app);

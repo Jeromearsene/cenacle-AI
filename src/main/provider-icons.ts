@@ -3,6 +3,9 @@
 // request, and in state.json so that it is there from the first frame of the next launch.
 // Pure functions (no dependency on Electron): testable without launching the app.
 
+import fs from 'node:fs';
+import path from 'node:path';
+
 /** A longer data URL is not a favicon: it is never kept (a multi-size .ico can be 50 KB or so). */
 export const MAX_ICON_LENGTH = 100_000;
 
@@ -109,6 +112,37 @@ export function parseProviderIcons(
   if (typeof raw !== 'object' || raw === null) return icons;
   for (const [id, icon] of Object.entries(raw)) {
     if (isProvider(id) && isIconUrl(icon)) icons[id] = icon;
+  }
+  return icons;
+}
+
+const BUNDLED_EXTENSIONS = new Set(['.svg', '.png', '.webp', '.ico', '.jpg', '.jpeg', '.gif']);
+
+/**
+ * The icons shipped with the app: `<service id>.<svg|png|webp|ico|jpg|gif>` files in `dir`. They
+ * need no network and are there from the first frame. A file with another name, for a service
+ * that does not exist, or that is not an image, is ignored.
+ */
+export function readBundledIcons(
+  dir: string,
+  isProvider: (id: string) => boolean
+): Record<string, string> {
+  const icons: Record<string, string> = {};
+  let files: string[];
+  try {
+    files = fs.readdirSync(dir).sort();
+  } catch {
+    return icons;
+  }
+  for (const file of files) {
+    const { name, ext } = path.parse(file);
+    if (!isProvider(name) || !BUNDLED_EXTENSIONS.has(ext.toLowerCase()) || icons[name]) continue;
+    try {
+      const icon = toIconUrl(null, fs.readFileSync(path.join(dir, file)));
+      if (icon) icons[name] = icon;
+    } catch {
+      // unreadable: the icon is learned from the service instead
+    }
   }
   return icons;
 }

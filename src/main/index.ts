@@ -65,7 +65,13 @@ import {
   webProbeScript,
 } from './notification-test';
 import { isPermissionAllowed } from './permissions';
-import { iconCandidates, iconSource, MAX_ICON_LENGTH, toIconUrl } from './provider-icons';
+import {
+  iconCandidates,
+  iconSource,
+  MAX_ICON_LENGTH,
+  readBundledIcons,
+  toIconUrl,
+} from './provider-icons';
 import {
   DEFAULT_PROVIDER,
   isAuthHost,
@@ -85,6 +91,12 @@ import { checkForUpdates } from './updater';
 // App icons (resources/ folder at the project root).
 const RESOURCES = path.join(__dirname, '../../resources');
 const resource = (file: string) => path.join(RESOURCES, file);
+
+// Icons of the services shipped with the app (resources/provider-icons/), read at startup. A
+// service that has one never needs its icon looked up. CENACLE_ICONS_DIR points elsewhere (tests).
+let bundledIcons: Record<string, string> = {};
+const iconsDir = () =>
+  (!app.isPackaged && process.env.CENACLE_ICONS_DIR) || resource('provider-icons');
 
 const SIDEBAR_W = 220; // sidebar width (px)
 const HEADER_H = 32; // height of each cell header (px)
@@ -372,6 +384,7 @@ async function fetchIcon(
 
 /** Keeps the icon a service's page announces, to show it next to the service's name. */
 async function learnProviderIcon(acc: Account, wc: WebContents, favicons: string[]): Promise<void> {
+  if (bundledIcons[acc.provider]) return;
   const serviceUrl = urlOf(acc);
   try {
     // Only the service's own pages count, not a sign-in page of another site.
@@ -426,7 +439,7 @@ async function discoverIcon(acc: Account): Promise<string | null> {
 /** Looks up the icon of every service in use that has none yet (at most once in a while). */
 async function discoverProviderIcons(): Promise<void> {
   for (const id of new Set(state.accounts.map((a) => a.provider))) {
-    if (state.providerIcons[id]) continue;
+    if (state.providerIcons[id] || bundledIcons[id]) continue;
     if (Date.now() - (lastDiscovery.get(id) ?? Number.NEGATIVE_INFINITY) < DISCOVERY_RETRY_MS) {
       continue;
     }
@@ -656,7 +669,7 @@ function publicState(): PublicState {
     localeOverride: state.localeOverride,
     theme: state.theme,
     providers: Object.values(PROVIDERS).map(({ id, label }) => {
-      const icon = state.providerIcons[id];
+      const icon = bundledIcons[id] ?? state.providerIcons[id];
       return icon ? { id, label, icon } : { id, label };
     }),
     accounts: state.accounts,
@@ -1256,6 +1269,7 @@ if (!app.requestSingleInstanceLock()) {
 
   void app.whenReady().then(() => {
     state = readState(stateFile());
+    bundledIcons = readBundledIcons(iconsDir(), isProviderId);
     applyLocale();
     applyTheme();
     // Outside a package (yarn dev / start), the Dock shows Electron's icon: set ours.

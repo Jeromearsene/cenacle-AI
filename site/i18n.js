@@ -128,7 +128,8 @@ export const messages = {
     otherSystems: 'Autres systèmes',
     heroNote: 'Gratuit · Sans API, uniquement les sites publics',
     version: 'Dernière version : {version}',
-    previewAlt: 'Cénacle avec trois comptes côte à côte en mode grille (conversations de démonstration)',
+    previewAlt:
+      'Cénacle avec trois comptes côte à côte en mode grille (conversations de démonstration)',
     providersLabel: 'Services pris en charge',
     providersCount: 'services pris en charge',
     providersMore: '+ le vôtre en une entrée',

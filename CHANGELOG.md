@@ -1,5 +1,17 @@
 # cenacle-ai
 
+## 0.7.0
+
+### Minor Changes
+
+- [#44](https://github.com/Jeromearsene/cenacle-AI/pull/44) [`92d1c41`](https://github.com/Jeromearsene/cenacle-AI/commit/92d1c4188324e8febc000b1851d41b900a23bd27) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - Perplexity is now available as a service: add Perplexity accounts next to Claude, ChatGPT and Gemini, each in its own isolated session.
+
+### Patch Changes
+
+- [#46](https://github.com/Jeromearsene/cenacle-AI/pull/46) [`f9886e3`](https://github.com/Jeromearsene/cenacle-AI/commit/f9886e302a70ddf0ae7491ce6577ebe9dbb78e78) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - In the sidebar, numbers now stand out from the words around them: the account count of each filter chip is a round badge, the time left before an account can be used again is a pill, and the ⌘ / Ctrl shortcuts are rounded.
+
+- [#45](https://github.com/Jeromearsene/cenacle-AI/pull/45) [`b5e0ab4`](https://github.com/Jeromearsene/cenacle-AI/commit/b5e0ab4cfbbd5c39c0cca8136b6ecc127071cf02) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - The app name now sits at the very top of the sidebar, larger and next to the app mark, instead of below an empty band (on macOS it shares the line of the window buttons, and takes their place in full screen).
+
 ## 0.6.0
 
 ### Minor Changes

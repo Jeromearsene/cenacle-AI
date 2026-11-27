@@ -38,6 +38,12 @@ export const PROVIDERS: Record<string, Provider> = {
     authHosts: ['auth.openai.com', 'auth0.openai.com'],
   },
   gemini: { id: 'gemini', label: 'Gemini', url: 'https://gemini.google.com/app', ua: 'native' },
+  perplexity: {
+    id: 'perplexity',
+    label: 'Perplexity',
+    url: 'https://www.perplexity.ai/',
+    ua: 'clean',
+  },
 };
 
 export const DEFAULT_PROVIDER = 'claude';

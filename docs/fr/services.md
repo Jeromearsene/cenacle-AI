@@ -6,15 +6,16 @@
 
 ## Services
 
-| Service | État         | Remarques                                                                                             |
-| ------- | ------------ | ----------------------------------------------------------------------------------------------------- |
-| Claude  | testé        | Connexion par lien magique conseillée.                                                                |
-| ChatGPT | à tester     | Connexion par e-mail. Les boutons « Continuer avec Google / Apple / Microsoft » peuvent être refusés. |
-| Gemini  | expérimental | Connexion Google : voir « Gemini et la connexion Google ».                                            |
+| Service    | État         | Remarques                                                                                             |
+| ---------- | ------------ | ----------------------------------------------------------------------------------------------------- |
+| Claude     | testé        | Connexion par lien magique conseillée.                                                                |
+| ChatGPT    | à tester     | Connexion par e-mail. Les boutons « Continuer avec Google / Apple / Microsoft » peuvent être refusés. |
+| Gemini     | expérimental | Connexion Google : voir « Gemini et la connexion Google ».                                            |
+| Perplexity | à tester     | Connexion par e-mail. Les boutons « Continuer avec Google / Apple » peuvent être refusés.             |
 
 ## Ajouter un service
 
-Les services sont de simples données dans `src/main/providers.ts`. Pour en ajouter un (Grok, Perplexity, un chat auto-hébergé…), ajoute une entrée :
+Les services sont de simples données dans `src/main/providers.ts`. Pour en ajouter un (Grok, un chat auto-hébergé…), ajoute une entrée :
 
 ```ts
 example: {

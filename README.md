@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>All your AI assistants, side by side, in a single window.</strong><br>
-  Several Claude, ChatGPT and Gemini accounts, each in its own isolated session.
+  Several Claude, ChatGPT, Gemini and Perplexity accounts, each in its own isolated session.
 </p>
 
 <p align="center"><strong>English</strong> · <a href="README.fr.md">Français</a></p>
@@ -27,7 +27,7 @@ A free plan here, a work account there, a personal one on the side. Cénacle put
 
 ## ✨ Features
 
-- **Many accounts, one window**: Claude, ChatGPT and Gemini, including several accounts of the same service.
+- **Many accounts, one window**: Claude, ChatGPT, Gemini and Perplexity, including several accounts of the same service.
 - **Isolated sessions**: each account has its own cookies and storage. Sign in once, it is remembered.
 - **A grid you arrange yourself**: drag and drop accounts to build rows and columns, swap them, resize them. The layout is kept between launches.
 - **Usage limits at a glance**: when Claude says you are close to your limit, the account shows a pill, the time it comes back and an hourglass, and you get a notification when it is usable again.
@@ -50,7 +50,7 @@ The app is **not code-signed yet**, so macOS and Windows warn you at the first l
 
 ## Works with
 
-**Claude**, **ChatGPT** and **Gemini** today. Another service is a single entry in the code ([how to add one](docs/services.md#adding-a-service)): Grok, Perplexity, a self-hosted chat…
+**Claude**, **ChatGPT**, **Gemini** and **Perplexity** today. Another service is a single entry in the code ([how to add one](docs/services.md#adding-a-service)): Grok, a self-hosted chat…
 
 ## 📚 Documentation
 
@@ -65,7 +65,7 @@ The app is **not code-signed yet**, so macOS and Windows warn you at the first l
 ## Roadmap
 
 - Shared memory between accounts through a common MCP server.
-- Usage limits for ChatGPT and Gemini (Claude only for now).
+- Usage limits for ChatGPT, Gemini and Perplexity (Claude only for now).
 - Menu bar icon, customizable shortcuts.
 - Code signing and notarization (needed for macOS updates, Touch ID and passkeys).
 - More services.

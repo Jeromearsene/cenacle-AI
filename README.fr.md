@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>Tous tes assistants IA, côte à côte, dans une seule fenêtre.</strong><br>
-  Plusieurs comptes Claude, ChatGPT et Gemini, chacun dans sa session isolée.
+  Plusieurs comptes Claude, ChatGPT, Gemini et Perplexity, chacun dans sa session isolée.
 </p>
 
 <p align="center"><a href="README.md">English</a> · <strong>Français</strong></p>
@@ -27,7 +27,7 @@ Un forfait gratuit ici, un compte pro là, un compte perso à côté. Cénacle l
 
 ## ✨ Fonctionnalités
 
-- **Plusieurs comptes, une fenêtre** : Claude, ChatGPT et Gemini, y compris plusieurs comptes du même service.
+- **Plusieurs comptes, une fenêtre** : Claude, ChatGPT, Gemini et Perplexity, y compris plusieurs comptes du même service.
 - **Sessions isolées** : chaque compte a ses propres cookies et son propre stockage. Tu te connectes une fois, c'est retenu.
 - **Une grille que tu organises** : glisse-dépose les comptes pour former des rangées et des colonnes, échange-les, redimensionne-les. La disposition est conservée d'un lancement à l'autre.
 - **Les limites d'utilisation d'un coup d'œil** : quand Claude annonce que tu approches de ta limite, le compte affiche une pastille, l'heure de retour et un sablier, et tu es notifié quand il est de nouveau utilisable.
@@ -50,7 +50,7 @@ L'app n'est **pas encore signée** : macOS et Windows t'avertissent au premier l
 
 ## Services pris en charge
 
-**Claude**, **ChatGPT** et **Gemini** aujourd'hui. Un autre service tient en une seule entrée dans le code ([comment en ajouter un](docs/fr/services.md#ajouter-un-service)) : Grok, Perplexity, un chat auto-hébergé…
+**Claude**, **ChatGPT**, **Gemini** et **Perplexity** aujourd'hui. Un autre service tient en une seule entrée dans le code ([comment en ajouter un](docs/fr/services.md#ajouter-un-service)) : Grok, un chat auto-hébergé…
 
 ## 📚 Documentation
 
@@ -65,7 +65,7 @@ L'app n'est **pas encore signée** : macOS et Windows t'avertissent au premier l
 ## Feuille de route
 
 - Mémoire partagée entre les comptes via un serveur MCP commun.
-- Limites d'utilisation pour ChatGPT et Gemini (Claude seulement pour l'instant).
+- Limites d'utilisation pour ChatGPT, Gemini et Perplexity (Claude seulement pour l'instant).
 - Icône dans la barre de menus, raccourcis personnalisables.
 - Signature et notarisation du code (nécessaires aux mises à jour macOS, à Touch ID et aux clés d'accès).
 - D'autres services.

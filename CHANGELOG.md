@@ -1,5 +1,17 @@
 # cenacle-ai
 
+## 0.6.0
+
+### Minor Changes
+
+- [#42](https://github.com/Jeromearsene/cenacle-AI/pull/42) [`f93dcc4`](https://github.com/Jeromearsene/cenacle-AI/commit/f93dcc43f9eaf7d4e20049cc27de60711a90291a) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - Each account now reopens on the conversation it was on when the app was closed, instead of the service's home page.
+
+- [#22](https://github.com/Jeromearsene/cenacle-AI/pull/22) [`07faff3`](https://github.com/Jeromearsene/cenacle-AI/commit/07faff389098403b79446f5b50c6595f970f4743) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - Added a Settings dialog (gear button at the bottom of the sidebar, also reachable with ⌘, / Ctrl+, or from the application menu) to choose the interface language and a light / dark / system theme, independently of the operating system.
+  
+  The Layout toggle and the new Settings dialog share a fully keyboard-accessible segmented control (arrow keys to pick an option, a visible focus ring, and focus kept inside the open dialog).
+
+- [#30](https://github.com/Jeromearsene/cenacle-AI/pull/30) [`f088f74`](https://github.com/Jeromearsene/cenacle-AI/commit/f088f740f7848819aa19d70c9f126617ad989611) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - An account that raises a notification while you are looking elsewhere now shows a dot in the sidebar and above its column, bounces the Dock icon (macOS) or flashes the taskbar (Windows, Linux), and updates the app badge. The dot goes away when you open the account. On Windows, notifications are now named after the app when it is run from source.
+
 ## 0.5.0
 
 ### Minor Changes

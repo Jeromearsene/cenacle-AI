@@ -1,7 +1,7 @@
 {
   "name": "cenacle-ai",
   "productName": "Cénacle",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Use several Claude, ChatGPT, Gemini, Perplexity (and more) accounts in a single window, each with its own isolated session. Unofficial cross-platform Electron desktop app.",
   "keywords": [
     "electron",

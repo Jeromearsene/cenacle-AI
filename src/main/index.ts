@@ -65,7 +65,7 @@ import {
   webProbeScript,
 } from './notification-test';
 import { isPermissionAllowed } from './permissions';
-import { iconSource, MAX_ICON_LENGTH, toIconUrl } from './provider-icons';
+import { iconCandidates, iconSource, MAX_ICON_LENGTH, toIconUrl } from './provider-icons';
 import {
   DEFAULT_PROVIDER,
   isAuthHost,
@@ -354,10 +354,14 @@ function trackShortcutHint(wc: WebContents): void {
 const iconsSeen = new Map<string, string>();
 
 /** The image at `source`, as a data URL, or null if it is missing, too big or not an image. */
-async function fetchIcon(source: string, ses: Session): Promise<string | null> {
+async function fetchIcon(
+  source: string,
+  ses: Session,
+  headers?: Record<string, string>
+): Promise<string | null> {
   if (source.startsWith('data:')) return source;
   try {
-    const res = await ses.fetch(source);
+    const res = await ses.fetch(source, { headers, signal: AbortSignal.timeout(8000) });
     const length = Number(res.headers.get('content-length') ?? 0);
     if (!res.ok || length > MAX_ICON_LENGTH) return null;
     return toIconUrl(res.headers.get('content-type'), new Uint8Array(await res.arrayBuffer()));
@@ -388,6 +392,53 @@ async function learnProviderIcon(acc: Account, wc: WebContents, favicons: string
       notify();
     }
     return;
+  }
+}
+
+const DISCOVERY_RETRY_MS = 10 * 60_000;
+const lastDiscovery = new Map<string, number>();
+
+/**
+ * The icon of a service, found without opening its page in a view: the icon its start page
+ * names, else the conventional `/favicon.ico`. A service whose account is never shown (it is
+ * outside the grid) would otherwise never reveal its icon.
+ */
+async function discoverIcon(acc: Account): Promise<string | null> {
+  const ses = session.fromPartition(partitionOf(acc.id));
+  const page = urlOf(acc);
+  const headers =
+    providerOf(acc.provider).ua === 'clean' ? { 'user-agent': CLEAN_USER_AGENT } : undefined;
+  let html = '';
+  try {
+    const res = await ses.fetch(page, { headers, signal: AbortSignal.timeout(8000) });
+    if (res.ok && res.headers.get('content-type')?.includes('text/html')) html = await res.text();
+  } catch {
+    // offline, or the page refuses: the conventional address is still tried
+  }
+  for (const candidate of iconCandidates(html, page)) {
+    const source = iconSource(candidate, page);
+    const icon = source ? await fetchIcon(source, ses, headers) : null;
+    if (icon) return icon;
+  }
+  return null;
+}
+
+/** Looks up the icon of every service in use that has none yet (at most once in a while). */
+async function discoverProviderIcons(): Promise<void> {
+  for (const id of new Set(state.accounts.map((a) => a.provider))) {
+    if (state.providerIcons[id]) continue;
+    if (Date.now() - (lastDiscovery.get(id) ?? Number.NEGATIVE_INFINITY) < DISCOVERY_RETRY_MS) {
+      continue;
+    }
+    lastDiscovery.set(id, Date.now());
+    const acc = state.accounts.find((a) => a.provider === id);
+    const icon = acc ? await discoverIcon(acc) : null;
+    // A page may have announced its own icon in the meantime: that one wins.
+    if (icon && !state.providerIcons[id]) {
+      state.providerIcons[id] = icon;
+      scheduleSave();
+      notify();
+    }
   }
 }
 
@@ -649,6 +700,7 @@ function addAccount(providerId: string): string {
     state.grid = appendFitting(state.grid, acc.id, contentArea(win)) ?? state.grid;
   }
   refresh();
+  void discoverProviderIcons();
   if (win && !win.isDestroyed()) win.webContents.send('rename-request', acc.id);
   return acc.id;
 }
@@ -1211,6 +1263,7 @@ if (!app.requestSingleInstanceLock()) {
       app.dock?.setIcon(nativeImage.createFromPath(resource('icon-mac.png')));
     buildMenu();
     createWindow();
+    void discoverProviderIcons();
     checkForUpdates();
   });
 

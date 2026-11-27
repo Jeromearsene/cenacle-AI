@@ -168,6 +168,16 @@ test('the filter and the grouping survive a restart', async ({ launch }) => {
     .toEqual(['Claude 1', 'Claude 2', 'ChatGPT 1']);
 });
 
+test('the counts of the filter are set apart from the names, in a pill', async ({ launch }) => {
+  const { sidebar } = await launch();
+  await addAccount(sidebar, 'ChatGPT');
+  await addAccount(sidebar, 'Claude');
+  const filter = sidebar.getByRole('group', { name: 'Filter accounts by service' });
+  await expect(filter.locator('.count-pill')).toHaveText(['3', '2', '1']);
+  // the chips keep a readable name for screen readers: "All 3", "Claude 2", "ChatGPT 1"
+  await expect(filter.getByRole('button', { name: 'Claude 2' })).toBeVisible();
+});
+
 test('the filter only changes the list: the grid keeps every account', async ({ launch }) => {
   const { sidebar } = await launch();
   await addAccount(sidebar, 'ChatGPT');

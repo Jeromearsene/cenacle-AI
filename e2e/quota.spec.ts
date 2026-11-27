@@ -68,6 +68,9 @@ test('limit reached: pill, countdown and hourglass bar in the sidebar', async ({
   await evalIn(app, id as number, showBanner(`You are out of free messages until ${clockIn(2)}.`));
   await expect(sidebar.locator('.account .quota-pill')).toHaveText('Full');
   await expect(sidebar.locator('.account .quota-bar')).toBeVisible();
+  // the time of the reset, and the time left in a pill of its own
+  await expect(sidebar.locator('.account .quota-at')).toContainText('back at');
+  await expect(sidebar.locator('.account .quota-left')).toHaveText(/^in \d/);
   const now = Number(await sidebar.locator('.account .quota-bar').getAttribute('aria-valuenow'));
   expect(now).toBeGreaterThan(30);
   expect(now).toBeLessThan(50);

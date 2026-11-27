@@ -82,7 +82,7 @@ export function CellHeaders({ state, isMac, providerLabel, shortcutOf, onDragSta
             {quota && !shortcutOf(acc.id) ? (
               <QuotaPill info={quota} now={now} t={t} locale={state.locale} withTime />
             ) : shortcutOf(acc.id) ? (
-              <kbd class="shortcut flex-none rounded border border-line bg-panel px-1.5 font-sans text-[11px] text-muted">
+              <kbd class="shortcut flex-none rounded-full border border-line bg-panel px-2 font-sans text-[11px] font-medium text-muted">
                 {shortcutOf(acc.id)}
               </kbd>
             ) : (

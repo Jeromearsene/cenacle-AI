@@ -1,5 +1,19 @@
 # cenacle-ai
 
+## 0.8.0
+
+### Minor Changes
+
+- [#55](https://github.com/Jeromearsene/cenacle-AI/pull/55) [`2e1b717`](https://github.com/Jeromearsene/cenacle-AI/commit/2e1b717588b19c6a4e97773ebb0ace1c879263ee) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - The app now ships the icon of Claude, ChatGPT, Gemini and Perplexity: they show up from the first frame, with no network lookup. Files named after the service (`claude.png`, `perplexity.svg`…) in `resources/provider-icons/` are used as is; a service without such a file keeps the icon its site announces.
+
+- [#47](https://github.com/Jeromearsene/cenacle-AI/pull/47) [`64364c6`](https://github.com/Jeromearsene/cenacle-AI/commit/64364c6553596b67374e818a92624d4e757e1263) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - Each service now shows its own icon in the sidebar, in front of its accounts and in the provider filter. The icon is the one the service's page announces (its favicon), kept for the next launch; a letter stands in until it is known. The color of an account moves to a small badge on the corner of the icon.
+
+- [#48](https://github.com/Jeromearsene/cenacle-AI/pull/48) [`29d9c2b`](https://github.com/Jeromearsene/cenacle-AI/commit/29d9c2bc46adc207f77a394013adadffac4b02b8) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - The "Group" button of the sidebar, which looked like one more service, is replaced by a "List | Grouped" switch of its own shape under the filters. When the list is grouped, each service now has a header with its icon and its number of accounts.
+
+### Patch Changes
+
+- [#51](https://github.com/Jeromearsene/cenacle-AI/pull/51) [`44873e4`](https://github.com/Jeromearsene/cenacle-AI/commit/44873e40dbbf726756de8f57a9f8fba741ed69ba) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - The icon of a service now shows up even when none of its accounts has been opened yet (an account outside the grid, for example): the app looks for it on the service's start page, then at `/favicon.ico`, instead of waiting for a page to announce it. Icons that a server labels badly (an `.ico` sent as `application/octet-stream`) are now recognized from their bytes, and multi-size icons up to about 75 KB are accepted.
+
 ## 0.7.0
 
 ### Minor Changes

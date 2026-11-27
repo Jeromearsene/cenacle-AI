@@ -46,6 +46,8 @@ export interface PersistedState {
   activeId: string;
   layout: Layout;
   accountView: AccountView;
+  /** Icon of each service (data URL), learned from the service's pages. */
+  providerIcons: Record<string, string>;
   /** The grid mode layout; null until it is first shown (then every account is in it). */
   grid: GridNode | null;
   bounds: Bounds | null;
@@ -70,6 +72,8 @@ export interface Rect {
 export interface ProviderInfo {
   id: string;
   label: string;
+  /** The service's own icon, once known (a data URL). */
+  icon?: string;
 }
 
 /** What the interface receives from the main process. */

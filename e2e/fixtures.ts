@@ -34,13 +34,24 @@ interface Fixtures {
   launch: (options?: LaunchOptions) => Promise<Launched>;
 }
 
+/** The "favicon" of the fake service: a 1×1 PNG. */
+const FAVICON = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+  'base64'
+);
+
 async function startService(): Promise<{ service: FakeService; close: () => Promise<void> }> {
   const pageUserAgents: string[] = [];
   const server = http.createServer((req, res) => {
+    if (req.url === '/favicon.png') {
+      res.setHeader('content-type', 'image/png');
+      res.end(FAVICON);
+      return;
+    }
     if (req.url === '/') pageUserAgents.push(String(req.headers['user-agent'] ?? ''));
     res.setHeader('content-type', 'text/html; charset=utf-8');
     res.end(
-      '<!doctype html><title>faux service</title><h1>faux service</h1>' +
+      '<!doctype html><link rel="icon" href="/favicon.png"><title>faux service</title><h1>faux service</h1>' +
         '<input id="field" value="bonjour"> <a id="lien" href="https://example.com/">un lien</a>' +
         // a notification created at load time: the dressing must already be in place
         "<script>window.earlyNotificationTitle = new Notification('early').title</script>"

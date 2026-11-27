@@ -120,7 +120,7 @@ test('filters and groups the sidebar by service', async ({ launch }) => {
   );
 
   // group by service
-  await filter.getByRole('button', { name: 'Group' }).click();
+  await sidebar.getByRole('radio', { name: 'Grouped' }).click();
   await expect.poll(() => accountNames(sidebar)).toEqual(['Claude 1', 'Claude 2', 'ChatGPT 1']);
 
   // filter on one service
@@ -132,7 +132,7 @@ test('filters and groups the sidebar by service', async ({ launch }) => {
   await expect.poll(() => accountNames(sidebar)).toEqual(['Claude 1', 'Claude 2', 'ChatGPT 1']);
 
   // back to the original order
-  await filter.getByRole('button', { name: 'Group' }).click();
+  await sidebar.getByRole('radio', { name: 'List' }).click();
   await expect.poll(() => accountNames(sidebar)).toEqual(['Claude 1', 'ChatGPT 1', 'Claude 2']);
 });
 
@@ -141,7 +141,7 @@ test('the filter and the grouping survive a restart', async ({ launch }) => {
   await addAccount(sidebar, 'ChatGPT');
   await addAccount(sidebar, 'Claude');
   const filter = sidebar.getByRole('group', { name: 'Filter accounts by service' });
-  await filter.getByRole('button', { name: 'Group' }).click();
+  await sidebar.getByRole('radio', { name: 'Grouped' }).click();
   await filter.getByRole('button', { name: 'ChatGPT 1' }).click();
   await expect.poll(() => accountNames(sidebar)).toEqual(['ChatGPT 1']);
   await app.close();
@@ -153,7 +153,7 @@ test('the filter and the grouping survive a restart', async ({ launch }) => {
     'aria-pressed',
     'true'
   );
-  await expect(back.getByRole('button', { name: 'Group' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(again.sidebar.getByRole('radio', { name: 'Grouped' })).toBeChecked();
 
   // "All" is saved too
   await back.getByRole('button', { name: 'All 3' }).click();
@@ -178,6 +178,31 @@ test('the counts of the filter are set apart from the names, in a pill', async (
   await expect(filter.getByRole('button', { name: 'Claude 2' })).toBeVisible();
 });
 
+test('the switch says which view is on, and grouping adds a header per service', async ({
+  launch,
+}) => {
+  const { sidebar } = await launch();
+  await addAccount(sidebar, 'ChatGPT');
+  await addAccount(sidebar, 'Claude');
+  const list = sidebar.getByRole('radio', { name: 'List' });
+  const grouped = sidebar.getByRole('radio', { name: 'Grouped' });
+  await expect(list).toBeChecked();
+  await expect(grouped).not.toBeChecked();
+  await expect(sidebar.locator('#accounts .group-head')).toHaveCount(0);
+
+  await grouped.click();
+  await expect(grouped).toBeChecked();
+  const heads = sidebar.locator('#accounts .group-head');
+  await expect(heads).toHaveText(['Claude2', 'ChatGPT1']);
+
+  // a filter on one service leaves a single header
+  await sidebar.locator('.provider-filter .chip', { hasText: 'ChatGPT' }).click();
+  await expect(heads).toHaveText(['ChatGPT1']);
+
+  await list.click();
+  await expect(heads).toHaveCount(0);
+});
+
 test('the filter only changes the list: the grid keeps every account', async ({ launch }) => {
   const { sidebar } = await launch();
   await addAccount(sidebar, 'ChatGPT');
@@ -197,5 +222,7 @@ test('the filter is translated', async ({ launch }) => {
 
   const filter = sidebar.getByRole('group', { name: 'Filtrer les comptes par service' });
   await expect(filter.getByRole('button', { name: 'Tous 2' })).toBeVisible();
-  await expect(filter.getByRole('button', { name: 'Grouper' })).toBeVisible();
+  await expect(sidebar.getByRole('radiogroup', { name: 'Affichage' })).toBeVisible();
+  await expect(sidebar.getByRole('radio', { name: 'Groupé' })).toBeVisible();
+  await expect(sidebar.getByRole('radio', { name: 'Liste' })).toBeChecked();
 });

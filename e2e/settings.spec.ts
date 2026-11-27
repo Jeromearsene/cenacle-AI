@@ -72,6 +72,12 @@ test('arrow keys move the selection within a group', async ({ launch }) => {
   const { sidebar } = await launch();
   const panel = await openSettings(sidebar);
   const theme = panel.getByRole('radiogroup', { name: 'Theme' });
+  // Opening the panel auto-focuses Language/System itself (see Settings.tsx); wait for that to
+  // land before moving focus to Theme ourselves, or the two races on a slow runner and the
+  // panel's own focus can land second, pulling focus back to Language right after this does.
+  await expect(
+    panel.getByRole('radiogroup', { name: 'Language' }).getByRole('radio', { name: 'System' })
+  ).toBeFocused();
   // Focus the Theme group directly (the Tab handoff from Language is its own test, above).
   await theme.getByRole('radio', { name: 'System' }).focus();
 

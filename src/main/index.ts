@@ -573,6 +573,7 @@ function publicState(): PublicState {
     area:
       win && !win.isDestroyed() ? contentArea(win) : { x: SIDEBAR_W, y: 0, width: 0, height: 0 },
     sidebarW: SIDEBAR_W,
+    fullscreen: win && !win.isDestroyed() ? win.isFullScreen() : false,
     quotas: quota.snapshot(),
   };
 }

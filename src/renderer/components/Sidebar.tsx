@@ -5,7 +5,7 @@ import { api } from '../use-multi';
 import { useNow } from '../use-now';
 import { AccountItem } from './AccountItem';
 import { AddAccount } from './AddAccount';
-import { EqualizeIcon } from './icons';
+import { CenacleMark, EqualizeIcon } from './icons';
 import { LayoutToggle } from './LayoutToggle';
 import { ProviderFilter } from './ProviderFilter';
 import { ResourceUsagePanel } from './ResourceUsagePanel';
@@ -47,9 +47,17 @@ export function Sidebar({
       class="absolute inset-y-0 left-0 flex flex-col border-r border-line bg-panel px-2.5 pb-3"
       style={{ width: `${state.sidebarW}px` }}
     >
-      {/* window drag area; on macOS, room for the window buttons */}
-      <div class={`-mx-2.5 [-webkit-app-region:drag] ${isMac ? 'h-10' : 'h-3'}`} />
-      <div class="brand px-2 pt-0.5 pb-2.5 font-semibold tracking-[0.01em]">{state.appName}</div>
+      {/* The top of the sidebar: the app name and mark, which also drag the window. On macOS the
+          window buttons sit at its left, except in full screen where they are hidden. */}
+      <header
+        class={`-mx-2.5 mb-1 flex items-center gap-2 px-4 [-webkit-app-region:drag] ${isMac ? 'h-10' : 'h-12'}`}
+      >
+        {isMac && !state.fullscreen && <span class="w-[58px] flex-none" aria-hidden="true" />}
+        <CenacleMark />
+        <h1 class="brand m-0 truncate font-serif text-[20px] leading-none font-medium tracking-[-0.01em]">
+          {state.appName}
+        </h1>
+      </header>
       {several && (
         <ProviderFilter
           providers={inUse}

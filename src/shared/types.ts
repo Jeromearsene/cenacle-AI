@@ -94,6 +94,8 @@ export interface PublicState {
   grid: GridNode | null;
   area: Area;
   sidebarW: number;
+  /** The window is in full screen (on macOS, the window buttons are then hidden). */
+  fullscreen: boolean;
   /** Accounts whose usage limit is close or reached, by account id. */
   quotas: Record<string, QuotaInfo>;
 }

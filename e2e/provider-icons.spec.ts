@@ -1,14 +1,17 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import {
   iconCandidates,
   iconSource,
   MAX_ICON_LENGTH,
   parseProviderIcons,
+  readBundledIcons,
   sniffImageType,
   toIconUrl,
 } from '../src/main/provider-icons';
-import { addAccount, expect, test } from './fixtures';
+import { PROVIDERS } from '../src/main/providers';
+import { addAccount, expect, test, waitForServices } from './fixtures';
 
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
@@ -86,6 +89,33 @@ test.describe('service icons', () => {
     );
   });
 
+  test('the icons shipped with the app are read from their files', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cenacle-icons-'));
+    const known = (id: string) => ['claude', 'chatgpt', 'gemini'].includes(id);
+    try {
+      fs.writeFileSync(path.join(dir, 'claude.png'), PNG);
+      fs.writeFileSync(path.join(dir, 'chatgpt.SVG'), '<svg xmlns="http://www.w3.org/2000/svg"/>');
+      fs.writeFileSync(path.join(dir, 'gemini.png'), 'this is not an image');
+      fs.writeFileSync(path.join(dir, 'unknown.png'), PNG);
+      fs.writeFileSync(path.join(dir, 'README.md'), '# icons');
+      fs.writeFileSync(path.join(dir, 'claude.gif.txt'), PNG);
+      const icons = readBundledIcons(dir, known);
+      expect(Object.keys(icons).sort()).toEqual(['chatgpt', 'claude']);
+      expect(icons.claude).toBe(PNG_URL);
+      expect(icons.chatgpt).toMatch(/^data:image\/svg\+xml;base64,/);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+    // no such folder: no icon, no error
+    expect(readBundledIcons(path.join(dir, 'missing'), known)).toEqual({});
+  });
+
+  test('the app ships an icon for each of its services', () => {
+    const dir = path.join(__dirname, '../resources/provider-icons');
+    const shipped = readBundledIcons(dir, (id) => Object.hasOwn(PROVIDERS, id));
+    expect(Object.keys(shipped).sort()).toEqual(Object.keys(PROVIDERS).sort());
+  });
+
   test('a saved state keeps the valid icons of the known services only', () => {
     const known = (id: string) => id === 'claude' || id === 'gemini';
     expect(
@@ -136,4 +166,26 @@ test('the icon of a service whose accounts are not shown is found all the same',
   );
   // …without ever opening a ChatGPT page
   await expect(sidebar.locator('.account', { hasText: 'ChatGPT' })).toBeVisible();
+});
+
+test('an icon shipped with the app is used, and no page replaces it', async ({
+  launch,
+  service,
+}) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cenacle-icons-'));
+  fs.writeFileSync(
+    path.join(dir, 'claude.svg'),
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><rect width="1" height="1" fill="red"/></svg>'
+  );
+  try {
+    const { app, sidebar } = await launch({ env: { CENACLE_ICONS_DIR: dir } });
+    const logo = sidebar.locator('.account .provider-logo img');
+    await expect(logo).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
+    // The fake service announces a PNG favicon: once its page has loaded, the shipped one stays.
+    await waitForServices(app, service.url, 1);
+    await sidebar.waitForTimeout(500);
+    await expect(logo).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });

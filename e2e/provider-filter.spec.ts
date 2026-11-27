@@ -171,7 +171,7 @@ test('the filter and the grouping survive a restart', async ({ launch }) => {
 test('the filter only changes the list: the grid keeps every account', async ({ launch }) => {
   const { sidebar } = await launch();
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect(sidebar.locator('.cell-head')).toHaveCount(2);
 
   await sidebar.locator('.provider-filter .chip', { hasText: 'ChatGPT' }).click();

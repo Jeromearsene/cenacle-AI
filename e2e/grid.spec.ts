@@ -381,7 +381,7 @@ async function gridOfThree(launch: () => Promise<{ sidebar: Page }>): Promise<Pa
   const { sidebar } = await launch();
   await addAccount(sidebar, 'Claude');
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect(heads(sidebar)).toHaveCount(3);
   return sidebar;
 }
@@ -391,7 +391,7 @@ test('a cell can be taken out of the grid; selecting it does nothing, dragging i
 }) => {
   const { sidebar } = await launch();
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect(heads(sidebar)).toHaveCount(2);
   await heads(sidebar).nth(1).getByRole('button', { name: 'Remove from the grid' }).click();
   await expect(heads(sidebar)).toHaveCount(1);
@@ -417,7 +417,7 @@ test('a cell can be taken out of the grid; selecting it does nothing, dragging i
 
 test('the last cell cannot be removed', async ({ launch }) => {
   const { sidebar } = await launch();
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect(heads(sidebar)).toHaveCount(1);
   await expect(sidebar.getByRole('button', { name: 'Remove from the grid' })).toHaveCount(0);
 });
@@ -466,7 +466,7 @@ test('dragging an account from the sidebar onto the edge of a cell splits it', a
 test('dragging the grip of a header moves the cell', async ({ launch }) => {
   const { sidebar } = await launch();
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect.poll(() => headNames(sidebar)).toEqual(['Claude 1', 'ChatGPT 1']);
 
   const grip = await gripOf(sidebar, 1);
@@ -480,7 +480,7 @@ test('dragging the grip of a header moves the cell', async ({ launch }) => {
 test('Escape cancels a drag', async ({ launch }) => {
   const { sidebar } = await launch();
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect(heads(sidebar)).toHaveCount(2);
   const grip = await gripOf(sidebar, 1);
   const first = (await heads(sidebar).nth(0).boundingBox()) as { x: number };
@@ -497,7 +497,7 @@ test('Escape cancels a drag', async ({ launch }) => {
 test('a resize handle between two cells moves their border', async ({ launch }) => {
   const { sidebar } = await launch();
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect(sidebar.locator('.divider')).toHaveCount(1);
   const width = async () => (await heads(sidebar).nth(0).boundingBox())?.width ?? 0;
   const before = await width();
@@ -516,7 +516,7 @@ test('a resize handle between two cells moves their border', async ({ launch }) 
 test('the layout and the sizes survive a restart', async ({ launch }) => {
   const { app, sidebar } = await launch();
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   const handle = await centerOf(sidebar.locator('.divider'));
   await dragTo(sidebar, { x: handle.x, y: handle.y }, { x: handle.x + 100, y: handle.y });
   const grip = await gripOf(sidebar, 1);
@@ -536,7 +536,7 @@ test('the layout and the sizes survive a restart', async ({ launch }) => {
 
 test('a new account joins the end of the grid', async ({ launch }) => {
   const { sidebar } = await launch();
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await addAccount(sidebar, 'Gemini');
   await expect.poll(() => headNames(sidebar)).toEqual(['Claude 1', 'Gemini 1']);
 });
@@ -555,7 +555,7 @@ test('each service page sits right under its header, and pages are hidden while 
 }) => {
   const { app, sidebar } = await launch();
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect(heads(sidebar)).toHaveCount(2);
   // a stacked layout too: the second account goes under the first one
   const grip = await gripOf(sidebar, 1);
@@ -592,7 +592,7 @@ test('each service page sits right under its header, and pages are hidden while 
 test('the pages come back when the system cancels the pointer', async ({ launch }) => {
   const { app, sidebar } = await launch();
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   const grip = await gripOf(sidebar, 1);
   await sidebar.mouse.move(grip.x, grip.y);
   await sidebar.mouse.down();
@@ -607,7 +607,7 @@ test('the pages come back when the system cancels the pointer', async ({ launch 
 test('a resize handle works with the arrow keys', async ({ launch }) => {
   const { sidebar } = await launch();
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   const width = async () => (await heads(sidebar).nth(0).boundingBox())?.width ?? 0;
   const before = await width();
   await sidebar.locator('.divider').focus();
@@ -624,7 +624,7 @@ test('the whole header moves a cell, except in the title bar on macOS', async ({
   test.skip(process.platform === 'darwin', 'the top row of headers is the title bar on macOS');
   const { sidebar } = await launch();
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   const name = await centerOf(heads(sidebar).nth(1).locator('.name'));
   const first = (await heads(sidebar).nth(0).boundingBox()) as { x: number };
   const height = await windowHeight(sidebar);
@@ -644,7 +644,7 @@ test('"Reset the grid" brings every account back side by side', async ({ launch 
   await addAccount(sidebar, 'ChatGPT');
   await addAccount(sidebar, 'Gemini');
   expect(await reset()).toBe(false); // nothing to reset in single mode
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await heads(sidebar).nth(2).getByRole('button', { name: 'Remove from the grid' }).click();
   await heads(sidebar).nth(1).getByRole('button', { name: 'Remove from the grid' }).click();
   await expect(heads(sidebar)).toHaveCount(1);
@@ -693,7 +693,7 @@ test('a drop that would make a cell too small is shown as refused and does nothi
   );
   await addAccount(sidebar, 'ChatGPT');
   await addAccount(sidebar, 'Gemini');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect(heads(sidebar)).toHaveCount(3);
   await heads(sidebar).nth(2).getByRole('button', { name: 'Remove from the grid' }).click();
   await expect(heads(sidebar)).toHaveCount(2);
@@ -722,7 +722,7 @@ test('accounts that do not fit side by side are arranged in rows, none narrower 
   );
   await addAccount(sidebar, 'ChatGPT');
   await addAccount(sidebar, 'Gemini');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   // 900 - 220 = 680 px: only two 320 px columns fit, so three accounts are arranged in two rows
   await expect(heads(sidebar)).toHaveCount(3);
   for (const w of await cellWidths(sidebar)) expect(w).toBeGreaterThanOrEqual(MIN_CELL_WIDTH);
@@ -738,7 +738,7 @@ test('in a window too small for its cells, cells can still be swapped', async ({
   await resize(1400);
   await addAccount(sidebar, 'ChatGPT');
   await addAccount(sidebar, 'Gemini');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect(heads(sidebar)).toHaveCount(3);
   // the user shrinks the window: three columns are now narrower than the minimum
   await resize(900);
@@ -776,7 +776,7 @@ test('while a handle is dragged, the cursor stays a resize cursor and only that 
 test('the Equalize button and a double click on a handle give equal sizes', async ({ launch }) => {
   const { sidebar } = await launch();
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect(sidebar.getByRole('button', { name: 'Equalize sizes' })).toBeVisible();
   const gap = async () => {
     const [a = 0, b = 0] = await cellWidths(sidebar);
@@ -802,7 +802,7 @@ test('swapping two cells shows a swap pictogram; the button is hidden with a sin
   const { sidebar } = await launch();
   await expect(sidebar.getByRole('button', { name: 'Equalize sizes' })).toHaveCount(0);
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   const grip = await gripOf(sidebar, 1);
   const target = await centerOf(heads(sidebar).nth(0));
   const height = await windowHeight(sidebar);
@@ -834,7 +834,7 @@ const watchFirstHeader = (sidebar: Page, ms: number) =>
 test('a layout change glides to its end state, pages and headers together', async ({ launch }) => {
   const { app, sidebar } = await launch({ animations: true });
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect(heads(sidebar)).toHaveCount(2);
   const handle = await centerOf(sidebar.locator('.divider'));
   await dragTo(sidebar, { x: handle.x, y: handle.y }, { x: handle.x + 50, y: handle.y });
@@ -869,7 +869,7 @@ test('a layout change glides to its end state, pages and headers together', asyn
 test('a drop glides too, not only the buttons', async ({ launch }) => {
   const { sidebar } = await launch({ animations: true });
   await addAccount(sidebar, 'ChatGPT');
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect(heads(sidebar)).toHaveCount(2);
   const [before = 0] = await cellWidths(sidebar);
 

@@ -75,7 +75,7 @@ docs/                             la documentation (anglais ; français dans doc
 
 ## Ajouter une langue
 
-Pour ajouter une langue, ajoute son code à `LOCALES` et un jeu complet de messages dans `src/shared/i18n.ts` (TypeScript refuse un jeu incomplet), puis une ligne de test dans `e2e/i18n.spec.ts`. Pour essayer une langue sans changer celle du système, lance l'app non empaquetée avec `CENACLE_LANG=fr yarn dev`.
+Pour ajouter une langue, ajoute son code à `LOCALES`, son propre nom à `LOCALE_LABELS`, et un jeu complet de messages dans `src/shared/i18n.ts` (TypeScript refuse un jeu incomplet), puis une ligne de test dans `e2e/i18n.spec.ts`. Pour essayer une langue sans changer celle du système, lance l'app non empaquetée avec `CENACLE_LANG=fr yarn dev`.
 
 ## Automatisation (Playwright / Puppeteer), désactivée par défaut
 

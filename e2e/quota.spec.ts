@@ -100,7 +100,7 @@ test('the limit stays when the banner disappears, and the column header shows it
   await sidebar.waitForTimeout(1000);
   await expect(sidebar.locator('.account .quota-pill')).toBeVisible();
 
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect(sidebar.locator('.cell-head .quota-pill')).toContainText('back');
 });
 

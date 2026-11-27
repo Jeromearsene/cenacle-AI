@@ -40,13 +40,20 @@ import {
   resizeSplit,
   syncGrid,
 } from '../shared/grid';
-import { resolveLocale, translator } from '../shared/i18n';
+import { isLocale, type Locale, resolveLocale, type Translate, translator } from '../shared/i18n';
 import { isId } from '../shared/id';
 import { computeUsage, type ResourceUsage } from '../shared/metrics';
 import { activeFilter } from '../shared/provider-view';
 import type { QuotaInfo } from '../shared/quota';
 import { MAX_ACCOUNT_SHORTCUTS } from '../shared/shortcuts';
-import type { Account, Layout, PersistedState, PublicState, Rect } from '../shared/types';
+import {
+  type Account,
+  isTheme,
+  type Layout,
+  type PersistedState,
+  type PublicState,
+  type Rect,
+} from '../shared/types';
 import { dotDataUrl, identityArgument } from './account-notifications';
 import { attachContextMenu } from './context-menu';
 import { OAUTH_PATH, restorableUrl } from './last-url';
@@ -86,10 +93,22 @@ const isMac = process.platform === 'darwin';
 // value (`appId` in electron-builder.yml); setting it here also names them when run from source.
 if (process.platform === 'win32') app.setAppUserModelId('io.github.jeromearsene.cenacle');
 
-// Interface language: the system language (English or French, English by default). Tests can
-// force it with CENACLE_LANG; ignored in a packaged app.
-const locale = resolveLocale((!app.isPackaged && process.env.CENACLE_LANG) || app.getLocale());
-const t = translator(locale);
+// Interface language: the system language by default (English or French, English as the
+// fallback), or the user's override (see applyLocale). Tests can force the system language with
+// CENACLE_LANG; ignored in a packaged app.
+const systemLocale = (): Locale =>
+  resolveLocale((!app.isPackaged && process.env.CENACLE_LANG) || app.getLocale());
+let locale: Locale = systemLocale();
+// Reads `locale` at call time (not when `t` was handed out), so every menu, dialog and context
+// menu follows a language change without having to be rebuilt by hand.
+const t: Translate = (key, params) => translator(locale)(key, params);
+
+// Window background shown before a page paints (also the "frame" around maximized/resized
+// content); kept in sync with the chosen theme by the nativeTheme 'updated' listener below.
+// Must match --palette-light-bg / --palette-dark-bg in styles.css by hand: a native window
+// background has to be a literal hex string, so it can't reference that CSS variable directly.
+const BG_LIGHT = '#f5f4ee';
+const BG_DARK = '#1f1e1d';
 
 // Browser identifier. Chromium mis-encodes accents in a User-Agent ("Cénacle" turns into
 // "CÃ©nacle"), so the app name appears there without the accent.
@@ -131,6 +150,11 @@ let dividers: Divider[] = [];
 // True while the interface drags an account or a resize handle: the service pages are hidden so
 // the interface receives every mouse event, and they are placed again when it ends.
 let dragging = false;
+// True while the Settings dialog is open: the service pages are WebContentsViews, native layers
+// stacked above the window's own page, so a dialog drawn in that page (however "big" or
+// "centered") can never paint over them on its own. Hiding them is the only way a dialog in the
+// window's own page can appear to cover the whole window.
+let settingsOpen = false;
 let saveTimer: NodeJS.Timeout | null = null;
 // Accounts that raised a notification nobody has looked at yet (see unread.ts).
 const unread = createUnread(onUnreadChange);
@@ -201,6 +225,48 @@ function notifyQuotaBack(id: string, previous: QuotaInfo): void {
     selectAccount(id);
   });
   n.show();
+}
+
+// ------------------------------------------------------------------ settings (language, theme)
+
+// Recomputes the effective interface language from the current override (or the system
+// language). Must run once after `state` is loaded, and again whenever the override changes.
+//
+// Unlike applyTheme() below, this cannot also react to the OS setting changing while the app is
+// running: Electron has no equivalent of nativeTheme's 'updated' event for the system language,
+// so "System" only re-reads app.getLocale() the next time the app starts.
+function applyLocale(): void {
+  locale = state.localeOverride ?? systemLocale();
+}
+
+// `nativeTheme.themeSource` is what actually drives the look: Electron matches
+// `prefers-color-scheme` in every renderer (this interface and every service page) to it, so our
+// CSS (styles.css) and each service's own dark mode follow without further wiring.
+function applyTheme(): void {
+  nativeTheme.themeSource = state.theme;
+}
+
+// Keeps the window's own background in step: on an explicit theme change (above) and whenever
+// 'system' tracks the OS and the OS theme itself changes.
+nativeTheme.on('updated', () => {
+  if (win && !win.isDestroyed())
+    win.setBackgroundColor(nativeTheme.shouldUseDarkColors ? BG_DARK : BG_LIGHT);
+});
+
+// 'system' resets the override (see applyLocale); it isn't itself a Locale, hence the extra check
+// isLocale doesn't cover, unlike isTheme below where 'system' is already one of Theme's members.
+function setLocaleOverride(pref: unknown): void {
+  if (pref !== 'system' && !isLocale(pref)) return;
+  state.localeOverride = pref === 'system' ? null : pref;
+  applyLocale();
+  refresh({ relayout: false });
+}
+
+function setTheme(pref: unknown): void {
+  if (!isTheme(pref)) return;
+  state.theme = pref;
+  applyTheme();
+  refresh({ relayout: false });
 }
 
 // ------------------------------------------------------------------ links and popups
@@ -398,6 +464,12 @@ function computeRects(w: BrowserWindow): { rects: Rect[]; dividers: Divider[] } 
 /** Puts each service page where its cell is, and hides the ones that have no cell. */
 function placeViews(list: Rect[]): void {
   if (!win || win.isDestroyed()) return;
+  // Keep every service page hidden while the Settings dialog covers the window (see
+  // `settingsOpen`), whatever triggered this call (a resize, a layout change…).
+  if (settingsOpen) {
+    for (const view of views.values()) view.setVisible(false);
+    return;
+  }
   const shown = new Set(list.map((r) => r.id));
   for (const r of list) {
     const acc = findAccount(r.id);
@@ -487,6 +559,8 @@ function publicState(): PublicState {
   return {
     appName: app.getName(),
     locale,
+    localeOverride: state.localeOverride,
+    theme: state.theme,
     providers: Object.values(PROVIDERS).map(({ id, label }) => ({ id, label })),
     accounts: state.accounts,
     activeId: state.activeId,
@@ -636,6 +710,18 @@ function setDragging(active: boolean): void {
   }
 }
 
+/** The Settings dialog just opened or closed (see `settingsOpen`). */
+function setSettingsOpen(open: boolean): void {
+  if (settingsOpen === open) return;
+  settingsOpen = open;
+  if (open) {
+    stopTween();
+    for (const view of views.values()) view.setVisible(false);
+  } else {
+    applyLayout();
+  }
+}
+
 function renameAccount(id: string, name: unknown): boolean {
   const acc = findAccount(id);
   const clean = typeof name === 'string' ? name.trim().slice(0, MAX_NAME) : '';
@@ -732,6 +818,13 @@ function resourceUsage(): ResourceUsage {
   return computeUsage(samples, pids);
 }
 
+// ⌘, / Ctrl, (see buildMenu) or the "Settings" menu item: tell the sidebar to open its own
+// Settings dialog. Settings' open/closed state is deliberately local, transient UI state, not
+// part of PersistedState/PublicState, so this is a one-shot push rather than a state field.
+function requestOpenSettings(): void {
+  if (win && !win.isDestroyed()) win.webContents.send('open-settings');
+}
+
 // ------------------------------------------------------------------ IPC (interface → processus principal)
 
 /** The account and view whose page (main frame only) sent this message. */
@@ -824,6 +917,9 @@ handle('grid:equalize', (path) => {
   if (path === undefined || isPath(path)) equalizeGrid(path);
 });
 handle('grid:dragging', (active) => setDragging(active === true));
+handle('settings:setLocale', (pref) => setLocaleOverride(pref));
+handle('settings:setTheme', (pref) => setTheme(pref));
+handle('settings:setOpen', (open) => setSettingsOpen(open === true));
 handle('account:reload', (id) => isId(id) && reloadAccount(id));
 handle('resource-usage:get', () => resourceUsage());
 
@@ -840,10 +936,47 @@ function buildMenu(): void {
       click: () => selectAccount(acc.id),
     }));
 
+  // ⌘, / Ctrl, (see t('menu.settings') below): the closest thing to a platform convention for
+  // opening an app's settings/preferences — Apple's Human Interface Guidelines mandate Cmd+, on
+  // macOS; Windows has no equivalent of its own, but Ctrl+, is the de facto cross-platform
+  // convention (VS Code, Slack, Discord, Spotify…), so it's used here too. CmdOrCtrl picks the
+  // right one for the current platform automatically.
+  const settingsItem: MenuItemConstructorOptions = {
+    label: t('menu.settings'),
+    accelerator: 'CmdOrCtrl+,',
+    click: () => requestOpenSettings(),
+  };
+
   const template: MenuItemConstructorOptions[] = [
     ...(isMac
-      ? [{ role: 'appMenu' } as const]
-      : [{ label: t('menu.file'), submenu: [{ role: 'quit' } as const] }]),
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              { role: 'about' },
+              { type: 'separator' },
+              settingsItem,
+              { type: 'separator' },
+              { role: 'services' },
+              { type: 'separator' },
+              { role: 'hide' },
+              { role: 'hideOthers' },
+              { role: 'unhide' },
+              { type: 'separator' },
+              { role: 'quit' },
+            ] as MenuItemConstructorOptions[],
+          },
+        ]
+      : [
+          {
+            label: t('menu.file'),
+            submenu: [
+              settingsItem,
+              { type: 'separator' },
+              { role: 'quit' },
+            ] as MenuItemConstructorOptions[],
+          },
+        ]),
     { role: 'editMenu' },
     {
       label: t('menu.accounts'),
@@ -949,7 +1082,7 @@ function createWindow(): void {
     // macOS takes the icon from the bundle (or the Dock, see below); Windows prefers .ico, Linux .png
     icon: isMac ? undefined : resource(process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     show: false,
-    backgroundColor: nativeTheme.shouldUseDarkColors ? '#1f1e1d' : '#f5f4ee',
+    backgroundColor: nativeTheme.shouldUseDarkColors ? BG_DARK : BG_LIGHT,
     titleBarStyle: isMac ? 'hiddenInset' : 'default',
     trafficLightPosition: { x: 14, y: 14 },
     webPreferences: {
@@ -1024,6 +1157,8 @@ if (!app.requestSingleInstanceLock()) {
 
   void app.whenReady().then(() => {
     state = readState(stateFile());
+    applyLocale();
+    applyTheme();
     // Outside a package (yarn dev / start), the Dock shows Electron's icon: set ours.
     if (isMac && !app.isPackaged)
       app.dock?.setIcon(nativeImage.createFromPath(resource('icon-mac.png')));

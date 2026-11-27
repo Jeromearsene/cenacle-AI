@@ -54,3 +54,13 @@ export function useResourceUsage(active: boolean, intervalMs = 2000): ResourceUs
   }, [active, intervalMs]);
   return usage;
 }
+
+/**
+ * A new, distinct value each time the ⌘, / Ctrl, shortcut or the "Settings" menu item is used
+ * (null until the first time). Settings watches this to open itself from outside its own button.
+ */
+export function useOpenSettingsRequest(): number | null {
+  const [token, setToken] = useState<number | null>(null);
+  useEffect(() => api.onOpenSettings(() => setToken(Date.now())), []);
+  return token;
+}

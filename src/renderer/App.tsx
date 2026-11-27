@@ -6,7 +6,13 @@ import { GridOverlay } from './components/GridOverlay';
 import { Sidebar } from './components/Sidebar';
 import { I18nProvider } from './i18n';
 import { useAccountDrag, useDividerDrag, useDragCursor } from './use-grid-drag';
-import { api, useMultiState, useRenameRequest, useShortcutHint } from './use-multi';
+import {
+  api,
+  useMultiState,
+  useOpenSettingsRequest,
+  useRenameRequest,
+  useShortcutHint,
+} from './use-multi';
 
 const isMac = api.platform === 'darwin';
 
@@ -20,6 +26,7 @@ export function App() {
   );
   const [renamingId, setRenamingId] = useState<string | null>(null);
   useRenameRequest(useCallback((id: string) => setRenamingId(id), []));
+  const openSettingsRequest = useOpenSettingsRequest();
 
   useEffect(() => {
     if (state) document.title = state.appName;
@@ -27,6 +34,13 @@ export function App() {
   useEffect(() => {
     if (state) document.documentElement.lang = state.locale;
   }, [state?.locale]);
+  useEffect(() => {
+    // 'system' removes the attribute: styles.css then follows prefers-color-scheme, as before
+    // this setting existed. An explicit light/dark choice always wins (see styles.css).
+    if (!state) return;
+    if (state.theme === 'system') delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = state.theme;
+  }, [state?.theme]);
 
   if (!state) return null;
   const providerLabel = (id: string) => state.providers.find((p) => p.id === id)?.label ?? id;
@@ -51,6 +65,7 @@ export function App() {
         providerLabel={providerLabel}
         shortcutOf={shortcutOf}
         onDragStart={startAccountDrag}
+        openSettingsRequest={openSettingsRequest}
       />
       <CellHeaders
         state={state}

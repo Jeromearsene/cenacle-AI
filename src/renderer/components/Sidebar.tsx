@@ -9,6 +9,7 @@ import { EqualizeIcon } from './icons';
 import { LayoutToggle } from './LayoutToggle';
 import { ProviderFilter } from './ProviderFilter';
 import { ResourceUsagePanel } from './ResourceUsagePanel';
+import { Settings } from './Settings';
 
 interface Props {
   state: PublicState;
@@ -19,6 +20,7 @@ interface Props {
   shortcutOf: (id: string) => string | null;
   /** A press on an account: it may turn into a drag onto the grid. */
   onDragStart: (id: string, event: PointerEvent) => void;
+  openSettingsRequest: number | null;
 }
 
 export function Sidebar({
@@ -29,6 +31,7 @@ export function Sidebar({
   providerLabel,
   shortcutOf,
   onDragStart,
+  openSettingsRequest,
 }: Props) {
   const t = useT();
   const gridIds = new Set(state.rects.map((r) => r.id));
@@ -101,6 +104,7 @@ export function Sidebar({
       )}
       <LayoutToggle layout={state.layout} />
       <ResourceUsagePanel accounts={state.accounts} locale={state.locale} />
+      <Settings state={state} openRequest={openSettingsRequest} />
     </aside>
   );
 }

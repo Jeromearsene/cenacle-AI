@@ -34,7 +34,7 @@ A free plan here, a work account there, a personal one on the side. Cénacle put
 - **Notifications you can tell apart**: the account's name and color on every notification; a click brings you to the right account.
 - **Fast to drive**: ⌘1…⌘9 to jump to an account, Ctrl+Tab to cycle. Hidden accounts keep running, so a long answer is not interrupted.
 - **Private by design**: no API, no key, no server of ours. The app shows the services' own websites, with only the permissions a chat needs.
-- **Cross-platform, in English and French**: macOS, Windows and Linux.
+- **Cross-platform, in English and French**: macOS, Windows and Linux, with a light, dark or system theme ([⚙ Settings](docs/usage.md#language-and-theme)).
 
 ## ⬇️ Download
 

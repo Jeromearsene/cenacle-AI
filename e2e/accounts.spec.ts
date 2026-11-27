@@ -39,10 +39,10 @@ test('shows all accounts in the grid', async ({ launch }) => {
   await addAccount(sidebar, 'Claude');
   await expect(sidebar.locator('.cell-head')).toHaveCount(1);
 
-  await sidebar.getByRole('button', { name: 'Grid' }).click();
+  await sidebar.getByRole('radio', { name: 'Grid' }).click();
   await expect(sidebar.locator('.cell-head')).toHaveCount(2);
 
-  await sidebar.getByRole('button', { name: 'Single' }).click();
+  await sidebar.getByRole('radio', { name: 'Single' }).click();
   await expect(sidebar.locator('.cell-head')).toHaveCount(1);
 });
 

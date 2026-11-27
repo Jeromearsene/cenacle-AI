@@ -6,7 +6,7 @@
 
 In **Grid** mode every account is a cell with its own header. At first they sit side by side (in rows when they do not all fit); you then arrange them:
 
-- **Move**: drag an account from the sidebar, or a cell header (the ⠿ grip on the top row on macOS, where that row moves the window), onto the grid. The highlighted area shows where it will land:
+- **Move**: drag an account from the sidebar, or a cell header (the grip on the top row on macOS, where that row moves the window), onto the grid. The highlighted area shows where it will land:
   - on an **edge of a cell**: splits that cell (left / right: side by side, top / bottom: stacked);
   - on the **center** of a cell: swaps the two cells (or, for an account that is not in the grid, replaces the cell);
   - along the **outer border of the grid**: a new row or column spanning the whole grid.

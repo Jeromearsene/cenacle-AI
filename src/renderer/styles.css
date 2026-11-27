@@ -1,37 +1,103 @@
 @import "tailwindcss";
 
-/* Palette: Tailwind generates the utilities (bg-panel, text-muted, border-line…). The dark theme
-   only changes the variable values, so no `dark:` class is needed. */
+/* Each color exists exactly once here, light and dark, whatever picks it below (the default, the
+   media query, an explicit Settings choice): one value to change, so the two can't drift apart.
+   Keep BG_LIGHT / BG_DARK in src/main/index.ts in sync by hand — the native window background has
+   to be a literal hex string and can't reference a CSS variable from the other process. */
+:root {
+  --palette-light-bg: #f5f4ee;
+  --palette-light-panel: #ebe9df;
+  --palette-light-line: #d6d3c6;
+  --palette-light-ink: #2b2a27;
+  --palette-light-muted: #7a776c;
+  --palette-light-hover: rgb(0 0 0 / 0.06);
+  --palette-light-active: rgb(0 0 0 / 0.1);
+  --palette-light-danger: #c0392b;
+  --palette-light-quota-warn: #9a6b00;
+  --palette-light-quota-full: #b5473a;
+  --palette-light-quota-ok: #3f7d3a;
+
+  --palette-dark-bg: #1f1e1d;
+  --palette-dark-panel: #262523;
+  --palette-dark-line: #3a3835;
+  --palette-dark-ink: #ece9e1;
+  --palette-dark-muted: #9b978b;
+  --palette-dark-hover: rgb(255 255 255 / 0.06);
+  --palette-dark-active: rgb(255 255 255 / 0.1);
+  --palette-dark-danger: #e5826f;
+  --palette-dark-quota-warn: #e3b94a;
+  --palette-dark-quota-full: #ee9686;
+  --palette-dark-quota-ok: #8fc48a;
+}
+
+/* Tailwind generates the utilities (bg-panel, text-muted, border-line…) from these. Light is the
+   default; the media query and the `[data-theme]` rules below only ever repoint them at the dark
+   palette above, never redefine a color. */
 @theme {
-  --color-bg: #f5f4ee;
-  --color-panel: #ebe9df;
-  --color-line: #d6d3c6;
-  --color-ink: #2b2a27;
-  --color-muted: #7a776c;
-  --color-hover: rgb(0 0 0 / 0.06);
-  --color-active: rgb(0 0 0 / 0.1);
+  --color-bg: var(--palette-light-bg);
+  --color-panel: var(--palette-light-panel);
+  --color-line: var(--palette-light-line);
+  --color-ink: var(--palette-light-ink);
+  --color-muted: var(--palette-light-muted);
+  --color-hover: var(--palette-light-hover);
+  --color-active: var(--palette-light-active);
   --color-accent: #d97757;
-  --color-danger: #c0392b;
-  --color-quota-warn: #9a6b00;
-  --color-quota-full: #b5473a;
-  --color-quota-ok: #3f7d3a;
+  --color-danger: var(--palette-light-danger);
+  --color-quota-warn: var(--palette-light-quota-warn);
+  --color-quota-full: var(--palette-light-quota-full);
+  --color-quota-ok: var(--palette-light-quota-ok);
   --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
+  /* "System" (Settings): Electron keeps this matching the OS choice, including nativeTheme
+     overrides — see src/main/index.ts's applyTheme(). */
   :root {
-    --color-bg: #1f1e1d;
-    --color-panel: #262523;
-    --color-line: #3a3835;
-    --color-ink: #ece9e1;
-    --color-muted: #9b978b;
-    --color-hover: rgb(255 255 255 / 0.06);
-    --color-active: rgb(255 255 255 / 0.1);
-    --color-danger: #e5826f;
-    --color-quota-warn: #e3b94a;
-    --color-quota-full: #ee9686;
-    --color-quota-ok: #8fc48a;
+    --color-bg: var(--palette-dark-bg);
+    --color-panel: var(--palette-dark-panel);
+    --color-line: var(--palette-dark-line);
+    --color-ink: var(--palette-dark-ink);
+    --color-muted: var(--palette-dark-muted);
+    --color-hover: var(--palette-dark-hover);
+    --color-active: var(--palette-dark-active);
+    --color-danger: var(--palette-dark-danger);
+    --color-quota-warn: var(--palette-dark-quota-warn);
+    --color-quota-full: var(--palette-dark-quota-full);
+    --color-quota-ok: var(--palette-dark-quota-ok);
   }
+}
+
+/* An explicit "Light"/"Dark" choice (Settings) is applied here too, independently of the media
+   query above: a `[data-theme]` attribute selector outscores a bare `:root` one, so these always
+   win over it, in either direction — including overriding a dark OS setting back to light. This
+   also keeps the choice reliable in the (rare) case where the platform's `prefers-color-scheme`
+   does not actually follow nativeTheme's override. */
+:root[data-theme="dark"] {
+  --color-bg: var(--palette-dark-bg);
+  --color-panel: var(--palette-dark-panel);
+  --color-line: var(--palette-dark-line);
+  --color-ink: var(--palette-dark-ink);
+  --color-muted: var(--palette-dark-muted);
+  --color-hover: var(--palette-dark-hover);
+  --color-active: var(--palette-dark-active);
+  --color-danger: var(--palette-dark-danger);
+  --color-quota-warn: var(--palette-dark-quota-warn);
+  --color-quota-full: var(--palette-dark-quota-full);
+  --color-quota-ok: var(--palette-dark-quota-ok);
+}
+
+:root[data-theme="light"] {
+  --color-bg: var(--palette-light-bg);
+  --color-panel: var(--palette-light-panel);
+  --color-line: var(--palette-light-line);
+  --color-ink: var(--palette-light-ink);
+  --color-muted: var(--palette-light-muted);
+  --color-hover: var(--palette-light-hover);
+  --color-active: var(--palette-light-active);
+  --color-danger: var(--palette-light-danger);
+  --color-quota-warn: var(--palette-light-quota-warn);
+  --color-quota-full: var(--palette-light-quota-full);
+  --color-quota-ok: var(--palette-light-quota-ok);
 }
 
 @layer base {

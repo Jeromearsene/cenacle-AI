@@ -32,6 +32,7 @@ Sur macOS, ⌘ est la touche Commande ; sous Windows et Linux, utilise Ctrl à l
 | ⌘+ ⌘- ⌘0 / Ctrl+ + - 0  | Zoom du compte actif                    |
 | ⌘⌥I / Ctrl+Alt+I        | Outils de développement du compte actif |
 | ⌃⌘F (macOS) / F11       | Plein écran                             |
+| ⌘, / Ctrl+,             | Ouvrir les paramètres                   |
 
 Nouveau compte : menu Comptes → Nouveau compte, ou bouton de la barre latérale.
 
@@ -49,6 +50,6 @@ _Un compte à sa limite, dans la barre latérale et dans son en-tête. Le conten
 
 Le bandeau est reconnu à ce qu'il dit (un court texte qui nomme une limite et donne une heure), et non à la structure de la page, en anglais comme en français. Seule cette phrase est lue ; elle est analysée sur ton ordinateur et n'en sort jamais. La limite reste affichée jusqu'à l'heure de réinitialisation même si la page n'affiche plus le bandeau. Claude uniquement, pour l'instant.
 
-## Langue
+## Langue et thème
 
-L'interface existe en anglais et en français. Elle suit la langue du système et retombe sur l'anglais pour toute autre langue.
+L'interface existe en anglais et en français, et en thème clair, sombre ou système. Les deux suivent le système par défaut (anglais pour toute autre langue système) ; ouvre **⚙ Paramètres** (en bas de la barre latérale, **⌘,** / **Ctrl+,**, ou le menu de l'application — le menu de l'app elle-même sous macOS, Fichier ailleurs) pour les régler indépendamment. Le choix est enregistré et s'applique immédiatement, sans redémarrage.

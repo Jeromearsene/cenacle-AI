@@ -13,6 +13,7 @@ import {
   type PersistedState,
 } from '../shared/types';
 import { MAX_URL_LENGTH } from './last-url';
+import { parseProviderIcons } from './provider-icons';
 import { DEFAULT_PROVIDER, isProviderId, providerOf } from './providers';
 
 export const MAX_NAME = 40;
@@ -47,6 +48,7 @@ export function defaultState(): PersistedState {
     activeId: first.id,
     layout: 'single',
     accountView: { filter: null, sort: 'manual' },
+    providerIcons: {},
     grid: null,
     bounds: null,
     maximized: false,
@@ -107,6 +109,7 @@ export function parseState(raw: unknown): PersistedState {
     // "columns" is the former name of the grid mode
     layout: raw.layout === 'grid' || raw.layout === 'columns' ? 'grid' : 'single',
     accountView: parseAccountView(raw.accountView, accounts),
+    providerIcons: parseProviderIcons(raw.providerIcons, isProviderId),
     grid,
     bounds: parseBounds(raw.bounds),
     maximized: raw.maximized === true,

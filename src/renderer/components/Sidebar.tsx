@@ -78,6 +78,7 @@ export function Sidebar({
             key={acc.id}
             account={acc}
             providerLabel={providerLabel(acc.provider)}
+            providerIcon={state.providers.find((p) => p.id === acc.provider)?.icon}
             shortcut={shortcutOf(acc.id)}
             active={acc.id === state.activeId}
             unread={unreadIds.has(acc.id)}

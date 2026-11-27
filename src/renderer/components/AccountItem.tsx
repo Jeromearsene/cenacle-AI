@@ -3,12 +3,15 @@ import type { Account } from '../../shared/types';
 import { useT } from '../i18n';
 import { api } from '../use-multi';
 import { IconButton } from './IconButton';
+import { ProviderLogo } from './ProviderLogo';
 import { QuotaBar, QuotaPill, quotaTooltip, toneClasses } from './Quota';
 import { RenameInput } from './RenameInput';
 
 interface Props {
   account: Account;
   providerLabel: string;
+  /** The service's own icon, once known. */
+  providerIcon?: string;
   /** Shortcut to show (⌘ / Ctrl held), or null. */
   shortcut: string | null;
   active: boolean;
@@ -31,6 +34,7 @@ interface Props {
 export function AccountItem({
   account,
   providerLabel,
+  providerIcon,
   shortcut,
   active,
   unread,
@@ -76,15 +80,21 @@ export function AccountItem({
         }
       }}
     >
-      <div class="flex h-8 items-center gap-2">
-        <span
-          class={`dot size-[9px] flex-none rounded-full ${outsideGrid ? 'hollow' : ''}`}
-          style={
-            outsideGrid
-              ? { boxShadow: `inset 0 0 0 1.5px ${account.color}` }
-              : { backgroundColor: account.color }
-          }
-        />
+      <div class="flex h-9 items-center gap-2.5">
+        {/* The service's icon, with the account's color as a badge on its corner. */}
+        <span class="relative flex-none">
+          <ProviderLogo label={providerLabel} icon={providerIcon} class="size-[22px] text-[11px]" />
+          <span class="absolute -right-[3px] -bottom-[3px] grid size-[11px] place-items-center rounded-full bg-panel">
+            <span
+              class={`dot size-[7px] rounded-full ${outsideGrid ? 'hollow' : ''}`}
+              style={
+                outsideGrid
+                  ? { boxShadow: `inset 0 0 0 1.5px ${account.color}` }
+                  : { backgroundColor: account.color }
+              }
+            />
+          </span>
+        </span>
         {editing ? (
           <RenameInput initial={account.name} onCommit={onRename} onCancel={onCancelRename} />
         ) : (
@@ -134,7 +144,7 @@ export function AccountItem({
         )}
       </div>
       {quota && !editing && tone && (
-        <div class="quota-detail flex flex-col gap-1.5 pr-0.5 pb-1.5 pl-[17px]">
+        <div class="quota-detail flex flex-col gap-1.5 pr-0.5 pb-1.5 pl-[32px]">
           <span class={`flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] ${tone.text}`}>
             <span class="quota-at">
               {t('quota.backAt', { time: formatTime(quota.resetsAt, locale) })}

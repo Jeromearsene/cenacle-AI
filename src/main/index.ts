@@ -65,6 +65,7 @@ import {
   webProbeScript,
 } from './notification-test';
 import { isPermissionAllowed } from './permissions';
+import { iconSource, MAX_ICON_LENGTH, toIconUrl } from './provider-icons';
 import {
   DEFAULT_PROVIDER,
   isAuthHost,
@@ -349,6 +350,47 @@ function trackShortcutHint(wc: WebContents): void {
   wc.on('blur', () => shortcutHint.reset());
 }
 
+// Icons already looked at, by service: the page announces its icon again on each navigation.
+const iconsSeen = new Map<string, string>();
+
+/** The image at `source`, as a data URL, or null if it is missing, too big or not an image. */
+async function fetchIcon(source: string, ses: Session): Promise<string | null> {
+  if (source.startsWith('data:')) return source;
+  try {
+    const res = await ses.fetch(source);
+    const length = Number(res.headers.get('content-length') ?? 0);
+    if (!res.ok || length > MAX_ICON_LENGTH) return null;
+    return toIconUrl(res.headers.get('content-type'), new Uint8Array(await res.arrayBuffer()));
+  } catch {
+    return null;
+  }
+}
+
+/** Keeps the icon a service's page announces, to show it next to the service's name. */
+async function learnProviderIcon(acc: Account, wc: WebContents, favicons: string[]): Promise<void> {
+  const serviceUrl = urlOf(acc);
+  try {
+    // Only the service's own pages count, not a sign-in page of another site.
+    if (new URL(wc.getURL()).origin !== new URL(serviceUrl).origin) return;
+  } catch {
+    return;
+  }
+  for (const favicon of favicons.slice(0, 3)) {
+    const source = iconSource(favicon, serviceUrl);
+    if (!source) continue;
+    if (iconsSeen.get(acc.provider) === source) return;
+    const icon = await fetchIcon(source, wc.session);
+    if (!icon) continue;
+    iconsSeen.set(acc.provider, source);
+    if (state.providerIcons[acc.provider] !== icon) {
+      state.providerIcons[acc.provider] = icon;
+      scheduleSave();
+      notify();
+    }
+    return;
+  }
+}
+
 function createView(acc: Account, parent: BrowserWindow): WebContentsView {
   const provider = providerOf(acc.provider);
   const partition = partitionOf(acc.id);
@@ -372,6 +414,7 @@ function createView(acc: Account, parent: BrowserWindow): WebContentsView {
   wc.setWindowOpenHandler(onWindowOpen);
   attachContextMenu(wc, t);
   trackShortcutHint(wc);
+  wc.on('page-favicon-updated', (_event, favicons) => void learnProviderIcon(acc, wc, favicons));
   wc.on('did-create-window', (child) => {
     child.webContents.setWindowOpenHandler(onWindowOpen);
     attachContextMenu(child.webContents, t);
@@ -561,7 +604,10 @@ function publicState(): PublicState {
     locale,
     localeOverride: state.localeOverride,
     theme: state.theme,
-    providers: Object.values(PROVIDERS).map(({ id, label }) => ({ id, label })),
+    providers: Object.values(PROVIDERS).map(({ id, label }) => {
+      const icon = state.providerIcons[id];
+      return icon ? { id, label, icon } : { id, label };
+    }),
     accounts: state.accounts,
     activeId: state.activeId,
     unread: unread.ids(),

@@ -30,5 +30,5 @@ What you can do:
   - macOS: `~/Library/Application Support/Cénacle/`
   - Windows: `%APPDATA%\Cénacle\`
   - Linux: `~/.config/Cénacle/`
-- Account list, layout, window size, and the address of the last conversation of each account: `state.json` in the same folder.
+- Account list, layout, window size, the address of the last conversation of each account, and the small icon of each service (the favicon its page announces, fetched through the account's own session): `state.json` in the same folder.
 - Session data is never stored in the project folder.

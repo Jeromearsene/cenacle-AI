@@ -6,15 +6,16 @@
 
 ## Services
 
-| Service | Status       | Notes                                                                                 |
-| ------- | ------------ | ------------------------------------------------------------------------------------- |
-| Claude  | tested       | Magic-link sign-in recommended.                                                       |
-| ChatGPT | to be tested | Email sign-in. The "Continue with Google / Apple / Microsoft" buttons may be refused. |
-| Gemini  | experimental | Google sign-in: see "Gemini and Google sign-in".                                      |
+| Service    | Status       | Notes                                                                                 |
+| ---------- | ------------ | ------------------------------------------------------------------------------------- |
+| Claude     | tested       | Magic-link sign-in recommended.                                                       |
+| ChatGPT    | to be tested | Email sign-in. The "Continue with Google / Apple / Microsoft" buttons may be refused. |
+| Gemini     | experimental | Google sign-in: see "Gemini and Google sign-in".                                      |
+| Perplexity | to be tested | Email sign-in. The "Continue with Google / Apple" buttons may be refused.             |
 
 ## Adding a service
 
-Services are plain data in `src/main/providers.ts`. To add one (Grok, Perplexity, a self-hosted chat…), add an entry:
+Services are plain data in `src/main/providers.ts`. To add one (Grok, a self-hosted chat…), add an entry:
 
 ```ts
 example: {

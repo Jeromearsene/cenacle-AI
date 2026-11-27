@@ -21,6 +21,14 @@ test.describe('provider registry', () => {
     }
   });
 
+  test('Perplexity is registered', () => {
+    const perplexity = providerOf('perplexity');
+    expect(perplexity.id).toBe('perplexity');
+    expect(perplexity.label).toBe('Perplexity');
+    expect(new URL(perplexity.url).hostname).toBe('www.perplexity.ai');
+    expect(perplexity.ua).toBe('clean');
+  });
+
   test('the default service exists', () => {
     expect(PROVIDERS[DEFAULT_PROVIDER]).toBeDefined();
   });

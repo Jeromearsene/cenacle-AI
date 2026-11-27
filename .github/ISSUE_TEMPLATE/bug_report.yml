@@ -27,7 +27,7 @@ body:
     id: service
     attributes:
       label: Service concerned
-      options: [Claude, ChatGPT, Gemini, Other, Not related to a service]
+      options: [Claude, ChatGPT, Gemini, Perplexity, Other, Not related to a service]
   - type: textarea
     id: extra
     attributes:

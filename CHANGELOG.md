@@ -1,5 +1,11 @@
 # cenacle-ai
 
+## 0.8.1
+
+### Patch Changes
+
+- [#54](https://github.com/Jeromearsene/cenacle-AI/pull/54) [`5627659`](https://github.com/Jeromearsene/cenacle-AI/commit/5627659b2e49d147669e1d12eff81095c4ae6b0a) Thanks [@Jeromearsene](https://github.com/Jeromearsene)! - Arrow keys on a grid divider no longer lose presses: several presses in quick succession (a held key, or a busy computer) now add up instead of each starting from the share still drawn.
+
 ## 0.8.0
 
 ### Minor Changes

@@ -605,7 +605,12 @@ test('the pages come back when the system cancels the pointer', async ({ launch 
 });
 
 test('a resize handle works with the arrow keys', async ({ launch }) => {
-  const { sidebar } = await launch();
+  const { app, sidebar } = await launch();
+  // The handle stops where a cell would get narrower than 320 px, and the window opens at the size
+  // of the screen (small on some CI runners): give it room for a 10-point move either way.
+  await app.evaluate(({ BrowserWindow }) =>
+    BrowserWindow.getAllWindows()[0]?.setContentSize(1400, 800)
+  );
   await addAccount(sidebar, 'ChatGPT');
   await sidebar.getByRole('radio', { name: 'Grid' }).click();
   const width = async () => (await heads(sidebar).nth(0).boundingBox())?.width ?? 0;

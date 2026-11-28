@@ -46,7 +46,14 @@ Get the latest installer from the [releases page](https://github.com/Jeromearsen
 | Windows | `.exe` installer                 |
 | Linux   | AppImage or `.deb`               |
 
-The app is **not code-signed yet**, so macOS and Windows warn you at the first launch: [here is how to open it](docs/install.md#platforms). It updates itself on Windows and Linux; on macOS, until it is signed, download each new version. Prefer building it yourself? See [Development](docs/development.md#run-from-source).
+On a Mac you can also install it with [Homebrew](https://brew.sh):
+
+```bash
+brew tap Jeromearsene/cenacle https://github.com/Jeromearsene/cenacle-AI
+brew install --cask cenacle
+```
+
+The app is **not code-signed yet**, so macOS and Windows warn you at the first launch: [here is how to open it](docs/install.md#platforms) (installed with Homebrew, macOS does not warn you). It updates itself on Windows and Linux; on macOS, until it is signed, run `brew upgrade --cask cenacle` or download each new version. Prefer building it yourself? See [Development](docs/development.md#run-from-source).
 
 ## Works with
 

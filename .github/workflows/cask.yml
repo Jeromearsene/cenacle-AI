@@ -1,0 +1,105 @@
+name: Homebrew cask
+
+# Installs the app the way a user does (`brew tap`, `brew install --cask`) on Apple Silicon and
+# Intel runners, checks the result, then uninstalls it. It runs only when the cask, its updater
+# or this workflow changes, since it downloads the two disk images (about 125 MB each).
+on:
+  push:
+    branches: [main]
+    paths:
+      - Casks/**
+      - scripts/homebrew/**
+      - .github/workflows/cask.yml
+  pull_request:
+    paths:
+      - Casks/**
+      - scripts/homebrew/**
+      - .github/workflows/cask.yml
+  workflow_dispatch:
+
+concurrency:
+  group: cask-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CASK: jeromearsene/cenacle/cenacle
+  HOMEBREW_NO_AUTO_UPDATE: "1"
+  HOMEBREW_NO_ANALYTICS: "1"
+  HOMEBREW_NO_INSTALL_CLEANUP: "1"
+
+jobs:
+  install:
+    name: Install (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: Apple Silicon, os: macos-latest, arch: arm64 }
+          - { name: Intel, os: macos-15-intel, arch: x86_64 }
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # The repository is its own tap: this is what the documentation tells users to run, except
+      # that the tap is cloned from this checkout instead of from GitHub.
+      - name: Tap this repository
+        run: brew tap Jeromearsene/cenacle "$GITHUB_WORKSPACE"
+
+      - name: Style and audit
+        run: |
+          brew style --cask "$CASK"
+          brew audit --cask --strict --online "$CASK"
+
+      - name: Install
+        run: brew install --cask "$CASK"
+
+      - name: Check the installed app
+        run: |
+          app=/Applications/Cenacle.app
+          expected="$(sed -n 's/^ *version "\(.*\)"$/\1/p' Casks/cenacle.rb)"
+
+          test -d "$app"
+          installed="$(plutil -extract CFBundleShortVersionString raw "$app/Contents/Info.plist")"
+          echo "Installed version: $installed (cask: $expected)"
+          test "$installed" = "$expected"
+
+          echo "Architectures: $(lipo -archs "$app/Contents/MacOS/Cenacle")"
+          lipo -archs "$app/Contents/MacOS/Cenacle" | grep -qw "${{ matrix.arch }}"
+
+          codesign --verify --deep --strict --verbose=2 "$app"
+
+          # The cask removes the quarantine flag: without it Gatekeeper blocks the first launch.
+          if xattr -p com.apple.quarantine "$app" 2>/dev/null; then
+            echo "::error::The app is still quarantined"
+            exit 1
+          fi
+
+      - name: Launch the installed app
+        run: |
+          open -a /Applications/Cenacle.app
+          for _ in $(seq 1 30); do
+            pgrep -x Cenacle >/dev/null && break
+            sleep 1
+          done
+          pgrep -x Cenacle >/dev/null
+          sleep 10
+          # Still running after 10 s: it did not crash at launch.
+          pgrep -x Cenacle >/dev/null
+          pkill -x Cenacle || true
+          ls -d "$HOME/Library/Application Support/"*nacle* || true
+
+      - name: Livecheck
+        run: brew livecheck --cask "$CASK"
+
+      - name: Uninstall and zap
+        run: |
+          brew uninstall --cask --zap "$CASK"
+          test ! -e /Applications/Cenacle.app
+          # `zap` removes the data folder (named after the app: with the accent).
+          ! ls -d "$HOME/Library/Application Support/"*nacle* 2>/dev/null

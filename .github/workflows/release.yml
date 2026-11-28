@@ -8,6 +8,8 @@ name: Release
 # - run by hand (Actions > Release > Run workflow) with the tag of an existing release, it
 #   builds the installers of that release again and attaches them: for a release whose
 #   installers are missing or failed to upload.
+# - once the installers are attached, a pull request points the Homebrew cask (Casks/cenacle.rb)
+#   at the new release: merging it is what makes `brew upgrade` offer the new version.
 on:
   push:
     branches: [main]
@@ -108,6 +110,70 @@ jobs:
           gh release upload "$TAG" \
             release/*.{dmg,zip,exe,AppImage,deb,blockmap} release/latest*.yml \
             --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag || needs.version.outputs.tag }}
+
+  homebrew:
+    name: Homebrew cask
+    needs: [version, build]
+    # Only when every installer is attached: `build` is skipped or failed otherwise.
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      # A manual run can rebuild the installers of an old release: the cask must not go back to it.
+      - name: Check that this is the latest release
+        id: latest
+        shell: bash
+        run: |
+          latest="$(gh release view --json tagName --jq .tagName)"
+          if [ "$latest" = "$TAG" ]; then
+            echo "latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::$TAG is not the latest release ($latest): the cask is left alone."
+            echo "latest=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag || needs.version.outputs.tag }}
+      - name: Point the cask at the release
+        id: cask
+        if: steps.latest.outputs.latest == 'true'
+        shell: bash
+        run: |
+          node scripts/homebrew/update-cask.mjs --tag "$TAG"
+          if git diff --quiet -- Casks/cenacle.rb; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.tag || needs.version.outputs.tag }}
+      - name: Open the pull request
+        if: steps.cask.outputs.changed == 'true'
+        shell: bash
+        run: |
+          version="${TAG#v}"
+          branch="chore/homebrew-cask-$version"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git add Casks/cenacle.rb
+          git commit -m "chore: update the Homebrew cask to $version"
+          git push --force origin "$branch"
+          if [ "$(gh pr list --head "$branch" --state open --json number --jq length)" = "0" ]; then
+            gh pr create --base main --head "$branch" \
+              --title "chore: update the Homebrew cask to $version" \
+              --body "Points \`Casks/cenacle.rb\` at release $TAG: new version and SHA-256 of the two macOS disk images, read from the release. Merge it so that \`brew upgrade --cask cenacle\` offers $version."
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ inputs.tag || needs.version.outputs.tag }}

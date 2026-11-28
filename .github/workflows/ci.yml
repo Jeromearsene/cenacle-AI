@@ -54,6 +54,10 @@ jobs:
       - name: Type check
         run: yarn typecheck
 
+      # The tests of the scripts/ folder (the Homebrew cask updater): no display, no network.
+      - name: Test the scripts
+        run: yarn test:scripts
+
       - name: Build
         run: yarn build
 

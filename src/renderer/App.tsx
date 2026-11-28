@@ -5,7 +5,7 @@ import { CellHeaders } from './components/CellHeaders';
 import { GridOverlay } from './components/GridOverlay';
 import { Sidebar } from './components/Sidebar';
 import { I18nProvider } from './i18n';
-import { useAccountDrag, useDividerDrag, useDragCursor } from './use-grid-drag';
+import { useAccountDrag, useDividerDrag, useDragCursor, useSidebarDrag } from './use-grid-drag';
 import {
   api,
   useMultiState,
@@ -21,8 +21,17 @@ export function App() {
   const showHints = useShortcutHint();
   const { drag, start: startAccountDrag } = useAccountDrag(state);
   const { resizing, start: startDividerDrag } = useDividerDrag();
+  const { resizingSidebar, start: startSidebarDrag } = useSidebarDrag();
   useDragCursor(
-    drag ? 'grabbing' : resizing ? (resizing.axis === 'row' ? 'col-resize' : 'row-resize') : null
+    drag
+      ? 'grabbing'
+      : resizing
+        ? resizing.axis === 'row'
+          ? 'col-resize'
+          : 'row-resize'
+        : resizingSidebar
+          ? 'col-resize'
+          : null
   );
   const [renamingId, setRenamingId] = useState<string | null>(null);
   useRenameRequest(useCallback((id: string) => setRenamingId(id), []));
@@ -66,6 +75,8 @@ export function App() {
         shortcutOf={shortcutOf}
         onDragStart={startAccountDrag}
         openSettingsRequest={openSettingsRequest}
+        onResizeStart={startSidebarDrag}
+        resizing={resizingSidebar}
       />
       <CellHeaders
         state={state}

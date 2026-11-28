@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import { clampShare, type Divider, type DropPlan, planDrop } from '../shared/grid';
+import { clampSidebarW } from '../shared/sidebar';
 import type { PublicState } from '../shared/types';
 import { api } from './use-multi';
 
@@ -138,6 +139,39 @@ export function useDividerDrag() {
   }, []);
 
   return { resizing, start };
+}
+
+/** Dragging the sidebar's own resize handle, at its right edge. */
+export function useSidebarDrag() {
+  const [resizingSidebar, setResizingSidebar] = useState(false);
+
+  const start = useCallback((startWidth: number, down: PointerEvent) => {
+    if (down.button !== 0) return;
+    down.preventDefault();
+    const origin = down.clientX;
+    let frame = 0;
+    let width = startWidth;
+    const send = () => {
+      frame = 0;
+      void api.resizeSidebar(width);
+    };
+    setResizingSidebar(true);
+    void api.setDragging(true);
+    trackPointer(
+      (e) => {
+        width = clampSidebarW(startWidth + (e.clientX - origin));
+        if (!frame) frame = requestAnimationFrame(send);
+      },
+      () => {
+        if (frame) cancelAnimationFrame(frame);
+        void api.resizeSidebar(width);
+        void api.setDragging(false);
+        setResizingSidebar(false);
+      }
+    );
+  }, []);
+
+  return { resizingSidebar, start };
 }
 
 /** The cursor of the drag, everywhere (the pointer leaves the thin handle it started on), and no

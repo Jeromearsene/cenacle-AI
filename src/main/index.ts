@@ -46,6 +46,7 @@ import { computeUsage, type ResourceUsage } from '../shared/metrics';
 import { activeFilter } from '../shared/provider-view';
 import type { QuotaInfo } from '../shared/quota';
 import { MAX_ACCOUNT_SHORTCUTS } from '../shared/shortcuts';
+import { clampSidebarW } from '../shared/sidebar';
 import {
   type Account,
   isTheme,
@@ -98,7 +99,6 @@ let bundledIcons: Record<string, string> = {};
 const iconsDir = () =>
   (!app.isPackaged && process.env.CENACLE_ICONS_DIR) || resource('provider-icons');
 
-const SIDEBAR_W = 220; // sidebar width (px)
 const HEADER_H = 32; // height of each cell header (px)
 const isMac = process.platform === 'darwin';
 
@@ -532,7 +532,7 @@ function activeContents(): WebContents | null {
 /** Where the cells are drawn: the window minus the sidebar. */
 function contentArea(w: BrowserWindow): Area {
   const [width = 0, height = 0] = w.getContentSize();
-  return { x: SIDEBAR_W, y: 0, width: Math.max(0, width - SIDEBAR_W), height };
+  return { x: state.sidebarW, y: 0, width: Math.max(0, width - state.sidebarW), height };
 }
 
 /** Brings the grid in line with the accounts (and, in grid mode, makes the active account one of
@@ -681,8 +681,10 @@ function publicState(): PublicState {
     dividers,
     grid: state.layout === 'grid' ? state.grid : null,
     area:
-      win && !win.isDestroyed() ? contentArea(win) : { x: SIDEBAR_W, y: 0, width: 0, height: 0 },
-    sidebarW: SIDEBAR_W,
+      win && !win.isDestroyed()
+        ? contentArea(win)
+        : { x: state.sidebarW, y: 0, width: 0, height: 0 },
+    sidebarW: state.sidebarW,
     fullscreen: win && !win.isDestroyed() ? win.isFullScreen() : false,
     quotas: quota.snapshot(),
   };
@@ -800,6 +802,18 @@ function equalizeGrid(path?: number[]): void {
 function resizeGrid(path: number[], index: number, size: number): void {
   if (state.layout !== 'grid' || !win || win.isDestroyed()) return;
   state.grid = resizeSplit(state.grid, contentArea(win), path, index, size);
+  // Called for every mouse move: only the layout (no menu rebuild).
+  applyLayout();
+  notify();
+  scheduleSave();
+}
+
+/** Resizes the sidebar; the content area (and so the grid) follows immediately. */
+function resizeSidebar(width: number): void {
+  if (!win || win.isDestroyed()) return;
+  const next = clampSidebarW(width);
+  if (next === state.sidebarW) return;
+  state.sidebarW = next;
   // Called for every mouse move: only the layout (no menu rebuild).
   applyLayout();
   notify();
@@ -1029,6 +1043,7 @@ handle('grid:equalize', (path) => {
   if (path === undefined || isPath(path)) equalizeGrid(path);
 });
 handle('grid:dragging', (active) => setDragging(active === true));
+handle('sidebar:resize', (width) => typeof width === 'number' && resizeSidebar(width));
 handle('settings:setLocale', (pref) => setLocaleOverride(pref));
 handle('settings:setTheme', (pref) => setTheme(pref));
 handle('settings:setOpen', (open) => setSettingsOpen(open === true));

@@ -41,7 +41,7 @@ export interface Bounds {
 
 /** What is written to state.json. */
 export interface PersistedState {
-  version: 3;
+  version: 4;
   accounts: Account[];
   activeId: string;
   layout: Layout;
@@ -56,6 +56,8 @@ export interface PersistedState {
   /** Manual language override; null follows the system language. */
   localeOverride: Locale | null;
   theme: Theme;
+  /** Width of the sidebar (px), dragged by the user; see shared/sidebar.ts for the bounds. */
+  sidebarW: number;
 }
 
 /** Position of a cell (header + service view below it), in window pixels. */
@@ -97,6 +99,7 @@ export interface PublicState {
   /** The grid tree (grid mode only) and the area its cells are drawn in. */
   grid: GridNode | null;
   area: Area;
+  /** Width of the sidebar (px); dragging it sends `resizeSidebar` (kept between launches). */
   sidebarW: number;
   /** The window is in full screen (on macOS, the window buttons are then hidden). */
   fullscreen: boolean;
@@ -123,6 +126,8 @@ export interface MultiApi {
   removeFromGrid(id: string): Promise<void>;
   /** Sets the share of child `index` of the split found at `path`. */
   resizeGrid(path: number[], index: number, size: number): Promise<void>;
+  /** Sets the width of the sidebar (px), clamped to its bounds and kept between launches. */
+  resizeSidebar(width: number): Promise<void>;
   /** True while the interface is dragging or resizing: the service pages are hidden meanwhile. */
   setDragging(active: boolean): Promise<void>;
   setLocale(pref: Locale | 'system'): Promise<void>;

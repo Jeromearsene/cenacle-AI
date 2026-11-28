@@ -19,6 +19,8 @@ const en = {
   // sidebar
   'sidebar.accounts': 'Accounts',
   'sidebar.addAccount': '+ Add account',
+  'sidebar.resize': 'Resize the sidebar',
+  'sidebar.resizeHint': 'Drag, or use the arrow keys; double-click to reset',
   'account.rename': 'Rename',
   'account.notInGrid': 'Not in the grid: drag it onto the grid to add it',
   'account.delete': 'Delete',
@@ -140,6 +142,8 @@ export type MessageKey = keyof typeof en;
 const fr: Record<MessageKey, string> = {
   'sidebar.accounts': 'Comptes',
   'sidebar.addAccount': '+ Ajouter un compte',
+  'sidebar.resize': 'Redimensionner la barre latérale',
+  'sidebar.resizeHint': 'Glisser, ou flèches du clavier ; double-clic pour réinitialiser',
   'account.rename': 'Renommer',
   'account.notInGrid': 'Hors de la grille : glisse-le sur une case pour l’ajouter',
   'account.delete': 'Supprimer',

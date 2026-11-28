@@ -1,5 +1,11 @@
 import { Fragment } from 'preact';
 import { providersInUse, visibleAccounts } from '../../shared/provider-view';
+import {
+  clampSidebarW,
+  SIDEBAR_DEFAULT_W,
+  SIDEBAR_MAX_W,
+  SIDEBAR_MIN_W,
+} from '../../shared/sidebar';
 import type { PublicState } from '../../shared/types';
 import { useT } from '../i18n';
 import { api } from '../use-multi';
@@ -23,7 +29,14 @@ interface Props {
   /** A press on an account: it may turn into a drag onto the grid. */
   onDragStart: (id: string, event: PointerEvent) => void;
   openSettingsRequest: number | null;
+  /** A press on the resize handle: it may turn into a drag of the sidebar's own width. */
+  onResizeStart: (width: number, event: PointerEvent) => void;
+  /** The resize handle is the one being dragged right now. */
+  resizing: boolean;
 }
+
+/** Width moved by one press of an arrow key on the resize handle. */
+const SIDEBAR_KEY_STEP = 16;
 
 export function Sidebar({
   state,
@@ -34,6 +47,8 @@ export function Sidebar({
   shortcutOf,
   onDragStart,
   openSettingsRequest,
+  onResizeStart,
+  resizing,
 }: Props) {
   const t = useT();
   const gridIds = new Set(state.rects.map((r) => r.id));
@@ -124,6 +139,32 @@ export function Sidebar({
       <LayoutToggle layout={state.layout} />
       <ResourceUsagePanel accounts={state.accounts} locale={state.locale} />
       <Settings state={state} openRequest={openSettingsRequest} />
+      {/* biome-ignore lint/a11y/useSemanticElements: a focusable "window splitter" (WAI-ARIA); an <hr> cannot take the pointer or the arrow keys */}
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        aria-label={t('sidebar.resize')}
+        aria-valuenow={state.sidebarW}
+        aria-valuemin={SIDEBAR_MIN_W}
+        aria-valuemax={SIDEBAR_MAX_W}
+        data-grabbed={resizing}
+        tabIndex={0}
+        title={t('sidebar.resizeHint')}
+        class={`sidebar-handle absolute inset-y-0 right-0 w-[5px] cursor-col-resize [-webkit-app-region:no-drag] hover:bg-accent/60 focus-visible:bg-accent/60 focus-visible:outline-none ${resizing ? 'bg-accent/60' : ''}`}
+        onPointerDown={(e) => onResizeStart(state.sidebarW, e)}
+        onKeyDown={(e) => {
+          const step =
+            e.key === 'ArrowRight'
+              ? SIDEBAR_KEY_STEP
+              : e.key === 'ArrowLeft'
+                ? -SIDEBAR_KEY_STEP
+                : 0;
+          if (!step) return;
+          e.preventDefault();
+          void api.resizeSidebar(clampSidebarW(state.sidebarW + step));
+        }}
+        onDblClick={() => void api.resizeSidebar(SIDEBAR_DEFAULT_W)}
+      />
     </aside>
   );
 }

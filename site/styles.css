@@ -1005,6 +1005,36 @@ svg {
   color: var(--dl-ink);
 }
 
+.brew {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: stretch;
+  min-width: 0;
+}
+
+.brew-label {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.brew-cmd {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--dl-btn-line);
+  border-radius: 8px;
+  font:
+    13px / 1.6 ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Consolas,
+    monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
 .badge-reco {
   padding: 2px 8px;
   border-radius: 6px;

@@ -1,3 +1,4 @@
+import { useRef } from 'preact/hooks';
 import { clampShare, type Divider } from '../../shared/grid';
 import type { PublicState } from '../../shared/types';
 import { useT } from '../i18n';
@@ -7,6 +8,8 @@ import { NoRoomIcon, ReplaceIcon, SwapIcon } from './icons';
 
 /** Share of a split moved by one press of an arrow key. */
 const KEY_STEP = 0.05;
+/** A press that comes sooner than this after the previous one builds on it (see `lastKey`). */
+const KEY_CHAIN_MS = 300;
 
 interface Props {
   state: PublicState;
@@ -20,6 +23,10 @@ interface Props {
  * something is dragged (the pages are hidden then), the cells and where a drop would land. */
 export function GridOverlay({ state, drag, resizing, onDividerDown }: Props) {
   const t = useT();
+  // The share asked by the last key press. The window answers a little later, and a held key
+  // repeats faster: a press must start from where the previous one went, not from the share
+  // still drawn, or the presses made in between are lost.
+  const lastKey = useRef<{ key: string; share: number; at: number } | null>(null);
   const busy = drag !== null || resizing !== null;
   const dragged = drag ? state.accounts.find((a) => a.id === drag.id) : undefined;
   const plan = drag?.over ?? null;
@@ -97,7 +104,11 @@ export function GridOverlay({ state, drag, resizing, onDividerDown }: Props) {
               const step = e.key === more ? KEY_STEP : e.key === less ? -KEY_STEP : 0;
               if (!step) return;
               e.preventDefault();
-              void api.resizeGrid(d.path, d.index, clampShare(d.size + step, d.min, d.max));
+              const last = lastKey.current;
+              const chained = last?.key === key && performance.now() - last.at < KEY_CHAIN_MS;
+              const share = clampShare((chained ? last.share : d.size) + step, d.min, d.max);
+              lastKey.current = { key, share, at: performance.now() };
+              void api.resizeGrid(d.path, d.index, share);
             }}
             onDblClick={() => void api.equalizeGrid(d.path)}
             class={`divider pointer-events-auto absolute hover:bg-accent/60 focus-visible:bg-accent/60 focus-visible:outline-none ${d.axis === 'row' ? 'cursor-col-resize' : 'cursor-row-resize'} ${grabbed ? 'bg-accent/60' : ''}`}

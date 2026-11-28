@@ -605,18 +605,37 @@ test('the pages come back when the system cancels the pointer', async ({ launch 
 });
 
 test('a resize handle works with the arrow keys', async ({ launch }) => {
-  const { sidebar } = await launch();
+  const { app, sidebar } = await launch();
+  // The handle stops where a cell would get narrower than 320 px, and the window opens at the size
+  // of the screen (small on some CI runners): give it room for a 10-point move either way.
+  await app.evaluate(({ BrowserWindow }) =>
+    BrowserWindow.getAllWindows()[0]?.setContentSize(1400, 800)
+  );
   await addAccount(sidebar, 'ChatGPT');
   await sidebar.getByRole('radio', { name: 'Grid' }).click();
   const width = async () => (await heads(sidebar).nth(0).boundingBox())?.width ?? 0;
   const before = await width();
-  await sidebar.locator('.divider').focus();
-  await sidebar.keyboard.press('ArrowRight');
-  await sidebar.keyboard.press('ArrowRight');
+  const divider = sidebar.locator('.divider');
+  await expect(divider).toHaveAttribute('aria-valuenow', '50');
+  await divider.focus();
+
+  // Keys pressed within the same instant (a held key repeats faster than the window answers,
+  // and a loaded machine answers late) all count: each press moves the divider by 5 points,
+  // from where the previous press left it.
+  const press = (key: string, times: number) =>
+    divider.evaluate(
+      (el, [k, n]) => {
+        for (let i = 0; i < Number(n); i++) {
+          el.dispatchEvent(new KeyboardEvent('keydown', { key: String(k), bubbles: true }));
+        }
+      },
+      [key, times]
+    );
+  await press('ArrowRight', 2);
+  await expect(divider).toHaveAttribute('aria-valuenow', '60');
   await expect.poll(width).toBeGreaterThan(before + 40);
-  await sidebar.keyboard.press('ArrowLeft');
-  await sidebar.keyboard.press('ArrowLeft');
-  await sidebar.keyboard.press('ArrowLeft');
+  await press('ArrowLeft', 3);
+  await expect(divider).toHaveAttribute('aria-valuenow', '45');
   await expect.poll(width).toBeLessThan(before - 20);
 });
 

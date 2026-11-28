@@ -5,6 +5,7 @@ import { parseGrid, pruneTo } from '../shared/grid';
 import { isLocale } from '../shared/i18n';
 import { isId } from '../shared/id';
 import { activeFilter } from '../shared/provider-view';
+import { clampSidebarW, SIDEBAR_DEFAULT_W } from '../shared/sidebar';
 import {
   type Account,
   type AccountView,
@@ -43,7 +44,7 @@ export function makeAccount(existing: Account[], providerId: string = DEFAULT_PR
 export function defaultState(): PersistedState {
   const first = makeAccount([]);
   return {
-    version: 3,
+    version: 4,
     accounts: [first],
     activeId: first.id,
     layout: 'single',
@@ -55,6 +56,7 @@ export function defaultState(): PersistedState {
     fullscreen: false,
     localeOverride: null,
     theme: 'system',
+    sidebarW: SIDEBAR_DEFAULT_W,
   };
 }
 
@@ -94,7 +96,7 @@ function parseBounds(b: unknown): Bounds | null {
   return { x, y, width, height } as Bounds;
 }
 
-/** Validates the content of state.json (v1 to v3); falls back to the default state if unusable. */
+/** Validates the content of state.json (v1 to v4); falls back to the default state if unusable. */
 export function parseState(raw: unknown): PersistedState {
   if (!isRecord(raw) || !Array.isArray(raw.accounts)) return defaultState();
   const accounts = raw.accounts.map(parseAccount).filter((a): a is Account => a !== null);
@@ -103,7 +105,7 @@ export function parseState(raw: unknown): PersistedState {
   // Accounts that no longer exist leave the grid; an empty grid (null) is rebuilt when shown.
   const grid = pruneTo(parseGrid(raw.grid), new Set(accounts.map((a) => a.id)));
   return {
-    version: 3,
+    version: 4,
     accounts,
     activeId: accounts.some((a) => a.id === raw.activeId) ? (raw.activeId as string) : first.id,
     // "columns" is the former name of the grid mode
@@ -116,6 +118,11 @@ export function parseState(raw: unknown): PersistedState {
     fullscreen: raw.fullscreen === true,
     localeOverride: isLocale(raw.localeOverride) ? raw.localeOverride : null,
     theme: isTheme(raw.theme) ? raw.theme : 'system',
+    // state v1 to v3: no "sidebarW" field, the sidebar had a fixed width
+    sidebarW:
+      typeof raw.sidebarW === 'number' && Number.isFinite(raw.sidebarW)
+        ? clampSidebarW(raw.sidebarW)
+        : SIDEBAR_DEFAULT_W,
   };
 }
 

@@ -17,6 +17,7 @@ const api: MultiApi = {
   equalizeGrid: (path) => ipcRenderer.invoke('grid:equalize', path),
   removeFromGrid: (id) => ipcRenderer.invoke('grid:remove', id),
   resizeGrid: (path, index, size) => ipcRenderer.invoke('grid:resize', path, index, size),
+  resizeSidebar: (width) => ipcRenderer.invoke('sidebar:resize', width),
   setDragging: (active) => ipcRenderer.invoke('grid:dragging', active),
   setLocale: (pref: Locale | 'system') => ipcRenderer.invoke('settings:setLocale', pref),
   setTheme: (pref: Theme) => ipcRenderer.invoke('settings:setTheme', pref),

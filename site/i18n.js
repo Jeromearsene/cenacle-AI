@@ -85,8 +85,9 @@ export const messages = {
     dlWin: 'Installer (.exe)',
     dlAppImage: 'AppImage',
     dlDeb: '.deb',
+    dlBrew: 'Or with Homebrew',
     dlNotice:
-      'The installers are not code-signed yet: macOS asks for a manual approval on first launch and Windows shows a SmartScreen warning. Windows and Linux (AppImage) builds update themselves; on macOS, download each new version.',
+      'The installers are not code-signed yet: macOS asks for a manual approval on first launch (not with Homebrew) and Windows shows a SmartScreen warning. Windows and Linux (AppImage) builds update themselves; on macOS, run brew upgrade or download each new version.',
     dlNoticeLink: 'See how to open it',
     supTitle: 'Support the project',
     supText:
@@ -187,8 +188,9 @@ export const messages = {
     dlWin: 'Installateur (.exe)',
     dlAppImage: 'AppImage',
     dlDeb: '.deb',
+    dlBrew: 'Ou avec Homebrew',
     dlNotice:
-      'Les installateurs ne sont pas encore signés : macOS demande une validation manuelle au premier lancement et Windows affiche un avertissement SmartScreen. Les versions Windows et Linux (AppImage) se mettent à jour seules ; sur macOS, téléchargez chaque nouvelle version.',
+      'Les installateurs ne sont pas encore signés : macOS demande une validation manuelle au premier lancement (pas avec Homebrew) et Windows affiche un avertissement SmartScreen. Les versions Windows et Linux (AppImage) se mettent à jour seules ; sur macOS, lancez brew upgrade ou téléchargez chaque nouvelle version.',
     dlNoticeLink: 'Voir comment l’ouvrir',
     supTitle: 'Soutenir le projet',
     supText:

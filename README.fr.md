@@ -46,7 +46,14 @@ Récupère le dernier installateur sur la [page des versions](https://github.com
 | Windows | installateur `.exe`             |
 | Linux   | AppImage ou `.deb`              |
 
-L'app n'est **pas encore signée** : macOS et Windows t'avertissent au premier lancement, voici [comment l'ouvrir](docs/fr/install.md#plateformes). Elle se met à jour toute seule sous Windows et Linux ; sous macOS, tant qu'elle n'est pas signée, télécharge chaque nouvelle version. Tu préfères la construire toi-même ? Voir [Développement](docs/fr/development.md#lancer-depuis-les-sources).
+Sur un Mac, tu peux aussi l'installer avec [Homebrew](https://brew.sh) :
+
+```bash
+brew tap Jeromearsene/cenacle https://github.com/Jeromearsene/cenacle-AI
+brew install --cask cenacle
+```
+
+L'app n'est **pas encore signée** : macOS et Windows t'avertissent au premier lancement, voici [comment l'ouvrir](docs/fr/install.md#plateformes) (installée avec Homebrew, macOS ne t'avertit pas). Elle se met à jour toute seule sous Windows et Linux ; sous macOS, tant qu'elle n'est pas signée, lance `brew upgrade --cask cenacle` ou télécharge chaque nouvelle version. Tu préfères la construire toi-même ? Voir [Développement](docs/fr/development.md#lancer-depuis-les-sources).
 
 ## Services pris en charge
 

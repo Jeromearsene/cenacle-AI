@@ -44,13 +44,16 @@ yarn lint        # Biome: lint + format check (yarn lint:fix to fix, yarn format
 yarn typecheck   # TypeScript, main process + interface
 yarn check       # lint + typecheck
 yarn test:e2e    # builds the app, then runs the end-to-end tests
+yarn test:scripts # tests of the scripts/ folder (the Homebrew cask updater)
 ```
 
 The tests drive the Electron app with Playwright against a fake local service (the `MULTI_TEST_URL` variable, ignored in a packaged app): no network access, no real account. They cover adding and renaming an account, the grid layout (dragging, removing, resizing), cookie and storage isolation between accounts, the browser identifier of each service, persistence after a restart, and the right-click context menu. On Linux without a display: `xvfb-run -a yarn test:e2e` (the tests add `--no-sandbox` by themselves when running as root or in CI). On Linux, if Electron stops at startup with a "SUID sandbox helper" error (common on recent Ubuntu), run `yarn dev --no-sandbox`.
 
-**Continuous integration** (`.github/workflows/ci.yml`) runs on every push to `main` and on every pull request: lint and format, type check and build on Linux, then the end-to-end tests on macOS, Linux and Windows. Dependabot proposes weekly dependency updates.
+**Continuous integration** (`.github/workflows/ci.yml`) runs on every push to `main` and on every pull request: lint and format, type check and build on Linux, then the end-to-end tests on macOS, Linux and Windows. Dependabot proposes weekly dependency updates. A second workflow (`.github/workflows/cask.yml`) runs when the Homebrew cask changes: on Apple Silicon and Intel runners it taps the repository, runs `brew style` and `brew audit`, installs the app, checks its version, architecture, signature and quarantine flag, launches it, then uninstalls it with `--zap`.
 
 **Releases and changelog** use [Changesets](https://github.com/changesets/changesets). A change that users can notice comes with a changeset (`yarn changeset`, one line describing it). Once merged on `main`, a bot keeps a "Version packages" pull request up to date; merging it bumps the version, updates `CHANGELOG.md`, tags the release and builds the installers for the three systems (`.github/workflows/release.yml`). The app checks for updates on startup when packaged (`src/main/updater.ts`).
+
+**Homebrew**: this repository is also a Homebrew _tap_ (users run `brew tap Jeromearsene/cenacle <this repository's URL>`, then `brew install --cask cenacle`). The cask is `Casks/cenacle.rb`, edited by hand except for three values: the version and the SHA-256 of the two macOS `.dmg` files. Once the installers of a release are attached, the release workflow runs `scripts/homebrew/update-cask.mjs`, which reads those values from the release and opens a pull request; merging it is what publishes the new version to Homebrew users. To do it by hand: `node scripts/homebrew/update-cask.mjs --tag v0.8.0`. The workflow leaves the cask alone when the tag is not the latest release (a manual run on an old release). If the installers' names (`artifactName` in `electron-builder.yml`) or the app bundle's name change, change the cask too: `yarn test:scripts` checks that they agree. A signed and notarized app would let the cask drop its `postflight` block that removes the quarantine flag.
 
 ```
 src/main/index.ts                 main process: window, one view per account, layout, menu
@@ -69,7 +72,9 @@ src/shared/types.ts               types shared by the three
 src/renderer/                     Preact + Tailwind interface (sidebar, cell headers, grid overlay)
 resources/                        app icon (SVG source, PNG, ICO, ICNS)
 e2e/                              Playwright tests
-.github/                          CI workflow and Dependabot
+Casks/cenacle.rb                  Homebrew cask (this repository is its own tap)
+scripts/homebrew/                 updates the cask after a release, with its tests
+.github/                          CI, release and cask workflows, Dependabot
 docs/                             the documentation (English; French in docs/fr/)
 ```
 

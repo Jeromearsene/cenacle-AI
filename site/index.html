@@ -470,6 +470,11 @@
                   >
                 </li>
               </ul>
+              <div class="brew">
+                <p class="brew-label" data-i18n="dlBrew">Or with Homebrew</p>
+                <pre class="brew-cmd"><code>brew tap Jeromearsene/cenacle https://github.com/Jeromearsene/cenacle-AI
+brew install --cask cenacle</code></pre>
+              </div>
             </div>
             <div class="os-card" data-os="win">
               <span class="badge-reco" data-i18n="recommended" hidden>Recommended for your system</span>
@@ -511,8 +516,9 @@
           <p class="dl-notice">
             <span data-i18n="dlNotice"
               >The installers are not code-signed yet: macOS asks for a manual approval on first
-              launch and Windows shows a SmartScreen warning. Windows and Linux (AppImage) builds
-              update themselves; on macOS, download each new version.</span
+              launch (not with Homebrew) and Windows shows a SmartScreen warning. Windows and Linux
+              (AppImage) builds update themselves; on macOS, run brew upgrade or download each new
+              version.</span
             >
             <a
               href="https://github.com/Jeromearsene/cenacle-AI/blob/main/docs/install.md#platforms"
